@@ -1,0 +1,9 @@
+Flask
+requests
+python-docx
+PyPDF2
+python-dotenv
+pymongo
+Flask-Login
+flask-bcrypt
+email_validator

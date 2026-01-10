@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ name }}'s Portfolio</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --card-bg: rgba(20, 20, 20, 0.8);
+            --text-main: #e0e0e0;
+            --text-dim: #888;
+
+            --neon-cyan: {
+                    {
+                    theme_color | default('#00f3ff')
+                }
+            }
+
+            ;
+            --neon-magenta: #bc13fe;
+            --neon-yellow: #fcee0a;
+
+            --font-display: 'Orbitron',
+            sans-serif;
+            --font-code: 'JetBrains Mono',
+            monospace;
+
+            --grid-color: rgba(0, 243, 255, 0.15);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-code);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 3D Grid Background */
+        body::after {
+            content: "";
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50vh;
+            background:
+                linear-gradient(transparent 0%, var(--bg-color) 100%),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px),
+                linear-gradient(0deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            transform: perspective(500px) rotateX(60deg);
+            transform-origin: bottom center;
+            z-index: -1;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% {
+                background-position: 0 0, 0 0, 0 0;
+            }
+
+            100% {
+                background-position: 0 0, 0 0, 0 40px;
+            }
+        }
+
+        /* CRT Overlay - Subtle */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 80px;
+            padding: 40px 0;
+            border-bottom: 2px solid var(--neon-cyan);
+            background: linear-gradient(180deg, rgba(0, 243, 255, 0) 0%, rgba(0, 243, 255, 0.05) 100%);
+            position: relative;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            width: 20px;
+            height: 2px;
+            background: var(--bg-color);
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        header h1 {
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            margin: 0;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #fff;
+            text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
+            letter-spacing: 4px;
+        }
+
+        header p.meta {
+            font-size: 1.1rem;
+            color: var(--neon-magenta);
+            margin-top: 15px;
+            text-shadow: 0 0 5px var(--neon-magenta);
+        }
+
+        /* Section Titles */
+        h2 {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: var(--neon-yellow);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        h2::before {
+            content: '>';
+            margin-right: 15px;
+            color: var(--neon-cyan);
+        }
+
+        .section {
+            margin-bottom: 60px;
+            opacity: 0;
+            animation: slideIn 0.6s ease-out forwards;
+        }
+
+        .section:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .section:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .section:nth-child(3) {
+            animation-delay: 0.5s;
+        }
+
+        .section:nth-child(4) {
+            animation-delay: 0.7s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Skills */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 15px;
+        }
+
+        .skill-terminal {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--text-dim);
+            color: var(--neon-cyan);
+            padding: 12px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: default;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .skill-terminal:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px var(--neon-cyan);
+            background: rgba(0, 243, 255, 0.1);
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        /* Cyberpunk Cards */
+        .cyber-card {
+            background: var(--card-bg);
+            border-left: 4px solid var(--text-dim);
+            border-top: 1px solid transparent;
+            /* Prepare for hover */
+            border-right: 1px solid transparent;
+            border-bottom: 1px solid transparent;
+            padding: 25px;
+            margin-bottom: 25px;
+            position: relative;
+            transition: all 0.3s ease;
+            clip-path: polygon(0 0, 100% 0, 100% 90%, 95% 100%, 0 100%);
+        }
+
+        .cyber-card:hover {
+            border-left-color: var(--neon-magenta);
+            border-image: linear-gradient(90deg, var(--neon-magenta), transparent) 1;
+            box-shadow: -5px 0 20px rgba(188, 19, 254, 0.3);
+            transform: translateX(5px);
+            background: rgba(30, 30, 30, 0.9);
+        }
+
+        .cyber-card h3 {
+            margin: 0;
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .cyber-card .cyber-meta {
+            font-size: 0.85rem;
+            color: var(--neon-cyan);
+            margin: 8px 0 15px 0;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .cyber-card p {
+            color: var(--text-main);
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--neon-cyan);
+            border-radius: 4px;
+        }
+
+        .glitch-text:hover {
+            animation: glitch 0.3s infinite;
+        }
+
+        @keyframes glitch {
+            0% {
+                transform: translate(0)
+            }
+
+            20% {
+                transform: translate(-2px, 2px)
+            }
+
+            40% {
+                transform: translate(-2px, -2px)
+            }
+
+            60% {
+                transform: translate(2px, 2px)
+            }
+
+            80% {
+                transform: translate(2px, -2px)
+            }
+
+            100% {
+                transform: translate(0)
+            }
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2.8rem;
+            }
+
+            .container {
+                padding: 40px 15px;
+                margin-top: 60px;
+            }
+
+            nav {
+                justify-content: center;
+            }
+
+            nav ul {
+                padding: 0;
+                font-size: 0.8rem;
+            }
+
+            nav li {
+                margin: 0 8px;
+            }
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(5, 5, 5, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--neon-cyan);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            padding: 15px 0;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav li {
+            margin: 0 20px;
+        }
+
+        nav a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-family: var(--font-display);
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        nav a::before {
+            content: '[';
+            margin-right: 5px;
+            color: var(--neon-cyan);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        nav a::after {
+            content: ']';
+            margin-left: 5px;
+            color: var(--neon-cyan);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        nav a:hover {
+            color: #fff;
+            text-shadow: 0 0 8px var(--neon-cyan);
+        }
+
+        nav a:hover::before,
+        nav a:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="crt-overlay"></div>
+
+    <nav>
+        <ul>
+            <li><a href="#home">Home</a></li>
+            {% if skills %}<li><a href="#skills">Modules</a></li>{% endif %}
+            {% if experience %}<li><a href="#experience">Log</a></li>{% endif %}
+            {% if projects %}<li><a href="#projects">Quests</a></li>{% endif %}
+            {% if education %}<li><a href="#education">Data</a></li>{% endif %}
+        </ul>
+    </nav>
+
+    <div class="container" id="home" style="margin-top: 60px;">
+        <header>
+            <h1 class="glitch-text">{{ name or 'SYSTEM_USR' }}</h1>
+            <p class="meta">
+                ID: {{ email or 'unknown@net' }} <span style="color:#555">|</span> COMM: {{ mobile or 'N/A' }}
+            </p>
+        </header>
+
+        {% if portfolio_summary %}
+        <div class="section" id="about">
+            <h2>System_Info</h2>
+            <div style="border-top: 1px dashed var(--text-dim); padding-top: 20px;">
+                <p style="color: #fff; font-size: 1.1rem;">{{ portfolio_summary }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if skills %}
+        <div class="section" id="skills">
+            <h2>Loaded_Modules</h2>
+            <div class="skills-grid">
+                {% for skill in skills %}
+                <div class="skill-terminal">./{{ skill }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if experience %}
+        <div class="section" id="experience">
+            <h2>Run_Log: Experience</h2>
+            {% for exp in experience %}
+            <div class="cyber-card">
+                <h3>{{ exp.title or 'Unknown_Role' }}</h3>
+                <p class="cyber-meta">@{{ exp.company or 'Unknown_Corp' }} // [{{ exp.dates or 'Time_Error' }}]</p>
+                <p>{{ exp.description or '' }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if projects %}
+        <div class="section" id="projects">
+            <h2>Side_Quests: Projects</h2>
+            {% for project in projects %}
+            <div class="cyber-card">
+                <h3>{{ project.name or 'Project_Alpha' }}</h3>
+                <p class="cyber-meta">STACK :: {{ project.tech or 'Classified' }}</p>
+                <p>{{ project.description or '' }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if education %}
+        <div class="section" id="education">
+            <h2>Database: Education</h2>
+            {% for edu in education %}
+            <div class="cyber-card">
+                <h3>{{ edu.name or 'Data_Corrupted' }}</h3>
+                <p class="cyber-meta">{{ edu.institution or 'Institute_404' }} // {{ edu.dates or 'N/A' }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ name }}'s Portfolio</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            /* Professional Glass Palette - Deep Indigo/Violet */
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            /* More subtle */
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-highlight: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+
+            --primary-gradient-start: {
+                    {
+                    theme_color | default('#4338ca')
+                }
+            }
+
+            ;
+            /* Indigo */
+            --primary-gradient-end: #3b82f6;
+            /* Blue */
+
+            --text-main: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --text-muted: rgba(255, 255, 255, 0.6);
+
+            --font-heading: 'Outfit',
+            sans-serif;
+            --font-body: 'Plus Jakarta Sans',
+            sans-serif;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: radial-gradient(circle at top left, #1e1b4b, #0f172a);
+            background-color: #0f172a;
+            color: var(--text-main);
+            line-height: 1.7;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Abstract Background Shapes */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.6;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--primary-gradient-start);
+            top: -100px;
+            left: -100px;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--primary-gradient-end);
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        .orb-3 {
+            width: 300px;
+            height: 300px;
+            background: #a855f7;
+            /* Purple accent */
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.4;
+            animation-duration: 25s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(30px, 50px) rotate(10deg);
+            }
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        /* Glass Panel */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-top-color: var(--glass-highlight);
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+        }
+
+        /* Staggered Animation Logic handled inline for simplicity or just basic delays */
+        .header-panel {
+            animation-delay: 0.1s;
+        }
+
+        .summary-panel {
+            animation-delay: 0.2s;
+        }
+
+        .skills-panel {
+            animation-delay: 0.3s;
+        }
+
+        .exp-panel {
+            animation-delay: 0.4s;
+        }
+
+        .projects-panel {
+            animation-delay: 0.5s;
+        }
+
+        .edu-panel {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        header {
+            text-align: center;
+        }
+
+        header h1 {
+            font-family: var(--font-heading);
+            margin: 0;
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        header p.contact-info {
+            margin: 15px 0 0;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        h2 {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            color: var(--text-main);
+            margin-top: 0;
+            margin-bottom: 30px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        h2::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--glass-border), transparent);
+            margin-left: 20px;
+        }
+
+        .summary p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 90%;
+            margin-bottom: 0;
+        }
+
+        /* Skills */
+        .skills-list {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .skills-list li {
+            background: rgba(255, 255, 255, 0.05);
+            /* Very light fill */
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .skills-list li:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border-color: #fff;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Cards (Experience, Projects, Education) */
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary-gradient-start), var(--primary-gradient-end));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px) scale(1.01);
+            background: rgba(255, 255, 255, 0.07);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card h3 {
+            margin: 0 0 8px 0;
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: #fff;
+        }
+
+        .card .sub-header {
+            margin: 0 0 15px 0;
+            font-size: 0.95rem;
+            color: var(--primary-gradient-end);
+            /* Accent color for metadata */
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .card p.description {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Mobile adjustment */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2.5rem;
+            }
+
+            .container {
+                padding: 30px 15px;
+            }
+
+            .glass-panel {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="container">
+        <header class="glass-panel header-panel">
+            <h1>{{ name or 'Your Name' }}</h1>
+            <p class="contact-info">{{ email or 'your.email@example.com' }} &bull; {{ mobile or 'Your Phone' }}</p>
+        </header>
+
+        {% if portfolio_summary %}
+        <div class="glass-panel summary-panel">
+            <h2>About Me</h2>
+            <div class="summary">
+                <p>{{ portfolio_summary }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if skills %}
+        <div class="glass-panel skills-panel">
+            <h2>Skills</h2>
+            <ul class="skills-list">
+                {% for skill in skills %}
+                <li>{{ skill }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if experience %}
+        <div class="glass-panel exp-panel">
+            <h2>Experience</h2>
+            <div class="card-grid">
+                {% for exp in experience %}
+                <div class="card">
+                    <h3>{{ exp.title or 'Job Title' }}</h3>
+                    <p class="sub-header">{{ exp.company or 'Company' }} &mdash; {{ exp.dates or 'Dates' }}</p>
+                    <p class="description">{{ exp.description or '' }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if projects %}
+        <div class="glass-panel projects-panel">
+            <h2>Projects</h2>
+            <div class="card-grid">
+                {% for project in projects %}
+                <div class="card">
+                    <h3>{{ project.name or 'Project Name' }}</h3>
+                    <p class="sub-header">Tech: {{ project.tech or 'Technologies' }}</p>
+                    <p class="description">{{ project.description or '' }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if education %}
+        <div class="glass-panel edu-panel">
+            <h2>Education</h2>
+            <div class="card-grid">
+                {% for edu in education %}
+                <div class="card">
+                    <h3>{{ edu.name or 'Degree' }}</h3>
+                    <p class="sub-header">{{ edu.institution or 'Institution' }} &mdash; {{ edu.dates or 'Dates' }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ name }}'s Portfolio</title>
+    <style>
+        :root {
+            --primary-color: {
+                    {
+                    theme_color | default('#2c3e50')
+                }
+            }
+
+            ;
+
+            --text-font: {
+                    {
+                    font | default("'Times New Roman', Times, serif")
+                }
+            }
+
+            ;
+        }
+
+        body {
+            font-family: var(--text-font);
+            background-color: #f4f6f7;
+            color: #3d4852;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 40px;
+            border: 1px solid #dae1e7;
+        }
+
+        header {
+            text-align: left;
+            padding-bottom: 20px;
+            border-bottom: 3px double var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 3rem;
+            color: var(--primary-color);
+        }
+
+        header p {
+            margin: 5px 0;
+            font-size: 1.1rem;
+            color: #788594;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--primary-color);
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            font-family: 'Helvetica Neue', sans-serif;
+            font-weight: bold;
+        }
+
+        .summary p {
+            font-size: 1.1rem;
+            text-align: justify;
+        }
+
+        .skills-list {
+            list-style: none;
+            padding: 0;
+            column-count: 2;
+        }
+
+        .skills-list li {
+            padding: 4px 0;
+            font-size: 1rem;
+        }
+
+        .item {
+            margin-bottom: 20px;
+        }
+
+        .item h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.25rem;
+            color: #3d4852;
+        }
+
+        .item .sub-header {
+            margin: 0;
+            font-size: 1rem;
+            color: #788594;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .item p {
+            margin: 0;
+            color: #3d4852;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>{{ name or 'Your Name' }}</h1>
+            <p>{{ email or 'your.email@example.com' }} | {{ mobile or 'Your Phone' }}</p>
+        </header>
+
+        {% if portfolio_summary %}
+        <div class="section summary">
+            <h2>Summary</h2>
+            <p>{{ portfolio_summary }}</p>
+        </div>
+        {% endif %}
+
+        {% if skills %}
+        <div class="section">
+            <h2>Skills</h2>
+            <ul class="skills-list">
+                {% for skill in skills %}
+                <li>{{ skill }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if experience %}
+        <div class="section">
+            <h2>Experience</h2>
+            {% for exp in experience %}
+            <div class="item">
+                <h3>{{ exp.title or 'Job Title' }}</h3>
+                <p class="sub-header">{{ exp.company or 'Company' }} | {{ exp.dates or 'Dates' }}</p>
+                <p>{{ exp.description or '' }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if education %}
+        <div class="section">
+            <h2>Education</h2>
+            {% for edu in education %}
+            <div class="item">
+                <h3>{{ edu.name or 'Degree or Certificate' }}</h3>
+                <p class="sub-header">{{ edu.institution or 'Institution' }} | {{ edu.dates or 'Dates' }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

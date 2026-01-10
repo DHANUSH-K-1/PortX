@@ -1,0 +1,12 @@
+
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Data directories (created by app.py)
+uploads/
+data/
+generated/

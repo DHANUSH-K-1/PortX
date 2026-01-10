@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ name }}'s Portfolio</title>
+    <style>
+        :root {
+            --primary-color: {
+                    {
+                    theme_color | default('#007bff')
+                }
+            }
+
+            ;
+
+            --text-font: {
+                    {
+                    font | default('Inter, sans-serif')
+                }
+            }
+
+            ;
+        }
+
+        body {
+            font-family: var(--text-font);
+            background-color: #f8f9fa;
+            color: #343a40;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        header {
+            text-align: center;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 3rem;
+            color: #212529;
+        }
+
+        header p {
+            margin: 5px 0;
+            font-size: 1.1rem;
+            color: #6c757d;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            font-size: 1.75rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .summary p {
+            font-size: 1.1rem;
+            text-align: justify;
+        }
+
+        .skills-list {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .skills-list li {
+            background: #007bff;
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .item {
+            margin-bottom: 20px;
+        }
+
+        .item h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.25rem;
+            color: #343a40;
+        }
+
+        .item .sub-header {
+            margin: 0;
+            font-size: 1rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .item p {
+            margin: 0;
+            color: #495057;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>{{ name or 'Your Name' }}</h1>
+            <p>{{ email or 'your.email@example.com' }} | {{ mobile or 'Your Phone' }}</p>
+        </header>
+
+        {% if portfolio_summary %}
+        <div class="section summary">
+            <h2>Summary</h2>
+            <p>{{ portfolio_summary }}</p>
+        </div>
+        {% endif %}
+
+        {% if skills %}
+        <div class="section">
+            <h2>Skills</h2>
+            <ul class="skills-list">
+                {% for skill in skills %}
+                <li>{{ skill }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if experience %}
+        <div class="section">
+            <h2>Experience</h2>
+            {% for exp in experience %}
+            <div class="item">
+                <h3>{{ exp.title or 'Job Title' }}</h3>
+                <p class="sub-header">{{ exp.company or 'Company' }} | {{ exp.dates or 'Dates' }}</p>
+                <p>{{ exp.description or '' }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if education %}
+        <div class="section">
+            <h2>Education</h2>
+            {% for edu in education %}
+            <div class="item">
+                <h3>{{ edu.name or 'Degree or Certificate' }}</h3>
+                <p class="sub-header">{{ edu.institution or 'Institution' }} | {{ edu.dates or 'Dates' }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>
