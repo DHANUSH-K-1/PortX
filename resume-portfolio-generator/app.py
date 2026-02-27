@@ -76,22 +76,67 @@ def extract_resume_data_with_openrouter(text):
     if not openrouter_api_key:
         raise ValueError("OPENROUTER_API_KEY environment variable not set.")
 
+    # List of reliable free models. OpenRouter frequently updates these.
+    FREE_MODELS = [
+        "openrouter/free", # Let OpenRouter pick the best free one
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "google/gemini-2.0-flash-exp:free",
+        "mistralai/mistral-small-24b-instruct-2501:free",
+        "mistralai/mistral-7b-instruct:free"
+    ]
+    
+    import time
+    max_retries = len(FREE_MODELS) * 2 # 2 attempts per model
+    response = None
+    
+    for attempt in range(max_retries):
+        model_index = (attempt // 2) % len(FREE_MODELS)
+        current_model = FREE_MODELS[model_index]
+        
+        try:
+            print(f"Attempt {attempt + 1}: Using model {current_model}")
+            response = requests.post(
+                url="https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {openrouter_api_key}",
+                },
+                json={
+                    "model": current_model,
+                    "messages": [
+                        {"role": "system", "content": "You are an expert resume parser. Extract information from the resume text and return it as a single, valid JSON object. Do not include any explanatory text before or after the JSON object. The JSON object should have the following keys: 'name', 'email', 'mobile', 'skills', 'education', 'experience', 'portfolio_summary'. 'projects'should be list of objects with relevant details(). 'skills' should be a list of strings. 'education' and 'experience' should be a list of objects with relevant details (like name, title, company, dates). 'portfolio_summary' should be a professional summary of 2-3 sentences. If a value is not found, use a sensible default like 'Not found' or an empty list."},
+                        {"role": "user", "content": f"Here is the resume text:\n\n{text}"}
+                    ]
+                },
+                timeout=120
+            )
+            response.raise_for_status()
+            break  # Success
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+            print(f"Connection error on attempt {attempt + 1}: {e}")
+            if attempt == max_retries - 1:
+                raise e
+            time.sleep(5)
+        except requests.exceptions.HTTPError as e:
+            status_code = e.response.status_code
+            print(f"HTTP Error {status_code}: {e.response.text}") # Log full response for debugging
+            if status_code == 429:
+                wait_time = 10 * (attempt + 1)
+                print(f"Rate limit (429) hit for {current_model}. Retrying in {wait_time}s...")
+                if attempt == max_retries - 1:
+                    raise e
+                time.sleep(wait_time)
+            elif 400 <= status_code < 500 and status_code not in [401, 403]:
+                # Skip to next model for any client error (400, 402, 404, etc.)
+                print(f"Client Error {status_code} for {current_model}. Skipping to next model...")
+                if attempt == max_retries - 1:
+                    raise e
+                continue 
+            else:
+                if attempt == max_retries - 1:
+                    raise e
+                time.sleep(5)
+            
     try:
-        response = requests.post(
-            url="https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {openrouter_api_key}",
-            },
-            json={
-                "model": "mistralai/mistral-small-3.1-24b-instruct:free",
-                "messages": [
-                    {"role": "system", "content": "You are an expert resume parser. Extract information from the resume text and return it as a single, valid JSON object. Do not include any explanatory text before or after the JSON object. The JSON object should have the following keys: 'name', 'email', 'mobile', 'skills', 'education', 'experience', 'portfolio_summary'. 'projects'should be list of objects with relevant details(). 'skills' should be a list of strings. 'education' and 'experience' should be a list of objects with relevant details (like name, title, company, dates). 'portfolio_summary' should be a professional summary of 2-3 sentences. If a value is not found, use a sensible default like 'Not found' or an empty list."},
-                    {"role": "user", "content": f"Here is the resume text:\n\n{text}"}
-                ]
-            },
-            timeout=60
-        )
-        response.raise_for_status()
         
         content = response.json()['choices'][0]['message']['content']
         
@@ -431,22 +476,65 @@ def ai_enhance():
     elif text_type == 'experience':
         system_prompt = "You are a definitive resume editor. Rewrite this job description bullet point or paragraph to use strong action verbs, quantify achievements where possible (or suggest placeholders), and improve flow. Keep it professional. Return only the rewritten text."
 
+    FREE_MODELS = [
+        "openrouter/free",
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "google/gemini-2.0-flash-exp:free",
+        "mistralai/mistral-small-24b-instruct-2501:free"
+    ]
+    
+    import time
+    max_retries = len(FREE_MODELS) * 2
+    response = None
+    
+    for attempt in range(max_retries):
+        model_index = (attempt // 2) % len(FREE_MODELS)
+        current_model = FREE_MODELS[model_index]
+        
+        try:
+            print(f"AI Enhance Attempt {attempt + 1}: Using model {current_model}")
+            response = requests.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": current_model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": text}
+                    ]
+                },
+                timeout=30 
+            )
+            response.raise_for_status()
+            break
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+            print(f"Connection error on attempt {attempt + 1}: {e}")
+            if attempt == max_retries - 1:
+                return jsonify(error="Failed to enhance text due to connection error"), 500
+            time.sleep(5)
+        except requests.exceptions.HTTPError as e:
+            status_code = e.response.status_code
+            print(f"AI Enhance HTTP Error {status_code}: {e.response.text}")
+            if status_code == 429:
+                wait_time = 10 * (attempt + 1)
+                print(f"Rate limit (429) hit for {current_model}. Retrying in {wait_time}s...")
+                if attempt == max_retries - 1:
+                    return jsonify(error="AI provider rate limit reached. Please try again later."), 429
+                time.sleep(wait_time)
+            elif 400 <= status_code < 500 and status_code not in [401, 403]:
+                print(f"Client Error {status_code} for {current_model}. Skipping to next model...")
+                if attempt == max_retries - 1:
+                    return jsonify(error="AI provider error occurred. All free models exhausted."), status_code
+                continue
+            else:
+                if attempt == max_retries - 1:
+                    return jsonify(error="Failed to enhance text via AI provider"), 500
+                time.sleep(5)
+
     try:
-        response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "mistralai/mistral-7b-instruct:free", # Using a free/cheap model for speed/cost. Change as needed.
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": text}
-                ]
-            },
-            timeout=30 
-        )
 
         if response.status_code == 200:
             result = response.json()

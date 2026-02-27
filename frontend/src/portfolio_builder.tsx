@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Upload, CheckCircle, Layout, FileText, User, Briefcase, Code } from 'lucide-react';
+import { Upload, CheckCircle, Layout, FileText, User, Briefcase, Code, Loader2 } from 'lucide-react';
 import PortfolioPreview from './PortfolioPreview';
 
 export default function PortfolioBuilder() {
@@ -8,6 +8,7 @@ export default function PortfolioBuilder() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [jsonFilename, setJsonFilename] = useState('');
   const [generatedHtmlFile, setGeneratedHtmlFile] = useState('');
+  const [isProcessingResume, setIsProcessingResume] = useState(false);
 
   const [portfolios, setPortfolios] = useState<any[]>([]);
   const [isLoadingPortfolios, setIsLoadingPortfolios] = useState(false);
@@ -79,6 +80,7 @@ export default function PortfolioBuilder() {
   const handleProcessResume = async () => {
     if (!uploadedFile) return;
 
+    setIsProcessingResume(true);
     const formData = new FormData();
     formData.append('resume', uploadedFile);
 
@@ -107,6 +109,8 @@ export default function PortfolioBuilder() {
     } catch (error: any) {
       console.error('Error uploading file:', error);
       alert(error.message);
+    } finally {
+      setIsProcessingResume(false);
     }
   };
 
@@ -309,10 +313,17 @@ export default function PortfolioBuilder() {
 
             <button
               onClick={handleProcessResume}
-              disabled={!uploadedFile}
-              className="w-full mt-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed rounded-xl text-lg font-semibold transition-all"
+              disabled={!uploadedFile || isProcessingResume}
+              className="w-full mt-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed rounded-xl text-lg font-semibold transition-all flex items-center justify-center gap-2"
             >
-              Process Resume
+              {isProcessingResume ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Process Resume'
+              )}
             </button>
           </div>
         </div>
