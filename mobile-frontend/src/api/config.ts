@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
   getPortfolios: `${BASE_URL}/api/portfolios`,
   getPortfolio: (filename: string) => `${BASE_URL}/api/portfolio/${filename}`,
   updatePortfolio: (filename: string) => `${BASE_URL}/api/portfolio/${filename}`,
+  deletePortfolio: (filename: string) => `${BASE_URL}/api/portfolio/${filename}/delete`,
 };
 
 export default BASE_URL;

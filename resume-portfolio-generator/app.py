@@ -229,13 +229,16 @@ def get_user_portfolios():
         # Serialize for JSON
         results = []
         for p in user_portfolios:
+            data_content = p.get('data', {})
             results.append({
                 'id': str(p['_id']),
                 'name': p.get('name', 'Untitled'),
+                'email': data_content.get('email', 'N/A'),
+                'mobile': data_content.get('mobile', 'N/A'),
                 'created_at': p.get('created_at').isoformat() if p.get('created_at') else None,
                 'preview_data': {
-                    'layout': p.get('data', {}).get('layout', 'modern'), # Fallback or extracting if stored
-                    'title': p.get('data', {}).get('portfolio_summary', '')[:100] + '...' # Snippet
+                    'layout': data_content.get('layout', 'modern'),
+                    'title': data_content.get('portfolio_summary', '')[:100] + '...'
                 }
             })
             
@@ -385,6 +388,22 @@ def get_portfolio_data(filename):
         return jsonify(data)
     except FileNotFoundError:
         return jsonify({'error': 'Portfolio data not found.'}), 404
+
+@app.route('/api/portfolio/<filename>/delete', methods=['POST', 'DELETE'])
+def delete_portfolio(filename):
+    try:
+        # DB deletion
+        if ObjectId.is_valid(filename.replace('.json', '')):
+            mongo.db.portfolios.delete_one({'_id': ObjectId(filename.replace('.json', ''))})
+        
+        # File deletion
+        json_filepath = os.path.join(app.config['DATA_FOLDER'], filename)
+        if os.path.exists(json_filepath):
+            os.remove(json_filepath)
+            
+        return jsonify({'success': True, 'message': 'Portfolio deleted successfully.'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/portfolio/<filename>', methods=['POST'])
 def update_portfolio_data(filename):
