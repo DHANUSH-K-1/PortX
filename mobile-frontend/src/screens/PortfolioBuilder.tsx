@@ -1,29 +1,71 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
-import { Upload, LogOut, Sparkles, CheckCircle2, FileText, Globe, ArrowLeft } from 'lucide-react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Animated, Dimensions, TextInput, Switch, Linking } from 'react-native';
+import { Upload, LogOut, Sparkles, CheckCircle2, FileText, Globe, ArrowLeft, Menu, X, Moon, Sun, ChevronRight, Edit3, Save, Copy, ExternalLink, RefreshCw } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as DocumentPicker from 'expo-document-picker';
-import { API_ENDPOINTS } from '../api/config';
+import * as Clipboard from 'expo-clipboard';
+import BASE_URL, { API_ENDPOINTS } from '../api/config';
+
+const { width } = Dimensions.get('window');
 
 interface PortfolioBuilderProps {
   onLogout: () => void;
 }
 
-interface SelectedFile {
+interface Portfolio {
+  id: string;
   name: string;
-  uri: string;
-  size?: number;
-  mimeType?: string;
+  created_at: string;
+}
+
+interface PortfolioData {
+  name: string;
+  email: string;
+  mobile: string;
+  portfolio_summary: string;
+  skills: string[];
+  education: any[];
+  experience: any[];
 }
 
 export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
-  const [step, setStep] = useState(1);
+  // Main App State
+  const [step, setStep] = useState(1); // 1: Upload, 2: Design, 3: Success, 4: Edit Form
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuAnim = useRef(new Animated.Value(width)).current;
+
+  // Data State
   const [isUploading, setIsUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [editData, setEditData] = useState<PortfolioData | null>(null);
+  const [currentFilename, setCurrentFilename] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [backendFilename, setBackendFilename] = useState<string | null>(null);
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchPortfolios();
+  }, []);
+
+  const fetchPortfolios = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.getPortfolios);
+      const data = await response.json();
+      if (response.ok) setPortfolios(data.portfolios || []);
+    } catch (err) {
+      console.error('Failed to fetch portfolios', err);
+    }
+  };
+
+  const toggleMenu = (open: boolean) => {
+    setIsMenuOpen(open);
+    Animated.timing(menuAnim, {
+      toValue: open ? 0 : width,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
 
   const handlePickDocument = async () => {
     try {
@@ -34,57 +76,59 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
 
       if (!result.canceled) {
         const file = result.assets[0];
-        const fileData = {
-          name: file.name,
-          uri: file.uri,
-          size: file.size,
-          mimeType: file.mimeType,
-        };
-        setSelectedFile(fileData);
-        
-        // Upload to backend
         setIsUploading(true);
         const formData = new FormData();
-        // @ts-ignore - FormData expects a specific structure for files in React Native
+        // @ts-ignore
         formData.append('resume', {
-          uri: fileData.uri,
-          name: fileData.name,
-          type: fileData.mimeType || 'application/octet-stream',
+          uri: file.uri,
+          name: file.name,
+          type: file.mimeType || 'application/octet-stream',
         });
 
         const response = await fetch(API_ENDPOINTS.processResume, {
           method: 'POST',
           body: formData,
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'multipart/form-data',
-          },
         });
 
         const data = await response.json();
-
         if (response.ok) {
-          setBackendFilename(data.filename);
-          setStep(2);
+          setCurrentFilename(data.filename);
+          setEditData(data.data);
+          setStep(4); // Go to Edit Form first
         } else {
-          Alert.alert('Upload Failed', data.error || 'Failed to process resume');
-          setSelectedFile(null);
+          Alert.alert('Error', data.error || 'Failed to process resume');
         }
       }
     } catch (err) {
       Alert.alert('Error', 'Failed to pick document');
-      console.error(err);
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleGeneratePortfolio = async () => {
-    if (!backendFilename || !selectedTemplate) return;
+  const handleEditSaved = () => {
+    setStep(2); // Go to Design after editing
+  };
 
+  const handlePortfolioSelect = async (id: string) => {
+    toggleMenu(false);
+    try {
+      const response = await fetch(API_ENDPOINTS.getPortfolio(id));
+      const data = await response.json();
+      if (response.ok) {
+        setEditData(data);
+        setCurrentFilename(id);
+        setStep(4);
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Could not load project');
+    }
+  };
+
+  const handleGeneratePortfolio = async () => {
+    if (!currentFilename || !selectedTemplate || !editData) return;
     setIsGenerating(true);
     try {
-      // Map display name to backend layout name
       const layoutMap: Record<string, string> = {
         'Modern Minimal': 'modern',
         'Creative Glass': 'glass',
@@ -92,495 +136,317 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
         'Neon Future': 'neon'
       };
 
-      const response = await fetch(API_ENDPOINTS.generatePortfolio(backendFilename), {
+      // First update the data in case it was edited
+      await fetch(API_ENDPOINTS.updatePortfolio(currentFilename), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editData),
+      });
+
+      // Then generate
+      const response = await fetch(API_ENDPOINTS.generatePortfolio(currentFilename), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ layout: layoutMap[selectedTemplate] }),
       });
 
       const data = await response.json();
-
       if (response.ok) {
         setGeneratedUrl(data.generated_file);
         setStep(3);
-      } else {
-        Alert.alert('Generation Failed', data.error || 'Failed to generate portfolio');
+        fetchPortfolios(); // Refresh list
       }
     } catch (error) {
-      Alert.alert('Error', 'Could not connect to the server');
-      console.error(error);
+      Alert.alert('Error', 'Generation failed');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleTemplateSelect = (templateName: string) => {
-    setSelectedTemplate(templateName);
+  const handleCopyLink = async () => {
+    if (generatedUrl) {
+      const fullUrl = `${BASE_URL}/p/${generatedUrl}`;
+      await Clipboard.setStringAsync(fullUrl);
+      Alert.alert('Link Copied', 'Portfolio URL copied to clipboard!');
+    }
   };
 
-  const handleBack = () => {
-    if (step > 1) setStep(step - 1);
+  const handlePreviewLink = () => {
+    if (generatedUrl) {
+      const fullUrl = `${BASE_URL}/p/${generatedUrl}`;
+      Linking.openURL(fullUrl);
+    }
   };
+
+  const theme = isDarkMode ? darkTheme : lightTheme;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       {/* App Header */}
-      <View style={styles.header}>
-        <View style={styles.leftHeader}>
-          {step > 1 && (
-            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-              <ArrowLeft color="#fff" size={20} />
-            </TouchableOpacity>
-          )}
-          <View style={styles.logoContainer}>
-            <Sparkles color="#a855f7" size={24} />
-            <Text style={styles.logoText}>{step === 1 ? 'Build' : step === 2 ? 'Design' : 'Launch'}</Text>
-          </View>
+      <View style={[styles.header, { borderBottomColor: theme.border }]}>
+        <View style={styles.logoContainer}>
+          <Sparkles color="#a855f7" size={24} />
+          <Text style={[styles.logoText, { color: theme.text }]}>PortX</Text>
         </View>
-        <TouchableOpacity onPress={onLogout} style={styles.logoutButton}>
-          <LogOut color="#ef4444" size={20} />
+        <TouchableOpacity onPress={() => toggleMenu(true)} style={styles.menuButton}>
+          <Menu color={theme.text} size={24} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.stepper}>
-        <StepIndicator currentStep={step} stepNumber={1} label="Upload" />
-        <View style={[styles.stepLine, step > 1 && styles.stepLineActive]} />
-        <StepIndicator currentStep={step} stepNumber={2} label="Customize" />
-        <View style={[styles.stepLine, step > 2 && styles.stepLineActive]} />
-        <StepIndicator currentStep={step} stepNumber={3} label="Launch" />
-      </View>
-
+      {/* Main Content */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {step === 1 ? (
-          <View style={styles.uploadSection}>
-            <Text style={styles.sectionTitle}>Start with your resume</Text>
-            <Text style={styles.sectionSubtitle}>We'll use AI to build your professional portfolio in seconds.</Text>
-            
+        {step === 1 && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Start with your resume</Text>
             <TouchableOpacity 
-              style={[styles.uploadBox, selectedFile && styles.uploadBoxSelected]} 
+              style={[styles.uploadBox, { borderColor: theme.border, backgroundColor: isDarkMode ? 'rgba(147, 51, 234, 0.05)' : '#f3f4f6' }]} 
               onPress={handlePickDocument}
               disabled={isUploading}
             >
-              {isUploading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#a855f7" />
-                  <Text style={styles.uploadBoxTitle}>Analyzing Resume...</Text>
-                </View>
-              ) : selectedFile ? (
-                <View style={styles.loadingContainer}>
-                  <FileText color="#10b981" size={40} />
-                  <Text style={styles.uploadBoxTitle}>{selectedFile.name}</Text>
-                  <Text style={styles.uploadBoxSubtitle}>File ready for processing</Text>
-                </View>
-              ) : (
+              {isUploading ? <ActivityIndicator size="large" color="#a855f7" /> : (
                 <>
-                  <View style={styles.uploadIconCircle}>
-                    <Upload color="#a855f7" size={40} />
-                  </View>
-                  <Text style={styles.uploadBoxTitle}>Tap to Upload Resume</Text>
-                  <Text style={styles.uploadBoxSubtitle}>PDF, DOCX (Max 5MB)</Text>
+                  <Upload color="#a855f7" size={48} />
+                  <Text style={[styles.uploadText, { color: theme.text }]}>Tap to Upload Resume</Text>
                 </>
               )}
             </TouchableOpacity>
           </View>
-        ) : step === 2 ? (
-          <View style={styles.templateSection}>
-            <Text style={styles.sectionTitle}>Choose a Template</Text>
-            <Text style={styles.sectionSubtitle}>Select the look that best fits your professional brand.</Text>
-            
-            <View style={styles.templateGrid}>
-              <TemplateCard 
-                name="Modern Minimal" 
-                color="#3b82f6" 
-                isSelected={selectedTemplate === 'Modern Minimal'}
-                onSelect={() => handleTemplateSelect('Modern Minimal')}
-              />
-              <TemplateCard 
-                name="Creative Glass" 
-                color="#ec4899" 
-                isSelected={selectedTemplate === 'Creative Glass'}
-                onSelect={() => handleTemplateSelect('Creative Glass')}
-              />
-              <TemplateCard 
-                name="Professional Dark" 
-                color="#a855f7" 
-                isSelected={selectedTemplate === 'Professional Dark'}
-                onSelect={() => handleTemplateSelect('Professional Dark')}
-              />
-              <TemplateCard 
-                name="Neon Future" 
-                color="#10b981" 
-                isSelected={selectedTemplate === 'Neon Future'}
-                onSelect={() => handleTemplateSelect('Neon Future')}
-              />
-            </View>
+        )}
 
+        {step === 4 && editData && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Review Details</Text>
+            <EditForm data={editData} setData={setEditData} onSave={handleEditSaved} theme={theme} />
+          </View>
+        )}
+
+        {step === 2 && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Choose Layout</Text>
+            <View style={styles.templateGrid}>
+              {['Modern Minimal', 'Creative Glass', 'Professional Dark', 'Neon Future'].map(name => (
+                <TouchableOpacity 
+                  key={name}
+                  onPress={() => setSelectedTemplate(name)}
+                  style={[styles.templateCard, selectedTemplate === name && styles.templateCardSelected]}
+                >
+                  <Text style={[styles.templateName, { color: theme.text }]}>{name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             <TouchableOpacity 
-              style={[styles.nextButton, (!selectedTemplate || isGenerating) && styles.buttonDisabled]}
+              style={[styles.nextButton, !selectedTemplate && styles.buttonDisabled]}
               onPress={handleGeneratePortfolio}
               disabled={!selectedTemplate || isGenerating}
             >
-              <LinearGradient
-                colors={selectedTemplate ? ['#9333ea', '#db2777'] : ['#374151', '#1f2937']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.gradientButton}
-              >
-                {isGenerating ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.nextButtonText}>Generate My Portfolio</Text>
-                )}
+              <LinearGradient colors={['#9333ea', '#db2777']} style={styles.gradientButton}>
+                {isGenerating ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Generate Portfolio</Text>}
               </LinearGradient>
             </TouchableOpacity>
           </View>
-        ) : (
-          <View style={styles.successSection}>
-            <View style={styles.successIconCircle}>
-              <CheckCircle2 color="#10b981" size={60} />
+        )}
+
+        {step === 3 && (
+          <View style={styles.section}>
+            <View style={styles.successIconContainer}>
+              <CheckCircle2 color="#10b981" size={80} />
             </View>
-            <Text style={styles.sectionTitle}>Portfolio Ready!</Text>
-            <Text style={styles.sectionSubtitle}>Your AI-powered portfolio has been generated successfully.</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Launch Successful!</Text>
             
-            <View style={styles.previewCard}>
-              <View style={styles.previewHeader}>
-                <Globe color="#a855f7" size={24} />
-                <Text style={styles.previewUrl}>{generatedUrl ? `portx.io/${generatedUrl.replace('.html', '')}` : 'Processing...'}</Text>
+            <View style={[styles.previewCard, { backgroundColor: isDarkMode ? 'rgba(147, 51, 234, 0.1)' : '#f3e8ff' }]}>
+              <View style={styles.urlRow}>
+                <Globe color="#a855f7" size={20} />
+                <Text style={[styles.previewUrl, { color: theme.text }]} numberOfLines={1} ellipsizeMode="tail">
+                  {generatedUrl ? `portx.io/${generatedUrl.replace('.html', '')}` : 'Processing...'}
+                </Text>
               </View>
-              <Text style={styles.previewStatus}>Live on the web</Text>
+              
+              <View style={styles.actionRow}>
+                <TouchableOpacity style={[styles.actionButton, { backgroundColor: theme.inputBg }]} onPress={handleCopyLink}>
+                  <Copy color={theme.text} size={18} />
+                  <Text style={[styles.actionButtonText, { color: theme.text }]}>Copy Link</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={[styles.actionButton, { backgroundColor: theme.inputBg }]} onPress={handlePreviewLink}>
+                  <ExternalLink color={theme.text} size={18} />
+                  <Text style={[styles.actionButtonText, { color: theme.text }]}>Open Live</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
-            <TouchableOpacity style={styles.nextButton}>
-              <LinearGradient
-                colors={['#9333ea', '#db2777']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.gradientButton}
-              >
-                <Text style={styles.nextButtonText}>View My Portfolio</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+            <View style={styles.footerButtons}>
+              <TouchableOpacity style={styles.buildAnotherButton} onPress={() => setStep(1)}>
+                <LinearGradient colors={['#9333ea', '#db2777']} style={styles.gradientButton}>
+                  <RefreshCw color="#fff" size={20} />
+                  <Text style={styles.buttonText}>Build Another Project</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </ScrollView>
-    </View>
-  );
-}
 
-function StepIndicator({ currentStep, stepNumber, label }: { currentStep: number, stepNumber: number, label: string }) {
-  const isActive = currentStep === stepNumber;
-  const isCompleted = currentStep > stepNumber;
+      {/* Sliding Side Menu */}
+      {isMenuOpen && (
+        <TouchableOpacity 
+          activeOpacity={1} 
+          style={styles.overlay} 
+          onPress={() => toggleMenu(false)} 
+        />
+      )}
+      <Animated.View style={[styles.sideMenu, { transform: [{ translateX: menuAnim }], backgroundColor: theme.cardBg }]}>
+        <View style={styles.menuHeader}>
+          <Text style={[styles.menuTitle, { color: theme.text }]}>Account</Text>
+          <TouchableOpacity onPress={() => toggleMenu(false)}>
+            <X color={theme.text} size={24} />
+          </TouchableOpacity>
+        </View>
 
-  return (
-    <View style={styles.stepItem}>
-      <View style={[
-        styles.stepCircle, 
-        isActive && styles.stepCircleActive,
-        isCompleted && styles.stepCircleCompleted
-      ]}>
-        {isCompleted ? (
-          <CheckCircle2 color="#fff" size={16} />
-        ) : (
-          <Text style={[styles.stepNumber, isActive && styles.stepNumberActive]}>{stepNumber}</Text>
-        )}
-      </View>
-      <Text style={[styles.stepLabel, isActive && styles.stepLabelActive]}>{label}</Text>
-    </View>
-  );
-}
+        <View style={styles.userInfo}>
+          <View style={styles.avatar}><Text style={styles.avatarText}>JD</Text></View>
+          <Text style={[styles.userName, { color: theme.text }]}>User Settings</Text>
+        </View>
 
-function TemplateCard({ name, color, isSelected, onSelect }: { name: string, color: string, isSelected: boolean, onSelect: () => void }) {
-  return (
-    <TouchableOpacity 
-      style={[styles.templateCard, isSelected && styles.templateCardSelected]} 
-      onPress={onSelect}
-    >
-      <View style={[styles.templatePreview, { backgroundColor: color + '15' }]}>
-        <View style={[styles.templateBar, { backgroundColor: color, width: '60%' }]} />
-        <View style={[styles.templateBar, { backgroundColor: color + '40', width: '40%' }]} />
-        <View style={[styles.templateBar, { backgroundColor: color + '40', width: '80%' }]} />
-        {isSelected && (
-          <View style={styles.checkBadge}>
-            <CheckCircle2 color="#fff" size={16} />
+        <View style={[styles.menuItem, { borderBottomColor: theme.border }]}>
+          <View style={styles.menuItemLeft}>
+            {isDarkMode ? <Moon color="#a855f7" size={20} /> : <Sun color="#f59e0b" size={20} />}
+            <Text style={[styles.menuItemText, { color: theme.text }]}>Dark Mode</Text>
           </View>
-        )}
-      </View>
-      <Text style={[styles.templateName, isSelected && styles.templateNameActive]}>{name}</Text>
-    </TouchableOpacity>
+          <Switch value={isDarkMode} onValueChange={setIsDarkMode} />
+        </View>
+
+        <Text style={styles.menuSectionTitle}>My Projects</Text>
+        <ScrollView style={styles.projectList}>
+          {portfolios.map(p => (
+            <TouchableOpacity key={p.id} style={styles.projectItem} onPress={() => handlePortfolioSelect(p.id)}>
+              <FileText color="#6b7280" size={18} />
+              <Text style={[styles.projectItemText, { color: theme.text }]}>{p.name}</Text>
+              <ChevronRight color="#6b7280" size={16} />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <TouchableOpacity style={styles.logoutMenuItem} onPress={onLogout}>
+          <LogOut color="#ef4444" size={20} />
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
   );
 }
+
+function EditForm({ data, setData, onSave, theme }: { data: PortfolioData, setData: any, onSave: () => void, theme: any }) {
+  const updateField = (field: string, value: string) => {
+    setData({ ...data, [field]: value });
+  };
+
+  return (
+    <View style={styles.form}>
+      <Text style={[styles.label, { color: theme.textMuted }]}>Full Name</Text>
+      <TextInput 
+        style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} 
+        value={data.name} 
+        onChangeText={(v) => updateField('name', v)}
+      />
+      
+      <Text style={[styles.label, { color: theme.textMuted }]}>Email</Text>
+      <TextInput 
+        style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} 
+        value={data.email} 
+        onChangeText={(v) => updateField('email', v)}
+      />
+
+      <Text style={[styles.label, { color: theme.textMuted }]}>Professional Summary</Text>
+      <TextInput 
+        style={[styles.input, styles.textArea, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} 
+        value={data.portfolio_summary} 
+        multiline 
+        onChangeText={(v) => updateField('portfolio_summary', v)}
+      />
+
+      <Text style={[styles.label, { color: theme.textMuted }]}>Skills (comma separated)</Text>
+      <TextInput 
+        style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} 
+        value={data.skills.join(', ')} 
+        onChangeText={(v) => setData({ ...data, skills: v.split(',').map(s => s.trim()) })}
+      />
+
+      <TouchableOpacity style={styles.saveButton} onPress={onSave}>
+        <LinearGradient colors={['#9333ea', '#db2777']} style={styles.gradientButton}>
+          <Save color="#fff" size={20} />
+          <Text style={styles.buttonText}>Save & Continue</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const darkTheme = {
+  bg: '#000',
+  text: '#fff',
+  textMuted: '#9ca3af',
+  border: 'rgba(255,255,255,0.1)',
+  cardBg: '#111',
+  inputBg: '#1f2937',
+};
+
+const lightTheme = {
+  bg: '#f9fafb',
+  text: '#111',
+  textMuted: '#6b7280',
+  border: '#e5e7eb',
+  cardBg: '#fff',
+  inputBg: '#fff',
+};
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-  },
-  leftHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  backButton: {
-    padding: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },
-  logoutButton: {
-    padding: 8,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
-  },
-  stepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 40,
-  },
-  stepItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  stepCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#1f2937',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#374151',
-  },
-  stepCircleActive: {
-    backgroundColor: '#9333ea',
-    borderColor: '#a855f7',
-  },
-  stepCircleCompleted: {
-    backgroundColor: '#10b981',
-    borderColor: '#34d399',
-  },
-  stepNumber: {
-    color: '#9ca3af',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  stepNumberActive: {
-    color: '#fff',
-  },
-  stepLabel: {
-    color: '#6b7280',
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  stepLabelActive: {
-    color: '#a855f7',
-  },
-  stepLine: {
-    flex: 1,
-    height: 2,
-    backgroundColor: '#1f2937',
-    marginHorizontal: 10,
-    marginTop: -14,
-  },
-  stepLineActive: {
-    backgroundColor: '#9333ea',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  uploadSection: {
-    alignItems: 'center',
-    marginTop: 40,
-  },
-  sectionTitle: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  sectionSubtitle: {
-    color: '#9ca3af',
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 40,
-    lineHeight: 24,
-  },
-  uploadBox: {
-    width: '100%',
-    aspectRatio: 1,
-    backgroundColor: 'rgba(88, 28, 135, 0.1)',
-    borderWidth: 2,
-    borderColor: 'rgba(168, 85, 247, 0.3)',
-    borderStyle: 'dashed',
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 40,
-  },
-  uploadBoxSelected: {
-    borderStyle: 'solid',
-    borderColor: '#10b981',
-    backgroundColor: 'rgba(16, 185, 129, 0.05)',
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    gap: 16,
-  },
-  uploadIconCircle: {
-    width: 80,
-    height: 80,
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
-  uploadBoxTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  uploadBoxSubtitle: {
-    color: '#6b7280',
-    fontSize: 14,
-    marginTop: 4,
-  },
-  templateSection: {
-    marginTop: 20,
-  },
-  templateGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 16,
-    marginBottom: 40,
-  },
-  templateCard: {
-    width: '47%',
-    gap: 12,
-    padding: 4,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  templateCardSelected: {
-    borderColor: '#9333ea',
-    backgroundColor: 'rgba(147, 51, 234, 0.05)',
-  },
-  templatePreview: {
-    height: 140,
-    borderRadius: 16,
-    padding: 16,
-    gap: 8,
-    position: 'relative',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  templateBar: {
-    height: 8,
-    borderRadius: 4,
-  },
-  checkBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: '#9333ea',
-    borderRadius: 12,
-    padding: 2,
-  },
-  templateName: {
-    color: '#9ca3af',
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-    paddingBottom: 8,
-  },
-  templateNameActive: {
-    color: '#fff',
-  },
-  nextButton: {
-    height: 56,
-    borderRadius: 28,
-    overflow: 'hidden',
-    marginTop: 20,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  gradientButton: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  nextButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  successSection: {
-    alignItems: 'center',
-    marginTop: 40,
-    gap: 12,
-  },
-  successIconCircle: {
-    width: 100,
-    height: 100,
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    borderRadius: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  previewCard: {
-    width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
-    marginVertical: 20,
-    alignItems: 'center',
-  },
-  previewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 8,
-  },
-  previewUrl: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  previewStatus: {
-    color: '#10b981',
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  container: { flex: 1 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 60, paddingBottom: 20, borderBottomWidth: 1 },
+  logoContainer: { flexDirection: 'row', alignItems: 'center' },
+  logoText: { fontSize: 20, fontWeight: 'bold', marginLeft: 8 },
+  menuButton: { padding: 8 },
+  scrollContent: { padding: 20 },
+  section: { gap: 20 },
+  sectionTitle: { fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
+  uploadBox: { width: '100%', aspectRatio: 1.2, borderWidth: 2, borderStyle: 'dashed', borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  uploadText: { marginTop: 12, fontSize: 16, fontWeight: '600' },
+  form: { gap: 12 },
+  label: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
+  input: { height: 50, borderRadius: 12, paddingHorizontal: 16, borderWidth: 1 },
+  textArea: { height: 100, paddingTop: 12 },
+  saveButton: { height: 56, borderRadius: 28, overflow: 'hidden', marginTop: 10 },
+  templateGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center' },
+  templateCard: { width: '45%', height: 80, backgroundColor: '#9333ea20', borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
+  templateCardSelected: { borderColor: '#9333ea', backgroundColor: '#9333ea40' },
+  templateName: { fontWeight: '600' },
+  nextButton: { height: 56, borderRadius: 28, overflow: 'hidden', marginTop: 20 },
+  buttonDisabled: { opacity: 0.5 },
+  gradientButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  successIconContainer: { alignSelf: 'center', marginVertical: 10 },
+  previewCard: { width: '100%', borderRadius: 24, padding: 24, marginVertical: 10, alignItems: 'center', gap: 20, borderWidth: 1, borderColor: 'rgba(147, 51, 234, 0.2)' },
+  urlRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 10 },
+  previewUrl: { fontSize: 16, fontWeight: '600', flex: 1 },
+  actionRow: { flexDirection: 'row', gap: 12, width: '100%' },
+  actionButton: { flex: 1, height: 48, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1, borderColor: 'rgba(147, 51, 234, 0.3)' },
+  actionButtonText: { fontSize: 14, fontWeight: '600' },
+  footerButtons: { width: '100%', marginTop: 10 },
+  buildAnotherButton: { height: 56, borderRadius: 28, overflow: 'hidden' },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 100 },
+  sideMenu: { position: 'absolute', top: 0, right: 0, bottom: 0, width: width * 0.8, zIndex: 101, padding: 24, paddingTop: 60 },
+  menuHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 },
+  menuTitle: { fontSize: 24, fontWeight: 'bold' },
+  userInfo: { flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 32 },
+  avatar: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#9333ea', alignItems: 'center', justifyContent: 'center' },
+  avatarText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  userName: { fontSize: 18, fontWeight: '600' },
+  menuItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1 },
+  menuItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  menuItemText: { fontSize: 16, fontWeight: '500' },
+  menuSectionTitle: { fontSize: 14, fontWeight: 'bold', color: '#6b7280', textTransform: 'uppercase', marginTop: 24, marginBottom: 12 },
+  projectList: { flex: 1 },
+  projectItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
+  projectItemText: { flex: 1, fontSize: 15 },
+  logoutMenuItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 20, marginTop: 'auto' },
+  logoutText: { color: '#ef4444', fontSize: 16, fontWeight: '600' }
 });

@@ -8,6 +8,8 @@ export const API_ENDPOINTS = {
   processResume: `${BASE_URL}/api/process-resume`,
   generatePortfolio: (filename: string) => `${BASE_URL}/api/generate-html/${filename}`,
   getPortfolios: `${BASE_URL}/api/portfolios`,
+  getPortfolio: (filename: string) => `${BASE_URL}/api/portfolio/${filename}`,
+  updatePortfolio: (filename: string) => `${BASE_URL}/api/portfolio/${filename}`,
 };
 
 export default BASE_URL;
