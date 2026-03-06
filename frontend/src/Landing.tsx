@@ -31,7 +31,7 @@ export default function Landing({ onLoginClick, onRegisterClick }: LandingProps)
                 </div>
             </nav>
 
-            <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center min-h-screen relative overflow-hidden">
+            <div className=" mx-auto  py-20 flex flex-col items-center justify-center min-h-screen relative overflow-hidden">
                 {/* Background Blobs */}
                 <div className="absolute top-1/4 -left-20 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse"></div>
                 <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-pink-600/20 rounded-full blur-3xl animate-pulse delay-700"></div>

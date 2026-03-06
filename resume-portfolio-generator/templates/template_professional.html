@@ -1,170 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ name }}'s Portfolio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary-color: {
-                    {
-                    theme_color | default('#2c3e50')
-                }
-            }
-
-            ;
-
-            --text-font: {
-                    {
-                    font | default("'Times New Roman', Times, serif")
-                }
-            }
-
-            ;
+            --primary: {{ theme_color | default('#00D9FF') }};
+            --secondary: #6366F1;
+            --bg-dark: #0A0E27;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --text-primary: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.5);
+            --font-display: 'Syne', sans-serif;
+            --font-body: 'Manrope', sans-serif;
+        }
+        body { font-family: var(--font-body); background: var(--bg-dark); color: var(--text-primary); line-height: 1.6; overflow-x: hidden; }
+        
+        /* Animated Background Restored */
+        .bg-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient(135deg, #0A0E27 0%, #1a1f3a 50%, #0A0E27 100%); }
+        .bg-gradient::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 217, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%);
+            animation: backgroundShift 20s ease infinite;
+        }
+        @keyframes backgroundShift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(5%, 5) rotate(10deg); }
+            66% { transform: translate(-5%, 5%) rotate(-10deg); }
         }
 
-        body {
-            font-family: var(--text-font);
-            background-color: #f4f6f7;
-            color: #3d4852;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
+        .grid-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background-image: linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px); background-size: 50px 50px; opacity: 0.5; }
+        
+        nav { position: fixed; top: 0; width: 100%; z-index: 1000; padding: 1.5rem 0; background: rgba(10, 14, 39, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; color: var(--primary); text-decoration: none; }
+        
+        /* Entry Animations */
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .hero { min-height: 100vh; display: flex; align-items: center; padding: 8rem 2rem 4rem; }
+        .hero-container { max-width: 1400px; margin: 0 auto; width: 100%; }
+        .hero-title { font-family: var(--font-display); font-size: 4.5rem; line-height: 1.1; font-weight: 800; margin-bottom: 1.5rem; animation: fadeInUp 1s ease forwards; }
+        .gradient-text { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-subtitle { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 2rem; max-width: 700px; animation: fadeInUp 1s ease 0.2s forwards; opacity: 0; }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .container {
-            max-width: 900px;
-            margin: auto;
-            background: #fff;
-            padding: 40px;
-            border: 1px solid #dae1e7;
+        section { padding: 6rem 2rem; }
+        .section-title { font-family: var(--font-display); font-size: 2.5rem; font-weight: 800; margin-bottom: 3rem; text-align: center; }
+        .glass-card { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 2rem; transition: all 0.3s ease; }
+        .glass-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 30px rgba(0, 217, 255, 0.2); }
+        
+        .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; }
+        .skill-tag { background: rgba(0, 217, 255, 0.1); border: 1px solid var(--primary); padding: 0.8rem; border-radius: 12px; text-align: center; font-weight: 600; position: relative; overflow: hidden; }
+        .skill-tag::after {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
 
-        header {
-            text-align: left;
-            padding-bottom: 20px;
-            border-bottom: 3px double var(--primary-color);
-            margin-bottom: 30px;
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 3rem;
-            color: var(--primary-color);
-        }
-
-        header p {
-            margin: 5px 0;
-            font-size: 1.1rem;
-            color: #788594;
-        }
-
-        .section {
-            margin-bottom: 30px;
-        }
-
-        .section h2 {
-            font-size: 1.5rem;
-            color: var(--primary-color);
-            border-bottom: 1px solid var(--primary-color);
-            padding-bottom: 8px;
-            margin-bottom: 20px;
-            font-family: 'Helvetica Neue', sans-serif;
-            font-weight: bold;
-        }
-
-        .summary p {
-            font-size: 1.1rem;
-            text-align: justify;
-        }
-
-        .skills-list {
-            list-style: none;
-            padding: 0;
-            column-count: 2;
-        }
-
-        .skills-list li {
-            padding: 4px 0;
-            font-size: 1rem;
-        }
-
-        .item {
-            margin-bottom: 20px;
-        }
-
-        .item h3 {
-            margin: 0 0 5px 0;
-            font-size: 1.25rem;
-            color: #3d4852;
-        }
-
-        .item .sub-header {
-            margin: 0;
-            font-size: 1rem;
-            color: #788594;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        .item p {
-            margin: 0;
-            color: #3d4852;
-        }
+        .projects-grid, .timeline { display: grid; gap: 2rem; }
+        .timeline-item { border-left: 2px solid var(--primary); padding-left: 1.5rem; position: relative; margin-bottom: 1rem; }
+        .timeline-item::before { content: ''; position: absolute; left: -9px; top: 0; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+        
+        .footer { padding: 2rem; text-align: center; border-top: 1px solid var(--glass-border); }
+        @media (max-width: 768px) { .hero-title { font-size: 2.5rem; } }
     </style>
 </head>
-
 <body>
-    <div class="container">
-        <header>
-            <h1>{{ name or 'Your Name' }}</h1>
-            <p>{{ email or 'your.email@example.com' }} | {{ mobile or 'Your Phone' }}</p>
-        </header>
+    <div class="bg-gradient"></div>
+    <div class="grid-overlay"></div>
 
-        {% if portfolio_summary %}
-        <div class="section summary">
-            <h2>Summary</h2>
-            <p>{{ portfolio_summary }}</p>
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="logo">{{ name | upper }}</a>
         </div>
-        {% endif %}
+    </nav>
 
-        {% if skills %}
-        <div class="section">
-            <h2>Skills</h2>
-            <ul class="skills-list">
-                {% for skill in skills %}
-                <li>{{ skill }}</li>
-                {% endfor %}
-            </ul>
+    <section class="hero">
+        <div class="hero-container">
+            <h1 class="hero-title">I am <span class="gradient-text">{{ name }}</span></h1>
+            <p class="hero-subtitle">{{ portfolio_summary or about }}</p>
+            <div class="contact-info reveal">
+                <p><i class="fas fa-envelope"></i> {{ email }}</p>
+                {% if mobile %}<p><i class="fas fa-phone"></i> {{ mobile }}</p>{% endif %}
+            </div>
         </div>
-        {% endif %}
+    </section>
 
-        {% if experience %}
-        <div class="section">
-            <h2>Experience</h2>
+    {% if skills %}
+    <section id="skills" class="reveal">
+        <h2 class="section-title">Expertise</h2>
+        <div class="skills-grid">
+            {% for skill in skills %}
+            <div class="skill-tag">{{ skill.name if skill is mapping else skill }}</div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if experience %}
+    <section id="experience" class="reveal">
+        <h2 class="section-title">Experience</h2>
+        <div class="timeline">
             {% for exp in experience %}
-            <div class="item">
-                <h3>{{ exp.title or 'Job Title' }}</h3>
-                <p class="sub-header">{{ exp.company or 'Company' }} | {{ exp.dates or 'Dates' }}</p>
+            <div class="timeline-item glass-card">
+                <h3>{{ exp.title }}</h3>
+                <p style="color: var(--primary)">{{ exp.company }} | {{ exp.dates or '' }}</p>
                 <p>{{ exp.description or '' }}</p>
             </div>
             {% endfor %}
         </div>
-        {% endif %}
+    </section>
+    {% endif %}
 
-        {% if education %}
-        <div class="section">
-            <h2>Education</h2>
-            {% for edu in education %}
-            <div class="item">
-                <h3>{{ edu.name or 'Degree or Certificate' }}</h3>
-                <p class="sub-header">{{ edu.institution or 'Institution' }} | {{ edu.dates or 'Dates' }}</p>
+    {% if projects %}
+    <section id="projects" class="reveal">
+        <h2 class="section-title">Selected Work</h2>
+        <div class="projects-grid">
+            {% for project in projects %}
+            <div class="glass-card">
+                <h3>{{ project.name }}</h3>
+                <p>{{ project.description or '' }}</p>
+                {% if project.tech %}
+                <div style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    {% for t in project.tech %}<span style="font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px;">{{ t }}</span>{% endfor %}
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
-        {% endif %}
-    </div>
-</body>
+    </section>
+    {% endif %}
 
+    {% if education %}
+    <section id="education" class="reveal">
+        <h2 class="section-title">Education</h2>
+        <div class="timeline">
+            {% for edu in education %}
+            <div class="timeline-item glass-card">
+                <h3>{{ edu.name or edu.degree }}</h3>
+                <p>{{ edu.institution or edu.school }}</p>
+                <p>{{ edu.dates or '' }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <footer class="footer">
+        <p>&copy; 2026 {{ name }}. Powered by PortX.</p>
+    </footer>
+
+    <script>
+        // Simple Scroll Reveal Logic
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 150;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        // Initial check
+        reveal();
+    </script>
+</body>
 </html>
