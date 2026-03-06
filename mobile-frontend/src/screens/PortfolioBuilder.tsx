@@ -24,10 +24,12 @@ interface PortfolioData {
   name: string;
   email: string;
   mobile: string;
+  profile_photo?: string;
   portfolio_summary: string;
   skills: string[];
   education: any[];
   experience: any[];
+  projects: any[];
 }
 
 export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
@@ -46,6 +48,18 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
   const [currentFilename, setCurrentFilename] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
+  const [showAllTemplates, setShowAllTemplates] = useState(false);
+
+  const ALL_TEMPLATES = [
+    { name: 'Modern Minimal', id: 'modern' },
+    { name: 'Creative Glass', id: 'glass' },
+    { name: 'Professional Dark', id: 'professional' },
+    { name: 'Neon Future', id: 'neon' },
+    { name: 'Classic Minimal', id: 'minimal' },
+    { name: 'Arty Creative', id: 'creative' }
+  ];
+
+  const visibleTemplates = showAllTemplates ? ALL_TEMPLATES : ALL_TEMPLATES.slice(0, 4);
 
   useEffect(() => {
     fetchPortfolios();
@@ -130,7 +144,14 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
     if (!currentFilename || !selectedTemplate || !editData) return;
     setIsGenerating(true);
     try {
-      const layoutMap: Record<string, string> = { 'Modern Minimal': 'modern', 'Creative Glass': 'glass', 'Professional Dark': 'professional', 'Neon Future': 'neon' };
+      const layoutMap: Record<string, string> = { 
+        'Modern Minimal': 'modern', 
+        'Creative Glass': 'glass', 
+        'Professional Dark': 'professional', 
+        'Neon Future': 'neon',
+        'Classic Minimal': 'minimal',
+        'Arty Creative': 'creative'
+      };
       await fetch(API_ENDPOINTS.updatePortfolio(currentFilename), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -263,12 +284,32 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Choose Layout</Text>
             <View style={styles.templateGrid}>
-              {['Modern Minimal', 'Creative Glass', 'Professional Dark', 'Neon Future'].map(name => (
-                <TouchableOpacity key={name} onPress={() => setSelectedTemplate(name)} style={[styles.templateCard, selectedTemplate === name && styles.templateCardSelected]}>
-                  <Text style={[styles.templateName, { color: theme.text }]}>{name}</Text>
+              {visibleTemplates.map(t => (
+                <TouchableOpacity 
+                  key={t.id} 
+                  onPress={() => setSelectedTemplate(t.name)} 
+                  style={[styles.templateCard, selectedTemplate === t.name && styles.templateCardSelected, { backgroundColor: theme.cardBg, borderColor: theme.border }]}
+                >
+                  <View style={[styles.templatePreview, { backgroundColor: theme.inputBg }]}>
+                    {/* Minimalist layout preview shapes */}
+                    <View style={{ width: '80%', height: 8, backgroundColor: '#9333ea30', borderRadius: 4 }} />
+                    <View style={{ width: '60%', height: 8, backgroundColor: '#9333ea30', borderRadius: 4, marginTop: 4 }} />
+                  </View>
+                  <Text style={[styles.templateName, { color: theme.text }]}>{t.name}</Text>
                 </TouchableOpacity>
               ))}
             </View>
+            
+            <TouchableOpacity 
+              style={[styles.showMoreBtn, { borderColor: theme.border }]} 
+              onPress={() => setShowAllTemplates(!showAllTemplates)}
+            >
+              <Text style={{ color: '#a855f7', fontWeight: '600' }}>
+                {showAllTemplates ? 'Show Less Styles' : 'Show More Styles'}
+              </Text>
+              <ChevronRight color="#a855f7" size={16} style={{ transform: [{ rotate: showAllTemplates ? '270deg' : '90deg' }] }} />
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.nextButton} onPress={handleGeneratePortfolio} disabled={!selectedTemplate || isGenerating}>
               <LinearGradient colors={['#9333ea', '#db2777']} style={styles.gradientButton}><Text style={styles.buttonText}>Generate Portfolio</Text></LinearGradient>
             </TouchableOpacity>
@@ -337,14 +378,88 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
 
 function EditForm({ data, setData, onSave, theme }: { data: PortfolioData, setData: any, onSave: () => void, theme: any }) {
   const updateField = (field: string, value: string) => setData({ ...data, [field]: value });
+
+  const addArrayItem = (field: string, item: any) => {
+    setData({ ...data, [field]: [...(data[field as keyof PortfolioData] as any[] || []), item] });
+  };
+
+  const removeArrayItem = (field: string, index: number) => {
+    setData({ ...data, [field]: (data[field as keyof PortfolioData] as any[]).filter((_, i) => i !== index) });
+  };
+
+  const updateArrayField = (field: string, index: number, key: string, value: string) => {
+    const newList = [...(data[field as keyof PortfolioData] as any[])];
+    newList[index] = { ...newList[index], [key]: value };
+    setData({ ...data, [field]: newList });
+  };
+
   return (
     <View style={styles.form}>
       <Text style={[styles.label, { color: theme.textMuted }]}>Name</Text>
       <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} value={data.name} onChangeText={(v) => updateField('name', v)} />
+      
       <Text style={[styles.label, { color: theme.textMuted }]}>Email</Text>
       <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} value={data.email} onChangeText={(v) => updateField('email', v)} />
+      
+      <Text style={[styles.label, { color: theme.textMuted }]}>Profile Photo URL (Optional)</Text>
+      <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} value={data.profile_photo} placeholder="https://example.com/photo.jpg" placeholderTextColor={theme.textMuted} onChangeText={(v) => updateField('profile_photo', v)} />
+
       <Text style={[styles.label, { color: theme.textMuted }]}>Summary</Text>
       <TextInput style={[styles.input, { height: 100, backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} value={data.portfolio_summary} multiline onChangeText={(v) => updateField('portfolio_summary', v)} />
+
+      {/* Experience Section */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
+        <Text style={[styles.label, { color: theme.textMuted }]}>Experience</Text>
+        <TouchableOpacity onPress={() => addArrayItem('experience', { title: '', company: '' })}>
+          <Plus color="#a855f7" size={20} />
+        </TouchableOpacity>
+      </View>
+      {(data.experience || []).map((exp, i) => (
+        <View key={i} style={{ gap: 8, padding: 12, backgroundColor: theme.inputBg, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: theme.border }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+            <TouchableOpacity onPress={() => removeArrayItem('experience', i)}><Trash2 color="#ef4444" size={18} /></TouchableOpacity>
+          </View>
+          <TextInput placeholder="Title" placeholderTextColor={theme.textMuted} style={{ color: theme.text, borderBottomWidth: 1, borderBottomColor: theme.border, paddingVertical: 4 }} value={exp.title} onChangeText={(v) => updateArrayField('experience', i, 'title', v)} />
+          <TextInput placeholder="Company" placeholderTextColor={theme.textMuted} style={{ color: theme.text, paddingVertical: 4 }} value={exp.company} onChangeText={(v) => updateArrayField('experience', i, 'company', v)} />
+        </View>
+      ))}
+
+      {/* Education Section */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
+        <Text style={[styles.label, { color: theme.textMuted }]}>Education</Text>
+        <TouchableOpacity onPress={() => addArrayItem('education', { name: '', institution: '' })}>
+          <Plus color="#a855f7" size={20} />
+        </TouchableOpacity>
+      </View>
+      {(data.education || []).map((edu, i) => (
+        <View key={i} style={{ gap: 8, padding: 12, backgroundColor: theme.inputBg, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: theme.border }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+            <TouchableOpacity onPress={() => removeArrayItem('education', i)}><Trash2 color="#ef4444" size={18} /></TouchableOpacity>
+          </View>
+          <TextInput placeholder="Degree/Certificate" placeholderTextColor={theme.textMuted} style={{ color: theme.text, borderBottomWidth: 1, borderBottomColor: theme.border, paddingVertical: 4 }} value={edu.name} onChangeText={(v) => updateArrayField('education', i, 'name', v)} />
+          <TextInput placeholder="Institution" placeholderTextColor={theme.textMuted} style={{ color: theme.text, paddingVertical: 4 }} value={edu.institution} onChangeText={(v) => updateArrayField('education', i, 'institution', v)} />
+        </View>
+      ))}
+
+      {/* Projects Section */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
+        <Text style={[styles.label, { color: theme.textMuted }]}>Projects</Text>
+        <TouchableOpacity onPress={() => addArrayItem('projects', { name: '', description: '', tech: '', link: '' })}>
+          <Plus color="#a855f7" size={20} />
+        </TouchableOpacity>
+      </View>
+      {(data.projects || []).map((proj, i) => (
+        <View key={i} style={{ gap: 8, padding: 12, backgroundColor: theme.inputBg, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: theme.border }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+            <TouchableOpacity onPress={() => removeArrayItem('projects', i)}><Trash2 color="#ef4444" size={18} /></TouchableOpacity>
+          </View>
+          <TextInput placeholder="Project Name" placeholderTextColor={theme.textMuted} style={{ color: theme.text, borderBottomWidth: 1, borderBottomColor: theme.border, paddingVertical: 4 }} value={proj.name} onChangeText={(v) => updateArrayField('projects', i, 'name', v)} />
+          <TextInput placeholder="Description" placeholderTextColor={theme.textMuted} style={{ color: theme.text, borderBottomWidth: 1, borderBottomColor: theme.border, paddingVertical: 4 }} multiline value={proj.description} onChangeText={(v) => updateArrayField('projects', i, 'description', v)} />
+          <TextInput placeholder="Technologies (e.g. React, Node.js)" placeholderTextColor={theme.textMuted} style={{ color: theme.text, borderBottomWidth: 1, borderBottomColor: theme.border, paddingVertical: 4 }} value={proj.tech} onChangeText={(v) => updateArrayField('projects', i, 'tech', v)} />
+          <TextInput placeholder="Project Link (Optional)" placeholderTextColor={theme.textMuted} style={{ color: theme.text, paddingVertical: 4 }} value={proj.link} onChangeText={(v) => updateArrayField('projects', i, 'link', v)} />
+        </View>
+      ))}
+
       <TouchableOpacity style={styles.saveButton} onPress={onSave}><LinearGradient colors={['#9333ea', '#db2777']} style={styles.gradientButton}><Text style={styles.buttonText}>Continue</Text></LinearGradient></TouchableOpacity>
     </View>
   );
@@ -387,10 +502,12 @@ const styles = StyleSheet.create({
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   backLinkText: { color: '#a855f7', fontWeight: '600' },
   templateGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  templateCard: { width: '47%', height: 100, backgroundColor: '#9333ea15', borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
-  templateCardSelected: { borderColor: '#9333ea', backgroundColor: '#9333ea30' },
-  templateName: { fontWeight: '600', fontSize: 14 },
-  nextButton: { height: 56, borderRadius: 28, overflow: 'hidden', marginTop: 20 },
+  templateCard: { width: '47%', borderRadius: 16, padding: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
+  templateCardSelected: { borderColor: '#9333ea' },
+  templatePreview: { width: '100%', height: 60, borderRadius: 8, marginBottom: 10, alignItems: 'center', justifyContent: 'center' },
+  templateName: { fontWeight: '600', fontSize: 13, textAlign: 'center' },
+  showMoreBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 15, borderStyle: 'dashed', borderWidth: 1, borderRadius: 12, marginTop: 10 },
+  nextButton: { height: 56, borderRadius: 28, overflow: 'hidden', marginTop: 10 },
   previewCard: { width: '100%', borderRadius: 24, padding: 24, alignItems: 'center', gap: 20, borderWidth: 1, borderColor: '#a855f730' },
   previewUrl: { fontSize: 16, fontWeight: 'bold' },
   actionRow: { flexDirection: 'row', gap: 12 },

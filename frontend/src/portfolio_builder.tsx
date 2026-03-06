@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Upload, CheckCircle, Layout, FileText, User, Briefcase, Code, Loader2 } from 'lucide-react';
+import { Upload, CheckCircle, Layout, FileText, User, Briefcase, Code, Loader2, Plus, Trash2 } from 'lucide-react';
 import PortfolioPreview from './PortfolioPreview';
 
 export default function PortfolioBuilder() {
@@ -58,11 +58,12 @@ export default function PortfolioBuilder() {
     name: '',
     email: '',
     mobile: '',
+    profile_photo: '',
     portfolio_summary: '',
     experience: [] as { title: string; company: string; dates: string; description: string }[],
     education: [] as { name: string; institution: string; dates: string }[],
     skills: [] as string[],
-    projects: [] as { name: string; description: string; tech: string }[]
+    projects: [] as { name: string; description: string; tech: string; link?: string }[]
   });
   const [selectedLayout, setSelectedLayout] = useState('');
   const [showAllLayouts, setShowAllLayouts] = useState(false);
@@ -122,6 +123,26 @@ export default function PortfolioBuilder() {
     setResumeData(prev => ({
       ...prev,
       [field]: prev[field].map((item: any, i: number) => i === index ? { ...item, [key]: value } : item)
+    }));
+  };
+
+  const addArrayItem = (field: 'experience' | 'education' | 'projects') => {
+    const newItem = field === 'experience'
+      ? { title: '', company: '', dates: '', description: '' }
+      : field === 'education'
+        ? { name: '', institution: '', dates: '' }
+        : { name: '', description: '', tech: '', link: '' };
+
+    setResumeData(prev => ({
+      ...prev,
+      [field]: [...prev[field], newItem]
+    }));
+  };
+
+  const removeArrayItem = (field: 'experience' | 'education' | 'projects', index: number) => {
+    setResumeData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_: any, i: number) => i !== index)
     }));
   };
 
@@ -375,6 +396,13 @@ export default function PortfolioBuilder() {
                     placeholder="Phone"
                     className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
                   />
+                  <input
+                    type="text"
+                    value={resumeData.profile_photo || ''}
+                    onChange={(e) => handleUpdateField('profile_photo', e.target.value)}
+                    placeholder="Profile Photo URL (Optional)"
+                    className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
+                  />
                 </div>
               </div>
 
@@ -390,12 +418,26 @@ export default function PortfolioBuilder() {
               </div>
 
               <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
-                <h3 className="text-xl font-semibold mb-4 flex items-center">
-                  <Briefcase className="w-5 h-5 mr-2 text-purple-400" />
-                  Experience
-                </h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold flex items-center">
+                    <Briefcase className="w-5 h-5 mr-2 text-purple-400" />
+                    Experience
+                  </h3>
+                  <button
+                    onClick={() => addArrayItem('experience')}
+                    className="p-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 rounded-lg transition-colors border border-purple-500/30 flex items-center gap-1 text-sm"
+                  >
+                    <Plus className="w-4 h-4" /> Add
+                  </button>
+                </div>
                 {resumeData.experience.map((exp, i) => (
-                  <div key={i} className="space-y-3 mb-4 p-4 bg-black/30 rounded-lg">
+                  <div key={i} className="space-y-3 mb-4 p-4 bg-black/30 rounded-lg relative group">
+                    <button
+                      onClick={() => removeArrayItem('experience', i)}
+                      className="absolute top-2 right-2 p-1 text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                     <input
                       type="text"
                       value={exp.title}
@@ -415,8 +457,100 @@ export default function PortfolioBuilder() {
               </div>
 
               <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold flex items-center">
+                    <FileText className="w-5 h-5 mr-2 text-purple-400" />
+                    Education
+                  </h3>
+                  <button
+                    onClick={() => addArrayItem('education')}
+                    className="p-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 rounded-lg transition-colors border border-purple-500/30 flex items-center gap-1 text-sm"
+                  >
+                    <Plus className="w-4 h-4" /> Add
+                  </button>
+                </div>
+                {resumeData.education.map((edu, i) => (
+                  <div key={i} className="space-y-3 mb-4 p-4 bg-black/30 rounded-lg relative group">
+                    <button
+                      onClick={() => removeArrayItem('education', i)}
+                      className="absolute top-2 right-2 p-1 text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <input
+                      type="text"
+                      value={edu.name}
+                      onChange={(e) => handleArrayFieldUpdate('education', i, 'name', e.target.value)}
+                      placeholder="Degree/Certificate"
+                      className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                    />
+                    <input
+                      type="text"
+                      value={edu.institution}
+                      onChange={(e) => handleArrayFieldUpdate('education', i, 'institution', e.target.value)}
+                      placeholder="Institution"
+                      className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold flex items-center">
+                    <Code className="w-5 h-5 mr-2 text-purple-400" />
+                    Projects
+                  </h3>
+                  <button
+                    onClick={() => addArrayItem('projects')}
+                    className="p-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 rounded-lg transition-colors border border-purple-500/30 flex items-center gap-1 text-sm"
+                  >
+                    <Plus className="w-4 h-4" /> Add
+                  </button>
+                </div>
+                {resumeData.projects.map((proj, i) => (
+                  <div key={i} className="space-y-3 mb-4 p-4 bg-black/30 rounded-lg relative group">
+                    <button
+                      onClick={() => removeArrayItem('projects', i)}
+                      className="absolute top-2 right-2 p-1 text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <input
+                      type="text"
+                      value={proj.name}
+                      onChange={(e) => handleArrayFieldUpdate('projects', i, 'name', e.target.value)}
+                      placeholder="Project Name"
+                      className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                    />
+                    <textarea
+                      value={proj.description}
+                      onChange={(e) => handleArrayFieldUpdate('projects', i, 'description', e.target.value)}
+                      placeholder="Project Description"
+                      rows={2}
+                      className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                    />
+                    <input
+                      type="text"
+                      value={proj.tech}
+                      onChange={(e) => handleArrayFieldUpdate('projects', i, 'tech', e.target.value)}
+                      placeholder="Technologies (e.g. React, Node.js)"
+                      className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                    />
+                    <input
+                      type="text"
+                      value={proj.link || ''}
+                      onChange={(e) => handleArrayFieldUpdate('projects', i, 'link', e.target.value)}
+                      placeholder="Project Link (Optional)"
+                      className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
                 <h3 className="text-xl font-semibold mb-4 flex items-center">
-                  <Code className="w-5 h-5 mr-2 text-purple-400" />
+                  <Layout className="w-5 h-5 mr-2 text-purple-400" />
                   Skills
                 </h3>
                 <input

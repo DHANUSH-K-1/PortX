@@ -59,6 +59,11 @@
         <div class="hero-container">
             <div class="hero-content">
                 <div class="section-badge">HELLO THERE!</div>
+                {% if profile_photo %}
+                <div style="margin-bottom: 2rem;">
+                    <img src="{{ profile_photo }}" alt="{{ name }}" style="width: 180px; height: 180px; border-radius: 40px; object-fit: cover; border: 4px solid var(--dark); box-shadow: 10px 10px 0 var(--accent);">
+                </div>
+                {% endif %}
                 <h1 class="hero-title">I'm <span class="highlight">{{ name }}</span></h1>
                 <p class="hero-description">{{ portfolio_summary or 'Welcome to my creative space where I turn ideas into reality.' }}</p>
                 <div class="contact-info">
@@ -112,12 +117,26 @@
             <h2 class="section-title">Projects</h2>
             <div class="projects-grid">
                 {% for project in projects %}
-                <div class="project-card">
+                {% if project.link %}
+                <a href="{{ project.link }}" target="_blank" style="text-decoration: none; color: inherit;">
+                {% endif %}
+                <div class="project-card" style="{% if project.link %}cursor: pointer; transition: transform 0.2s;{% endif %}" onmouseover="{% if project.link %}this.style.transform='scale(1.02)'{% endif %}" onmouseout="this.style.transform='scale(1)'">
                     <div class="project-content">
-                        <h3 style="font-family: var(--font-display); margin-bottom: 1rem;">{{ project.name }}</h3>
-                        <p>{{ project.description or '' }}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                            <h3 style="font-family: var(--font-display); margin: 0;">{{ project.name }}</h3>
+                            {% if project.link %}
+                            <div style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 50px; font-size: 0.7rem; font-weight: 700; border: 2px solid var(--dark);">VIEW PROJECT ↗</div>
+                            {% endif %}
+                        </div>
+                        <p style="margin-bottom: 1rem;">{{ project.description or '' }}</p>
+                        {% if project.tech %}
+                        <p style="font-size: 0.8rem; color: var(--primary); font-weight: 700;">{{ project.tech }}</p>
+                        {% endif %}
                     </div>
                 </div>
+                {% if project.link %}
+                </a>
+                {% endif %}
                 {% endfor %}
             </div>
         </div>

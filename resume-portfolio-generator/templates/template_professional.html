@@ -98,6 +98,11 @@
 
     <section class="hero">
         <div class="hero-container">
+            {% if profile_photo %}
+            <div class="reveal" style="margin-bottom: 2rem;">
+                <img src="{{ profile_photo }}" alt="{{ name }}" style="width: 140px; height: 140px; border-radius: 24px; object-fit: cover; border: 1px solid var(--glass-border); box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+            </div>
+            {% endif %}
             <h1 class="hero-title">I am <span class="gradient-text">{{ name }}</span></h1>
             <p class="hero-subtitle">{{ portfolio_summary or about }}</p>
             <div class="contact-info reveal">
@@ -138,15 +143,27 @@
         <h2 class="section-title">Selected Work</h2>
         <div class="projects-grid">
             {% for project in projects %}
-            <div class="glass-card">
-                <h3>{{ project.name }}</h3>
+            {% if project.link %}
+            <a href="{{ project.link }}" target="_blank" style="text-decoration: none; color: inherit;">
+            {% endif %}
+            <div class="glass-card" style="{% if project.link %}cursor: pointer; position: relative;{% endif %}">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                    <h3 style="margin: 0;">{{ project.name }}</h3>
+                    {% if project.link %}
+                    <span style="font-size: 0.7rem; color: var(--primary); border: 1px solid var(--primary); padding: 2px 6px; border-radius: 4px;">Link ↗</span>
+                    {% endif %}
+                </div>
                 <p>{{ project.description or '' }}</p>
                 {% if project.tech %}
                 <div style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                    {% for t in project.tech %}<span style="font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px;">{{ t }}</span>{% endfor %}
+                    {% set tech_list = project.tech if project.tech is iterable and project.tech is not string else project.tech.split(',') %}
+                    {% for t in tech_list %}<span style="font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px;">{{ t.trim() if t.trim is defined else t }}</span>{% endfor %}
                 </div>
                 {% endif %}
             </div>
+            {% if project.link %}
+            </a>
+            {% endif %}
             {% endfor %}
         </div>
     </section>

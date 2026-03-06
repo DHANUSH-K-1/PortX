@@ -125,6 +125,9 @@
 <body>
     <div class="container">
         <header>
+            {% if profile_photo %}
+            <img src="{{ profile_photo }}" alt="{{ name }}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 20px; border: 1px solid #ccc; padding: 5px;">
+            {% endif %}
             <h1>{{ name or 'Your Name' }}</h1>
             <p>{{ email or 'your.email@example.com' }} | {{ mobile or 'Your Phone' }}</p>
         </header>
@@ -156,6 +159,30 @@
                 <p class="sub-header">{{ exp.company or 'Company' }} | {{ exp.dates or 'Dates' }}</p>
                 <p>{{ exp.description or '' }}</p>
             </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if projects %}
+        <div class="section">
+            <h2>Projects</h2>
+            {% for project in projects %}
+            {% if project.link %}
+            <a href="{{ project.link }}" target="_blank" style="text-decoration: none; color: inherit;">
+            {% endif %}
+            <div class="item" style="{% if project.link %}border: 1px dashed #ddd; padding: 15px; border-radius: 4px; margin-bottom: 20px; transition: background 0.2s;{% endif %}" onmouseover="{% if project.link %}this.style.background='#f9f9f9'{% endif %}" onmouseout="this.style.background='transparent'">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <h3 style="margin: 0;">{{ project.name or 'Project Name' }}</h3>
+                    {% if project.link %}
+                    <span style="font-size: 0.8rem; color: var(--primary-color);">[Link ↗]</span>
+                    {% endif %}
+                </div>
+                <p class="sub-header">{{ project.tech or '' }}</p>
+                <p>{{ project.description or '' }}</p>
+            </div>
+            {% if project.link %}
+            </a>
+            {% endif %}
             {% endfor %}
         </div>
         {% endif %}
