@@ -4,7 +4,16 @@ import { Upload, LogOut, Sparkles, CheckCircle2, FileText, Globe, ArrowLeft, Men
 import { LinearGradient } from 'expo-linear-gradient';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Clipboard from 'expo-clipboard';
+import * as Notifications from 'expo-notifications';
 import BASE_URL, { API_ENDPOINTS } from '../api/config';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 const { width, height } = Dimensions.get('window');
 
@@ -49,6 +58,7 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
   const [showAllTemplates, setShowAllTemplates] = useState(false);
+  const [notification, setNotification] = useState<{ message: string, visible: boolean }>({ message: '', visible: false });
 
   const ALL_TEMPLATES = [
     { name: 'Modern Minimal', id: 'modern' },
@@ -59,11 +69,41 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
     { name: 'Arty Creative', id: 'creative' }
   ];
 
+  const showNotification = async (msg: string) => {
+    setNotification({ message: msg, visible: true });
+    setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 3000);
+    
+    // Trigger system notification
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "PortX",
+          body: msg,
+          sound: true,
+          priority: Notifications.AndroidNotificationPriority.HIGH,
+        },
+        trigger: null,
+      });
+    } catch (e) {
+      console.log("Error showing notification:", e);
+    }
+  };
+
   const visibleTemplates = showAllTemplates ? ALL_TEMPLATES : ALL_TEMPLATES.slice(0, 4);
 
   useEffect(() => {
     fetchPortfolios();
     fetchUser();
+
+    // Request notification permissions
+    (async () => {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -130,6 +170,7 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
         if (response.ok) {
           setCurrentFilename(data.filename);
           setEditData(data.data);
+          showNotification("details fetched -portx");
           setStep(4);
         }
       }
@@ -165,6 +206,7 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
       const data = await response.json();
       if (response.ok) {
         setGeneratedUrl(data.generated_file);
+        showNotification("your website is now live");
         setStep(3);
         fetchPortfolios();
       }
@@ -276,7 +318,10 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
           <View style={styles.section}>
             <TouchableOpacity onPress={() => setStep(1)} style={styles.backLink}><ArrowLeft color="#a855f7" size={18} /><Text style={styles.backLinkText}>Dashboard</Text></TouchableOpacity>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Edit Details</Text>
-            <EditForm data={editData} setData={setEditData} onSave={() => setStep(2)} theme={theme} />
+            <EditForm data={editData} setData={setEditData} onSave={() => { 
+              showNotification("your portfolio is updated click to view");
+              setStep(2); 
+            }} theme={theme} />
           </View>
         )}
 
@@ -371,6 +416,12 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
             <TouchableOpacity style={styles.logoutMenuItem} onPress={onLogout}><LogOut color="#ef4444" size={20} /><Text style={{ color: '#ef4444' }}>Log Out</Text></TouchableOpacity>
           </Animated.View>
         </>
+      )}
+
+      {notification.visible && (
+        <Animated.View style={[styles.notificationToast, { backgroundColor: '#a855f7' }]}>
+          <Text style={styles.notificationText}>{notification.message}</Text>
+        </Animated.View>
       )}
     </View>
   );
@@ -524,5 +575,7 @@ const styles = StyleSheet.create({
   menuSectionTitle: { fontSize: 12, fontWeight: 'bold', color: '#6b7280', textTransform: 'uppercase', marginTop: 24, marginBottom: 16, letterSpacing: 1 },
   menuProjectItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
   menuProjectName: { fontSize: 15, fontWeight: '500' },
-  logoutMenuItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 20, marginTop: 'auto' }
+  logoutMenuItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 20, marginTop: 'auto' },
+  notificationToast: { position: 'absolute', bottom: 120, left: 20, right: 20, padding: 16, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 10, zIndex: 1000 },
+  notificationText: { color: '#fff', fontSize: 14, fontWeight: '700', textAlign: 'center' }
 });
