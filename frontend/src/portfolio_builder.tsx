@@ -67,9 +67,28 @@ export default function PortfolioBuilder() {
   });
   const [selectedLayout, setSelectedLayout] = useState('');
   const [showAllLayouts, setShowAllLayouts] = useState(false);
+  const [editStep, setEditStep] = useState<1 | 2>(1);
 
-  const ALL_LAYOUTS = ['minimal', 'modern', 'creative', 'professional', 'glass', 'neon'];
-  const visibleLayouts = showAllLayouts ? ALL_LAYOUTS : ALL_LAYOUTS.slice(0, 4);
+  const ALL_LAYOUTS = [
+    { id: 'minimal', name: 'Minimal', category: 'Professional' },
+    { id: 'modern', name: 'Modern', category: 'Creative' },
+    { id: 'creative', name: 'Creative', category: 'Creative' },
+    { id: 'professional', name: 'Professional', category: 'Professional' },
+    { id: 'glass', name: 'Glassmorphism', category: 'Modern' },
+    { id: 'neon', name: 'Cyberpunk Neon', category: 'Tech' }
+  ];
+  
+  const categories = ['All', 'Professional', 'Creative', 'Modern', 'Tech'];
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredLayouts = ALL_LAYOUTS.filter(layout => {
+    const matchesCategory = selectedCategory === 'All' || layout.category === selectedCategory;
+    const matchesSearch = layout.name.toLowerCase().includes(searchQuery.toLowerCase()) || layout.category.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  const visibleLayouts = showAllLayouts ? filteredLayouts : filteredLayouts.slice(0, 4);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -366,265 +385,344 @@ export default function PortfolioBuilder() {
 
           <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Review & Customize</h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
-            {/* Form Section */}
-            <div className="space-y-6">
-              <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
-                <h3 className="text-xl font-semibold mb-4 flex items-center">
-                  <User className="w-5 h-5 mr-2 text-purple-400" />
-                  Personal Information
-                </h3>
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    value={resumeData.name}
-                    onChange={(e) => handleUpdateField('name', e.target.value)}
-                    placeholder="Full Name"
-                    className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
-                  />
-                  <input
-                    type="email"
-                    value={resumeData.email}
-                    onChange={(e) => handleUpdateField('email', e.target.value)}
-                    placeholder="Email"
-                    className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
-                  />
-                  <input
-                    type="tel"
-                    value={resumeData.mobile}
-                    onChange={(e) => handleUpdateField('mobile', e.target.value)}
-                    placeholder="Phone"
-                    className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
-                  />
-                  <input
-                    type="text"
-                    value={resumeData.profile_photo || ''}
-                    onChange={(e) => handleUpdateField('profile_photo', e.target.value)}
-                    placeholder="Profile Photo URL (Optional)"
-                    className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
-                <h3 className="text-xl font-semibold mb-4">Summary</h3>
-                <textarea
-                  value={resumeData.portfolio_summary}
-                  onChange={(e) => handleUpdateField('portfolio_summary', e.target.value)}
-                  placeholder="Professional summary"
-                  rows={4}
-                  className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
-                />
-              </div>
-
-              <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold flex items-center">
-                    <Briefcase className="w-5 h-5 mr-2 text-purple-400" />
-                    Experience
-                  </h3>
-                  <button
-                    onClick={() => addArrayItem('experience')}
-                    className="p-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 rounded-lg transition-colors border border-purple-500/30 flex items-center gap-1 text-sm"
-                  >
-                    <Plus className="w-4 h-4" /> Add
-                  </button>
-                </div>
-                {resumeData.experience.map((exp, i) => (
-                  <div key={i} className="space-y-3 mb-4 p-4 bg-black/30 rounded-lg relative group">
-                    <button
-                      onClick={() => removeArrayItem('experience', i)}
-                      className="absolute top-2 right-2 p-1 text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                    <input
-                      type="text"
-                      value={exp.title}
-                      onChange={(e) => handleArrayFieldUpdate('experience', i, 'title', e.target.value)}
-                      placeholder="Job Title"
-                      className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
-                    />
-                    <input
-                      type="text"
-                      value={exp.company}
-                      onChange={(e) => handleArrayFieldUpdate('experience', i, 'company', e.target.value)}
-                      placeholder="Company"
-                      className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold flex items-center">
-                    <FileText className="w-5 h-5 mr-2 text-purple-400" />
-                    Education
-                  </h3>
-                  <button
-                    onClick={() => addArrayItem('education')}
-                    className="p-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 rounded-lg transition-colors border border-purple-500/30 flex items-center gap-1 text-sm"
-                  >
-                    <Plus className="w-4 h-4" /> Add
-                  </button>
-                </div>
-                {resumeData.education.map((edu, i) => (
-                  <div key={i} className="space-y-3 mb-4 p-4 bg-black/30 rounded-lg relative group">
-                    <button
-                      onClick={() => removeArrayItem('education', i)}
-                      className="absolute top-2 right-2 p-1 text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                    <input
-                      type="text"
-                      value={edu.name}
-                      onChange={(e) => handleArrayFieldUpdate('education', i, 'name', e.target.value)}
-                      placeholder="Degree/Certificate"
-                      className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
-                    />
-                    <input
-                      type="text"
-                      value={edu.institution}
-                      onChange={(e) => handleArrayFieldUpdate('education', i, 'institution', e.target.value)}
-                      placeholder="Institution"
-                      className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold flex items-center">
-                    <Code className="w-5 h-5 mr-2 text-purple-400" />
-                    Projects
-                  </h3>
-                  <button
-                    onClick={() => addArrayItem('projects')}
-                    className="p-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 rounded-lg transition-colors border border-purple-500/30 flex items-center gap-1 text-sm"
-                  >
-                    <Plus className="w-4 h-4" /> Add
-                  </button>
-                </div>
-                {resumeData.projects.map((proj, i) => (
-                  <div key={i} className="space-y-3 mb-4 p-4 bg-black/30 rounded-lg relative group">
-                    <button
-                      onClick={() => removeArrayItem('projects', i)}
-                      className="absolute top-2 right-2 p-1 text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                    <input
-                      type="text"
-                      value={proj.name}
-                      onChange={(e) => handleArrayFieldUpdate('projects', i, 'name', e.target.value)}
-                      placeholder="Project Name"
-                      className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
-                    />
-                    <textarea
-                      value={proj.description}
-                      onChange={(e) => handleArrayFieldUpdate('projects', i, 'description', e.target.value)}
-                      placeholder="Project Description"
-                      rows={2}
-                      className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
-                    />
-                    <input
-                      type="text"
-                      value={proj.tech}
-                      onChange={(e) => handleArrayFieldUpdate('projects', i, 'tech', e.target.value)}
-                      placeholder="Technologies (e.g. React, Node.js)"
-                      className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
-                    />
-                    <input
-                      type="text"
-                      value={proj.link || ''}
-                      onChange={(e) => handleArrayFieldUpdate('projects', i, 'link', e.target.value)}
-                      placeholder="Project Link (Optional)"
-                      className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
-                <h3 className="text-xl font-semibold mb-4 flex items-center">
-                  <Layout className="w-5 h-5 mr-2 text-purple-400" />
-                  Skills
-                </h3>
-                <input
-                  type="text"
-                  value={resumeData.skills.join(', ')}
-                  onChange={(e) => handleUpdateField('skills', e.target.value.split(', '))}
-                  placeholder="JavaScript, React, Node.js..."
-                  className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
-                />
-              </div>
+          {/* Stepper Header */}
+          <div className="max-w-3xl mx-auto mb-12 flex items-center justify-center space-x-12 relative">
+            <div className={`flex flex-col items-center z-10 ${editStep === 1 ? 'text-purple-400' : 'text-purple-500/50 cursor-pointer'}`} onClick={() => setEditStep(1)}>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl mb-2 transition-all duration-300 ${editStep === 1 ? 'bg-purple-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] scale-110' : 'bg-purple-900/40 text-purple-400 border border-purple-500/30'}`}>1</div>
+              <span className="text-sm font-semibold tracking-wider uppercase">Content</span>
             </div>
+            {/* Connecting line */}
+            <div className="absolute top-6 left-[50%] -translate-x-[50%] -translate-y-1/2 w-32 md:w-48 h-1 bg-purple-900/40 -z-0">
+              <div className={`h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500 ${editStep === 2 ? 'w-full' : 'w-0'}`}></div>
+            </div>
+            <div className={`flex flex-col items-center z-10 ${editStep === 2 ? 'text-purple-400 cursor-pointer' : 'text-purple-500/50 cursor-pointer'}`} onClick={() => { if (resumeData.name || true) setEditStep(2) }}>
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl mb-2 transition-all duration-300 ${editStep === 2 ? 'bg-purple-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.5)] scale-110' : 'bg-purple-900/40 text-purple-400 border border-purple-500/30'}`}>2</div>
+              <span className="text-sm font-semibold tracking-wider uppercase">Design</span>
+            </div>
+          </div>
 
-            {/* Layout Selection Section */}
-            <div>
-              <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30 sticky top-8">
-                <h3 className="text-xl font-semibold mb-6 flex items-center">
-                  <Layout className="w-5 h-5 mr-2 text-purple-400" />
-                  Choose Your Layout
-                </h3>
+          <div className="max-w-5xl mx-auto">
+            {/* Form Section */}
+            {editStep === 1 && (
+              <div className="space-y-6 animate-fade-in-up">
+                <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
+                  <h3 className="text-xl font-semibold mb-4 flex items-center">
+                    <User className="w-5 h-5 mr-2 text-purple-400" />
+                    Personal Information
+                  </h3>
+                  <div className="space-y-4">
+                    <input
+                      type="text"
+                      value={resumeData.name}
+                      onChange={(e) => handleUpdateField('name', e.target.value)}
+                      placeholder="Full Name"
+                      className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
+                    />
+                    <input
+                      type="email"
+                      value={resumeData.email}
+                      onChange={(e) => handleUpdateField('email', e.target.value)}
+                      placeholder="Email"
+                      className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
+                    />
+                    <input
+                      type="tel"
+                      value={resumeData.mobile}
+                      onChange={(e) => handleUpdateField('mobile', e.target.value)}
+                      placeholder="Phone"
+                      className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
+                    />
+                    <input
+                      type="text"
+                      value={resumeData.profile_photo || ''}
+                      onChange={(e) => handleUpdateField('profile_photo', e.target.value)}
+                      placeholder="Profile Photo URL (Optional)"
+                      className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
+                    />
+                  </div>
+                </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  {visibleLayouts.map((layout) => (
+                <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
+                  <h3 className="text-xl font-semibold mb-4">Summary</h3>
+                  <textarea
+                    value={resumeData.portfolio_summary}
+                    onChange={(e) => handleUpdateField('portfolio_summary', e.target.value)}
+                    placeholder="Professional summary"
+                    rows={4}
+                    className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
+                  />
+                </div>
+
+                <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold flex items-center">
+                      <Briefcase className="w-5 h-5 mr-2 text-purple-400" />
+                      Experience
+                    </h3>
                     <button
-                      key={layout}
-                      onClick={() => setSelectedLayout(layout)}
-                      className={`p - 4 rounded - lg border - 2 transition - all ${selectedLayout === layout
-                        ? 'border-purple-400 bg-purple-600/20'
-                        : 'border-purple-500/30 hover:border-purple-400/50'
-                        } `}
+                      onClick={() => addArrayItem('experience')}
+                      className="p-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 rounded-lg transition-colors border border-purple-500/30 flex items-center gap-1 text-sm"
                     >
-                      <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-black rounded mb-2 p-2 relative overflow-hidden">
-                        {/* Dynamic Preview Placeholder based on layout name */}
-                        {layout === 'minimal' && <div className="h-full bg-purple-800/30 rounded"></div>}
-                        {layout === 'modern' && <div className="h-full flex gap-1"><div className="w-1/3 bg-purple-800/30 rounded"></div><div className="flex-1 bg-purple-800/30 rounded"></div></div>}
-                        {layout === 'creative' && <div className="grid grid-cols-2 gap-1 h-full"><div className="bg-purple-800/30 rounded"></div><div className="bg-purple-800/30 rounded"></div></div>}
-                        {layout === 'professional' && <div className="space-y-1"><div className="h-2 bg-purple-800/30 rounded"></div><div className="h-2 bg-purple-800/30 rounded"></div><div className="h-2 bg-purple-800/30 rounded"></div></div>}
-                        {layout === 'glass' && (
-                          <div className="h-full flex items-center justify-center">
-                            <div className="w-3/4 h-3/4 bg-white/10 backdrop-blur-[2px] rounded border border-white/20"></div>
-                          </div>
-                        )}
-                        {layout === 'neon' && (
-                          <div className="h-full bg-black flex items-center justify-center border border-green-500/50">
-                            <div className="text-[8px] text-green-400 font-mono">&gt; HELLO</div>
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-sm font-medium capitalize">{layout}</p>
+                      <Plus className="w-4 h-4" /> Add
                     </button>
+                  </div>
+                  {resumeData.experience.map((exp, i) => (
+                    <div key={i} className="space-y-3 mb-4 p-4 bg-black/30 rounded-lg relative group">
+                      <button
+                        onClick={() => removeArrayItem('experience', i)}
+                        className="absolute top-2 right-2 p-1 text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <input
+                        type="text"
+                        value={exp.title}
+                        onChange={(e) => handleArrayFieldUpdate('experience', i, 'title', e.target.value)}
+                        placeholder="Job Title"
+                        className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                      />
+                      <input
+                        type="text"
+                        value={exp.company}
+                        onChange={(e) => handleArrayFieldUpdate('experience', i, 'company', e.target.value)}
+                        placeholder="Company"
+                        className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                      />
+                    </div>
                   ))}
                 </div>
 
-                <button
-                  onClick={() => setShowAllLayouts(!showAllLayouts)}
-                  className="w-full py-2 mb-6 text-sm text-purple-300 hover:text-white transition-colors flex items-center justify-center gap-2 border border-dashed border-purple-500/30 rounded-lg hover:bg-purple-500/10"
-                >
-                  {showAllLayouts ? 'Show Less Styles' : 'Show More Styles'}
-                </button>
-
-                {selectedLayout && (
-                  <div className="p-4 bg-purple-800/20 rounded-lg mb-6">
-                    <CheckCircle className="w-5 h-5 text-green-400 inline mr-2" />
-                    <span className="text-sm">Layout selected: <span className="font-semibold capitalize">{selectedLayout}</span></span>
+                <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold flex items-center">
+                      <FileText className="w-5 h-5 mr-2 text-purple-400" />
+                      Education
+                    </h3>
+                    <button
+                      onClick={() => addArrayItem('education')}
+                      className="p-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 rounded-lg transition-colors border border-purple-500/30 flex items-center gap-1 text-sm"
+                    >
+                      <Plus className="w-4 h-4" /> Add
+                    </button>
                   </div>
-                )}
+                  {resumeData.education.map((edu, i) => (
+                    <div key={i} className="space-y-3 mb-4 p-4 bg-black/30 rounded-lg relative group">
+                      <button
+                        onClick={() => removeArrayItem('education', i)}
+                        className="absolute top-2 right-2 p-1 text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <input
+                        type="text"
+                        value={edu.name}
+                        onChange={(e) => handleArrayFieldUpdate('education', i, 'name', e.target.value)}
+                        placeholder="Degree/Certificate"
+                        className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                      />
+                      <input
+                        type="text"
+                        value={edu.institution}
+                        onChange={(e) => handleArrayFieldUpdate('education', i, 'institution', e.target.value)}
+                        placeholder="Institution"
+                        className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
 
-                <button
-                  onClick={handleSaveAndPreview}
-                  className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-lg font-semibold transition-all"
-                >
-                  Create Website
-                </button>
+                <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold flex items-center">
+                      <Code className="w-5 h-5 mr-2 text-purple-400" />
+                      Projects
+                    </h3>
+                    <button
+                      onClick={() => addArrayItem('projects')}
+                      className="p-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 rounded-lg transition-colors border border-purple-500/30 flex items-center gap-1 text-sm"
+                    >
+                      <Plus className="w-4 h-4" /> Add
+                    </button>
+                  </div>
+                  {resumeData.projects.map((proj, i) => (
+                    <div key={i} className="space-y-3 mb-4 p-4 bg-black/30 rounded-lg relative group">
+                      <button
+                        onClick={() => removeArrayItem('projects', i)}
+                        className="absolute top-2 right-2 p-1 text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <input
+                        type="text"
+                        value={proj.name}
+                        onChange={(e) => handleArrayFieldUpdate('projects', i, 'name', e.target.value)}
+                        placeholder="Project Name"
+                        className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                      />
+                      <textarea
+                        value={proj.description}
+                        onChange={(e) => handleArrayFieldUpdate('projects', i, 'description', e.target.value)}
+                        placeholder="Project Description"
+                        rows={2}
+                        className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                      />
+                      <input
+                        type="text"
+                        value={proj.tech}
+                        onChange={(e) => handleArrayFieldUpdate('projects', i, 'tech', e.target.value)}
+                        placeholder="Technologies (e.g. React, Node.js)"
+                        className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                      />
+                      <input
+                        type="text"
+                        value={proj.link || ''}
+                        onChange={(e) => handleArrayFieldUpdate('projects', i, 'link', e.target.value)}
+                        placeholder="Project Link (Optional)"
+                        className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
+                  <h3 className="text-xl font-semibold mb-4 flex items-center">
+                    <Layout className="w-5 h-5 mr-2 text-purple-400" />
+                    Skills
+                  </h3>
+                  <input
+                    type="text"
+                    value={resumeData.skills.join(', ')}
+                    onChange={(e) => handleUpdateField('skills', e.target.value.split(', '))}
+                    placeholder="JavaScript, React, Node.js..."
+                    className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
+                  />
+                </div>
+
+                {/* Next Button */}
+                <div className="pt-8 flex justify-end">
+                  <button
+                    onClick={() => setEditStep(2)}
+                    className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-lg font-semibold transition-all flex items-center justify-center gap-2 transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.4)]"
+                  >
+                    Next: Choose Design →
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Layout Selection Section */}
+            {editStep === 2 && (
+              <div className="animate-fade-in-up">
+                <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-8 border border-purple-500/30 min-h-[600px] flex flex-col">
+                  <h3 className="text-2xl md:text-3xl font-semibold mb-8 flex items-center justify-center">
+                    <Layout className="w-8 h-8 mr-3 text-purple-400" />
+                    Choose Your Layout
+                  </h3>
+
+                  {/* Search & Filter Toolbar */}
+                  <div className="flex flex-col xl:flex-row items-center justify-between gap-4 mb-8 bg-black/20 p-4 rounded-xl border border-purple-500/20">
+                    <div className="w-full xl:w-1/3 relative">
+                      <input
+                        type="text"
+                        placeholder="Search templates..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full px-4 py-3 pl-11 bg-black/50 border border-purple-500/30 rounded-xl focus:outline-none focus:border-purple-400 transition-colors text-sm"
+                      />
+                      <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <div className="flex gap-2 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0 scrollbar-hide snap-x">
+                      {categories.map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => setSelectedCategory(cat)}
+                          className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all border snap-center ${selectedCategory === cat ? 'bg-purple-600 text-white border-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.4)]' : 'bg-purple-900/30 text-gray-300 border-purple-500/20 hover:border-purple-400/50 hover:bg-purple-800/40'}`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8 flex-1">
+                    {visibleLayouts.map((layout) => (
+                      <button
+                        key={layout.id}
+                        onClick={() => setSelectedLayout(layout.id)}
+                        className={`p-4 rounded-xl border-2 transition-all group text-left flex flex-col ${selectedLayout === layout.id
+                          ? 'border-purple-400 bg-purple-600/20 shadow-[0_0_15px_rgba(168,85,247,0.3)] scale-[1.02]'
+                          : 'border-purple-500/20 bg-black/20 hover:border-purple-400/50 hover:bg-purple-900/20 hover:-translate-y-1'
+                          }`}
+                      >
+                        <div className="w-full aspect-video bg-gradient-to-br from-purple-900/50 to-black rounded-lg mb-4 p-2 relative overflow-hidden ring-1 ring-white/10 group-hover:ring-purple-400/50 transition-all">
+                          {/* Dynamic Preview Placeholder based on layout.id */}
+                          {layout.id === 'minimal' && <div className="h-full bg-purple-800/30 rounded"></div>}
+                          {layout.id === 'modern' && <div className="h-full flex gap-1"><div className="w-1/3 bg-purple-800/30 rounded"></div><div className="flex-1 bg-purple-800/30 rounded"></div></div>}
+                          {layout.id === 'creative' && <div className="grid grid-cols-2 gap-1 h-full"><div className="bg-purple-800/30 rounded"></div><div className="bg-purple-800/30 rounded"></div></div>}
+                          {layout.id === 'professional' && <div className="space-y-1"><div className="h-2 bg-purple-800/30 rounded"></div><div className="h-2 bg-purple-800/30 rounded"></div><div className="h-2 bg-purple-800/30 rounded"></div></div>}
+                          {layout.id === 'glass' && (
+                            <div className="h-full flex items-center justify-center">
+                              <div className="w-3/4 h-3/4 bg-white/10 backdrop-blur-[2px] rounded border border-white/20"></div>
+                            </div>
+                          )}
+                          {layout.id === 'neon' && (
+                            <div className="h-full bg-black flex items-center justify-center border border-green-500/50 shadow-[inset_0_0_10px_rgba(34,197,94,0.3)]">
+                              <div className="text-[8px] text-green-400 font-mono">&gt; HELLO</div>
+                            </div>
+                          )}
+                          
+                          {/* Select Overlay */}
+                          <div className={`absolute inset-0 bg-purple-600/80 backdrop-blur-sm flex items-center justify-center transition-all duration-300 ${selectedLayout === layout.id ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
+                             <span className="text-white font-semibold flex items-center justify-center gap-2">Select Template</span>
+                          </div>
+                        </div>
+                        <div className="w-full">
+                          <h4 className="text-base font-bold text-white mb-1 truncate w-full">{layout.name}</h4>
+                          <span className="text-xs px-2 py-0.5 rounded border bg-purple-500/10 text-purple-300 border-purple-500/20 whitespace-nowrap">{layout.category}</span>
+                        </div>
+                      </button>
+                    ))}
+                    
+                    {visibleLayouts.length === 0 && (
+                       <div className="col-span-full py-12 flex flex-col items-center justify-center text-center bg-black/20 rounded-xl border border-dashed border-purple-500/30">
+                          <svg className="w-12 h-12 text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                          <h4 className="text-lg font-medium text-gray-400">No templates found</h4>
+                          <p className="text-sm text-gray-500 mt-1">Try adjusting your search or category filters.</p>
+                       </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => setShowAllLayouts(!showAllLayouts)}
+                    className="w-full max-w-sm mx-auto block py-3 mb-8 text-sm text-purple-300 hover:text-white transition-colors flex items-center justify-center gap-2 border border-dashed border-purple-500/30 rounded-lg hover:bg-purple-500/10"
+                  >
+                    {showAllLayouts ? 'Show Less Styles' : 'Show More Styles'}
+                  </button>
+
+                  {selectedLayout && (
+                    <div className="p-4 bg-purple-800/20 rounded-lg mb-8 max-w-md mx-auto text-center border border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.1)]">
+                      <CheckCircle className="w-5 h-5 text-green-400 inline mr-2" />
+                      <span className="text-sm tracking-wide">Layout selected: <span className="font-semibold capitalize text-green-300">{selectedLayout}</span></span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-auto pt-8 border-t border-purple-500/30">
+                    <button
+                      onClick={() => setEditStep(1)}
+                      className="w-full sm:w-auto px-8 py-4 bg-purple-900/40 hover:bg-purple-900/60 rounded-xl text-lg font-semibold transition-all border border-purple-500/30"
+                    >
+                      ← Back to Content
+                    </button>
+                    <button
+                      onClick={handleSaveAndPreview}
+                      className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(236,72,153,0.3)]"
+                    >
+                      Create Website
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
