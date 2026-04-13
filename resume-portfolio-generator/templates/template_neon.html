@@ -414,9 +414,6 @@
 
     <div class="container" id="home" style="margin-top: 60px;">
         <header>
-            {% if profile_photo %}
-            <img src="{{ profile_photo }}" alt="{{ name }}" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan); box-shadow: 0 0 15px var(--neon-cyan); margin-bottom: 25px; filter: grayscale(20%);">
-            {% endif %}
             <h1 class="glitch-text">{{ name or 'SYSTEM_USR' }}</h1>
             <p class="meta">
                 ID: {{ email or 'unknown@net' }} <span style="color:#555">|</span> COMM: {{ mobile or 'N/A' }}
@@ -460,22 +457,11 @@
         <div class="section" id="projects">
             <h2>Side_Quests: Projects</h2>
             {% for project in projects %}
-            {% if project.link %}
-            <a href="{{ project.link }}" target="_blank" style="text-decoration: none; color: inherit;">
-            {% endif %}
-            <div class="cyber-card" style="{% if project.link %}cursor: pointer; border-left-color: var(--neon-cyan);{% endif %}">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <h3>{{ project.name or 'Project_Alpha' }}</h3>
-                    {% if project.link %}
-                    <span style="font-family: var(--font-display); font-size: 0.7rem; color: var(--neon-cyan); text-shadow: 0 0 5px var(--neon-cyan);">[VIEW_NETLINK]</span>
-                    {% endif %}
-                </div>
+            <div class="cyber-card">
+                <h3>{{ project.name or 'Project_Alpha' }}</h3>
                 <p class="cyber-meta">STACK :: {{ project.tech or 'Classified' }}</p>
                 <p>{{ project.description or '' }}</p>
             </div>
-            {% if project.link %}
-            </a>
-            {% endif %}
             {% endfor %}
         </div>
         {% endif %}

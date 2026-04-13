@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alex Chen — Portfolio OS</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:        #0c0e12;
+  --bg2:       #111419;
+  --bg3:       #181c23;
+  --bg4:       #1e242e;
+  --border:    rgba(255,255,255,0.06);
+  --border2:   rgba(255,255,255,0.10);
+  --em:        #00e87a;
+  --em2:       #00c469;
+  --em-glow:   rgba(0,232,122,0.15);
+  --em-dim:    rgba(0,232,122,0.08);
+  --blue:      #3b82f6;
+  --amber:     #f59e0b;
+  --rose:      #f43f5e;
+  --violet:    #8b5cf6;
+  --text:      #e8eaf0;
+  --text2:     #8b92a5;
+  --text3:     #555d6e;
+  --font-ui:   'Syne', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --sidebar-w: 240px;
+  --ease:      cubic-bezier(0.4,0,0.2,1);
+  --spring:    cubic-bezier(0.34,1.56,0.64,1);
+}
+
+html{scroll-behavior:smooth;height:100%}
+body{
+  font-family:var(--font-ui);
+  background:var(--bg);
+  color:var(--text);
+  height:100%;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ═══════════════════ LAYOUT ═══════════════════ */
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* ═══════════════════ SIDEBAR ═══════════════════ */
+.sidebar{
+  width:var(--sidebar-w);
+  flex-shrink:0;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  overflow:hidden;
+  position:relative;
+  z-index:10;
+}
+.sidebar::after{
+  content:'';
+  position:absolute;
+  top:0;right:0;width:1px;height:100%;
+  background:linear-gradient(to bottom,transparent,var(--em),transparent);
+  opacity:0.15;
+}
+
+/* Logo */
+.sb-logo{
+  padding:1.4rem 1.4rem 1rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:0.6rem;
+}
+.sb-logo-mark{
+  width:28px;height:28px;border-radius:6px;
+  background:var(--em);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:0.7rem;font-weight:600;
+  color:var(--bg);letter-spacing:0;
+  flex-shrink:0;
+}
+.sb-logo-text{
+  font-weight:700;font-size:0.92rem;letter-spacing:-0.01em;color:var(--text);
+}
+.sb-logo-sub{font-size:0.68rem;color:var(--text3);font-family:var(--font-mono);}
+
+/* Nav */
+.sb-nav{flex:1;padding:1rem 0.7rem;overflow-y:auto;overflow-x:hidden;}
+.sb-group-label{
+  font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--text3);padding:0.8rem 0.7rem 0.4rem;
+  font-family:var(--font-mono);
+}
+.sb-link{
+  display:flex;align-items:center;gap:0.7rem;
+  padding:0.55rem 0.8rem;
+  border-radius:6px;
+  color:var(--text2);
+  font-size:0.82rem;font-weight:500;
+  text-decoration:none;
+  cursor:pointer;
+  transition:all 0.18s var(--ease);
+  margin-bottom:2px;
+  position:relative;
+  border:1px solid transparent;
+  user-select:none;
+}
+.sb-link:hover{background:var(--bg3);color:var(--text);}
+.sb-link.active{
+  background:var(--em-dim);
+  color:var(--em);
+  border-color:rgba(0,232,122,0.15);
+}
+.sb-link.active .sb-icon{color:var(--em);}
+.sb-icon{
+  width:16px;height:16px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0.8;
+}
+.sb-badge{
+  margin-left:auto;
+  background:var(--em-dim);
+  color:var(--em);
+  font-family:var(--font-mono);
+  font-size:0.6rem;
+  padding:1px 5px;border-radius:3px;
+  border:1px solid rgba(0,232,122,0.2);
+}
+
+/* Status */
+.sb-footer{
+  padding:0.9rem 1.2rem;
+  border-top:1px solid var(--border);
+}
+.status-row{
+  display:flex;align-items:center;gap:0.55rem;
+  font-size:0.75rem;color:var(--text2);
+}
+.status-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--em);
+  box-shadow:0 0 6px var(--em);
+  animation:pulse-dot 2s infinite;
+}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* ═══════════════════ MAIN ═══════════════════ */
+.main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:var(--bg);
+}
+
+/* Topbar */
+.topbar{
+  height:52px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 1.8rem;
+  gap:1rem;
+  flex-shrink:0;
+  background:rgba(12,14,18,0.9);
+  backdrop-filter:blur(12px);
+}
+.topbar-title{
+  font-size:0.82rem;font-weight:600;letter-spacing:-0.01em;color:var(--text);
+  display:flex;align-items:center;gap:0.5rem;
+}
+.topbar-sep{color:var(--text3);}
+.topbar-sub{font-weight:400;color:var(--text2);}
+.topbar-right{
+  margin-left:auto;display:flex;align-items:center;gap:0.7rem;
+}
+.topbar-chip{
+  display:flex;align-items:center;gap:0.4rem;
+  padding:0.3rem 0.75rem;border-radius:20px;
+  font-size:0.72rem;font-family:var(--font-mono);
+  background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text2);
+}
+.topbar-chip.green{background:var(--em-dim);border-color:rgba(0,232,122,0.2);color:var(--em);}
+.tb-dot{width:5px;height:5px;border-radius:50%;background:var(--em);box-shadow:0 0 4px var(--em);}
+
+/* Content scroll area */
+.content{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:1.8rem;
+  scroll-behavior:smooth;
+}
+.content::-webkit-scrollbar{width:5px;}
+.content::-webkit-scrollbar-track{background:transparent;}
+.content::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}
+
+/* Section pane */
+.pane{display:none;}
+.pane.active{display:block;animation:paneIn 0.3s var(--ease) both;}
+@keyframes paneIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════════════ CARDS ═══════════════════ */
+.card{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+  transition:border-color 0.2s var(--ease),transform 0.2s var(--ease),box-shadow 0.2s var(--ease);
+}
+.card:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:0 8px 32px rgba(0,0,0,0.3);}
+.card-head{
+  padding:1.1rem 1.4rem 0.8rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-title{
+  font-size:0.78rem;font-weight:600;letter-spacing:0.02em;
+  text-transform:uppercase;color:var(--text2);
+  display:flex;align-items:center;gap:0.5rem;
+}
+.card-title-icon{font-size:0.85rem;}
+.card-body{padding:1.4rem;}
+
+/* Grid layouts */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;margin-bottom:1.2rem;}
+.grid-12{display:grid;grid-template-columns:1fr 2fr;gap:1.2rem;margin-bottom:1.2rem;}
+.grid-21{display:grid;grid-template-columns:2fr 1fr;gap:1.2rem;margin-bottom:1.2rem;}
+.col{display:flex;flex-direction:column;gap:1.2rem;}
+
+/* ═══════════════════ PROFILE PANE ═══════════════════ */
+.profile-hero{
+  position:relative;overflow:hidden;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:2rem;
+  margin-bottom:1.2rem;
+}
+.profile-hero-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 80% at 90% 50%, rgba(0,232,122,0.07) 0%, transparent 70%),
+             radial-gradient(ellipse 40% 60% at 10% 0%, rgba(59,130,246,0.05) 0%, transparent 65%);
+  pointer-events:none;
+}
+.profile-hero-inner{position:relative;z-index:1;display:flex;align-items:center;gap:2rem;}
+.avatar-wrap{position:relative;flex-shrink:0;}
+.avatar{
+  width:80px;height:80px;border-radius:50%;
+  background:linear-gradient(135deg,#1a2a1a,#0d1f0d);
+  border:2px solid rgba(0,232,122,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:1.8rem;font-weight:600;
+  color:var(--em);
+  box-shadow:0 0 30px rgba(0,232,122,0.2);
+}
+.avatar-ring{
+  position:absolute;inset:-4px;border-radius:50%;
+  border:1px solid rgba(0,232,122,0.2);
+  animation:spin-slow 12s linear infinite;
+}
+@keyframes spin-slow{to{transform:rotate(360deg)}}
+.avatar-ring::before{
+  content:'';position:absolute;top:-2px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;background:var(--em);
+  box-shadow:0 0 6px var(--em);
+}
+.profile-text{}
+.profile-name{font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);line-height:1.1;margin-bottom:0.3rem;}
+.profile-role{font-size:0.9rem;color:var(--text2);margin-bottom:1rem;font-weight:400;}
+.profile-meta{display:flex;gap:1.5rem;flex-wrap:wrap;}
+.meta-item{display:flex;align-items:center;gap:0.4rem;font-size:0.78rem;color:var(--text2);font-family:var(--font-mono);}
+.meta-icon{color:var(--em);font-size:0.8rem;}
+.profile-badges{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:1.2rem;}
+.badge{
+  display:inline-flex;align-items:center;gap:0.3rem;
+  padding:0.3rem 0.7rem;border-radius:4px;
+  font-size:0.72rem;font-weight:600;font-family:var(--font-mono);
+  text-transform:uppercase;letter-spacing:0.04em;
+}
+.badge-green{background:var(--em-dim);color:var(--em);border:1px solid rgba(0,232,122,0.2);}
+.badge-blue{background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid rgba(59,130,246,0.2);}
+.badge-amber{background:rgba(245,158,11,0.1);color:var(--amber);border:1px solid rgba(245,158,11,0.2);}
+.badge-violet{background:rgba(139,92,246,0.1);color:var(--violet);border:1px solid rgba(139,92,246,0.2);}
+
+/* Stat cards */
+.stat-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:1.2rem 1.4rem;
+  transition:all 0.2s var(--ease);
+}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.stat-label{font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);font-family:var(--font-mono);margin-bottom:0.5rem;}
+.stat-val{font-size:2rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);line-height:1;}
+.stat-sub{font-size:0.72rem;color:var(--text3);margin-top:0.3rem;display:flex;align-items:center;gap:0.3rem;}
+.stat-up{color:var(--em);}
+.stat-bar{height:2px;background:var(--bg4);border-radius:1px;margin-top:0.8rem;overflow:hidden;}
+.stat-fill{height:100%;border-radius:1px;background:linear-gradient(90deg,var(--em),var(--em2));transition:width 1.2s var(--ease);}
+
+/* About text */
+.about-text{font-size:0.9rem;color:var(--text2);line-height:1.75;font-weight:400;}
+
+/* ═══════════════════ SKILLS PANE ═══════════════════ */
+.skill-category{margin-bottom:1.4rem;}
+.skill-category:last-child{margin-bottom:0;}
+.skill-cat-name{
+  font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--text3);font-family:var(--font-mono);
+  margin-bottom:0.9rem;
+  display:flex;align-items:center;gap:0.6rem;
+}
+.skill-cat-name::after{content:'';flex:1;height:1px;background:var(--border);}
+.skill-row{
+  display:flex;align-items:center;gap:1rem;
+  margin-bottom:0.7rem;
+}
+.skill-row:last-child{margin-bottom:0;}
+.skill-name{
+  font-size:0.82rem;font-weight:500;color:var(--text);
+  width:130px;flex-shrink:0;
+}
+.skill-track{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;position:relative;}
+.skill-bar{
+  height:100%;border-radius:2px;
+  background:linear-gradient(90deg,var(--em),var(--em2));
+  width:0;
+  transition:width 1.4s cubic-bezier(0.4,0,0.2,1);
+  box-shadow:0 0 6px rgba(0,232,122,0.4);
+}
+.skill-pct{
+  font-family:var(--font-mono);font-size:0.7rem;
+  color:var(--text3);width:30px;text-align:right;flex-shrink:0;
+}
+/* Skill tags */
+.skill-tags{display:flex;flex-wrap:wrap;gap:0.5rem;}
+.skill-tag{
+  padding:0.3rem 0.7rem;border-radius:4px;
+  font-size:0.75rem;font-family:var(--font-mono);
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--text2);
+  transition:all 0.18s var(--ease);cursor:default;
+}
+.skill-tag:hover{background:var(--em-dim);border-color:rgba(0,232,122,0.2);color:var(--em);}
+
+/* ═══════════════════ PROJECTS PANE ═══════════════════ */
+.proj-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:0;overflow:hidden;
+  transition:all 0.22s var(--ease);
+  cursor:pointer;
+}
+.proj-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,0.35);}
+.proj-card:hover .proj-arrow{opacity:1;transform:translate(2px,-2px);}
+.proj-thumb{
+  height:120px;
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.5rem;
+}
+.proj-thumb-pattern{
+  position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,0.03) 1px,transparent 1px);
+  background-size:20px 20px;
+}
+.proj-body{padding:1.2rem;}
+.proj-status-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;}
+.proj-name{font-size:1rem;font-weight:700;color:var(--text);letter-spacing:-0.01em;margin-bottom:0.3rem;}
+.proj-tech{font-family:var(--font-mono);font-size:0.7rem;color:var(--text3);margin-bottom:0.8rem;}
+.proj-desc{font-size:0.82rem;color:var(--text2);line-height:1.65;}
+.proj-footer{
+  padding:0.8rem 1.2rem;
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg3);
+}
+.proj-links{display:flex;gap:0.6rem;}
+.proj-link{
+  font-size:0.72rem;font-family:var(--font-mono);
+  color:var(--text2);text-decoration:none;
+  padding:0.25rem 0.6rem;border-radius:3px;
+  background:var(--bg4);border:1px solid var(--border);
+  transition:all 0.15s;
+}
+.proj-link:hover{border-color:var(--em);color:var(--em);}
+.proj-arrow{
+  font-size:0.85rem;color:var(--text3);
+  opacity:0;transition:all 0.2s var(--spring);
+}
+
+/* ═══════════════════ TIMELINE ═══════════════════ */
+.timeline{position:relative;padding-left:1.5rem;}
+.timeline::before{
+  content:'';position:absolute;left:5px;top:8px;bottom:8px;
+  width:1px;background:linear-gradient(to bottom,var(--em),rgba(0,232,122,0.1));
+}
+.tl-item{
+  position:relative;margin-bottom:2rem;
+  opacity:0;transform:translateX(-10px);
+  transition:all 0.5s var(--ease);
+}
+.tl-item.visible{opacity:1;transform:translateX(0);}
+.tl-dot{
+  position:absolute;left:-1.5rem;top:5px;
+  width:11px;height:11px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--em);
+  box-shadow:0 0 8px rgba(0,232,122,0.5);
+  z-index:1;
+}
+.tl-dot.past{border-color:var(--text3);box-shadow:none;background:var(--text3);}
+.tl-date{
+  font-family:var(--font-mono);font-size:0.68rem;
+  color:var(--em);margin-bottom:0.4rem;letter-spacing:0.06em;
+}
+.tl-date.past{color:var(--text3);}
+.tl-title{font-size:0.95rem;font-weight:700;color:var(--text);letter-spacing:-0.01em;margin-bottom:0.2rem;}
+.tl-company{font-size:0.8rem;color:var(--text2);margin-bottom:0.6rem;display:flex;align-items:center;gap:0.4rem;}
+.tl-company-dot{width:3px;height:3px;border-radius:50%;background:var(--text3);}
+.tl-desc{font-size:0.82rem;color:var(--text2);line-height:1.7;}
+.tl-tags{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.7rem;}
+.tl-tag{
+  font-size:0.68rem;font-family:var(--font-mono);
+  padding:0.2rem 0.5rem;border-radius:3px;
+  background:var(--bg3);border:1px solid var(--border);color:var(--text3);
+}
+
+/* ═══════════════════ CERTIFICATIONS ═══════════════════ */
+.cert-item{
+  display:flex;align-items:flex-start;gap:1rem;
+  padding:1.1rem;border-radius:8px;
+  background:var(--bg3);border:1px solid var(--border);
+  margin-bottom:0.8rem;
+  transition:all 0.2s var(--ease);
+}
+.cert-item:hover{border-color:var(--border2);transform:translateX(3px);}
+.cert-item:last-child{margin-bottom:0;}
+.cert-icon{
+  width:40px;height:40px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;flex-shrink:0;
+}
+.cert-body{flex:1;min-width:0;}
+.cert-name{font-size:0.88rem;font-weight:600;color:var(--text);margin-bottom:0.2rem;}
+.cert-issuer{font-size:0.75rem;color:var(--text3);font-family:var(--font-mono);margin-bottom:0.4rem;}
+.cert-footer{display:flex;align-items:center;justify-content:space-between;}
+.cert-date{font-size:0.7rem;color:var(--text3);font-family:var(--font-mono);}
+.cert-verify{
+  font-size:0.68rem;font-family:var(--font-mono);
+  color:var(--em);text-decoration:none;
+  display:flex;align-items:center;gap:0.2rem;
+}
+
+/* ═══════════════════ CONTACT ═══════════════════ */
+.contact-split{display:grid;grid-template-columns:1fr 1.2fr;gap:1.2rem;margin-bottom:1.2rem;}
+.channel-item{
+  display:flex;align-items:center;gap:0.9rem;
+  padding:0.9rem 1.1rem;border-radius:7px;
+  background:var(--bg3);border:1px solid var(--border);
+  text-decoration:none;color:var(--text);
+  transition:all 0.2s var(--ease);
+  margin-bottom:0.7rem;cursor:pointer;
+}
+.channel-item:hover{border-color:var(--em);background:var(--em-dim);color:var(--em);}
+.channel-item:hover .ch-icon{color:var(--em);}
+.ch-icon{font-size:1.1rem;width:24px;text-align:center;color:var(--text2);transition:color 0.2s;}
+.ch-text{}
+.ch-label{font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);letter-spacing:0.05em;text-transform:uppercase;}
+.ch-value{font-size:0.85rem;font-weight:500;color:inherit;}
+.form-group{margin-bottom:0.9rem;}
+.form-group label{
+  display:block;font-size:0.68rem;font-family:var(--font-mono);
+  letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--text3);margin-bottom:0.4rem;
+}
+.form-group input, .form-group textarea, .form-group select{
+  width:100%;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:6px;padding:0.7rem 0.9rem;
+  color:var(--text);font-family:var(--font-ui);font-size:0.85rem;
+  outline:none;transition:border-color 0.18s;
+  resize:none;
+}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:rgba(0,232,122,0.4);}
+.form-group input::placeholder,.form-group textarea::placeholder{color:var(--text3);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;}
+.btn-em{
+  background:var(--em);color:var(--bg);
+  padding:0.7rem 1.6rem;border:none;border-radius:6px;
+  font-family:var(--font-ui);font-size:0.82rem;font-weight:600;
+  letter-spacing:0.02em;cursor:pointer;
+  transition:all 0.2s var(--spring);
+  display:inline-flex;align-items:center;gap:0.4rem;
+}
+.btn-em:hover{transform:scale(1.04);box-shadow:0 4px 20px rgba(0,232,122,0.35);}
+.availability-widget{
+  background:var(--em-dim);border:1px solid rgba(0,232,122,0.2);
+  border-radius:8px;padding:1.2rem;text-align:center;
+}
+.av-label{font-size:0.7rem;font-family:var(--font-mono);color:var(--em);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.4rem;}
+.av-status{font-size:0.9rem;font-weight:600;color:var(--text);margin-bottom:0.2rem;}
+.av-sub{font-size:0.75rem;color:var(--text2);}
+
+/* ═══════════════════ UTILITY ═══════════════════ */
+.divider{height:1px;background:var(--border);margin:1.2rem 0;}
+.mb-sm{margin-bottom:0.8rem;}
+.mb-md{margin-bottom:1.2rem;}
+.section-title{
+  font-size:1.4rem;font-weight:800;letter-spacing:-0.03em;
+  color:var(--text);margin-bottom:0.3rem;
+}
+.section-sub{font-size:0.82rem;color:var(--text2);margin-bottom:1.5rem;}
+
+/* Mobile menu toggle */
+.menu-toggle{
+  display:none;
+  padding:0.5rem;border:1px solid var(--border);
+  border-radius:5px;background:var(--bg2);color:var(--text2);
+  cursor:pointer;font-size:1rem;
+}
+
+@media(max-width:900px){
+  body{overflow:auto;}
+  .app{flex-direction:column;height:auto;}
+  .sidebar{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border);}
+  .sidebar .sb-nav{display:none;padding:0.5rem 0.7rem 0.7rem;}
+  .sidebar.open .sb-nav{display:block;}
+  .sb-footer{display:none;}
+  .main{height:auto;}
+  .content{overflow:visible;padding:1.2rem;}
+  .grid-2,.grid-3,.grid-12,.grid-21,.contact-split{grid-template-columns:1fr;}
+  .menu-toggle{display:block;}
+  .topbar{padding:0 1.2rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-mark">AC</div>
+      <div>
+        <div class="sb-logo-text">Alex Chen</div>
+        <div class="sb-logo-sub">portfolio.dev</div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-group-label">Overview</div>
+      <a class="sb-link active" onclick="show('profile',this)">
+        <span class="sb-icon">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </span>
+        Profile
+      </a>
+      <a class="sb-link" onclick="show('skills',this)">
+        <span class="sb-icon">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        Skills
+        <span class="sb-badge">18</span>
+      </a>
+
+      <div class="sb-group-label">Work</div>
+      <a class="sb-link" onclick="show('projects',this)">
+        <span class="sb-icon">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </span>
+        Projects
+        <span class="sb-badge">6</span>
+      </a>
+      <a class="sb-link" onclick="show('experience',this)">
+        <span class="sb-icon">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+        </span>
+        Experience
+      </a>
+
+      <div class="sb-group-label">Credentials</div>
+      <a class="sb-link" onclick="show('certifications',this)">
+        <span class="sb-icon">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M9.09 11a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+        </span>
+        Certifications
+      </a>
+      <a class="sb-link" onclick="show('contact',this)">
+        <span class="sb-icon">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </span>
+        Contact
+      </a>
+    </nav>
+    <div class="sb-footer">
+      <div class="status-row">
+        <div class="status-dot"></div>
+        <span>Available for work</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <div class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+      <div class="topbar-title" id="topbar-label">
+        <span>Portfolio</span>
+        <span class="topbar-sep">/</span>
+        <span class="topbar-sub" id="tb-sub">Profile</span>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-chip green"><div class="tb-dot"></div>Open to work</div>
+        <div class="topbar-chip">
+          <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Updated Mar 2026
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content" id="content">
+
+      <!-- ══ PROFILE ══ -->
+      <div class="pane active" id="pane-profile">
+        <div class="profile-hero">
+          <div class="profile-hero-bg"></div>
+          <div class="profile-hero-inner">
+            <div class="avatar-wrap">
+              <div class="avatar">AC</div>
+              <div class="avatar-ring"></div>
+            </div>
+            <div class="profile-text">
+              <div class="profile-name">Alex Chen</div>
+              <div class="profile-role">Full-Stack Engineer · Product Builder · Open Source Contributor</div>
+              <div class="profile-meta">
+                <div class="meta-item"><span class="meta-icon">📍</span>San Francisco, CA</div>
+                <div class="meta-item"><span class="meta-icon">✉</span>alex@chendev.io</div>
+                <div class="meta-item"><span class="meta-icon">🔗</span>chendev.io</div>
+              </div>
+              <div class="profile-badges">
+                <span class="badge badge-green">✓ Available</span>
+                <span class="badge badge-blue">Full-Stack</span>
+                <span class="badge badge-amber">5 Yrs Exp</span>
+                <span class="badge badge-violet">Open Source</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="stat-card">
+            <div class="stat-label">Projects Shipped</div>
+            <div class="stat-val">24</div>
+            <div class="stat-sub"><span class="stat-up">↑</span> 6 this year</div>
+            <div class="stat-bar"><div class="stat-fill" style="width:80%"></div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">GitHub Stars</div>
+            <div class="stat-val">3.2k</div>
+            <div class="stat-sub"><span class="stat-up">↑</span> 840 this year</div>
+            <div class="stat-bar"><div class="stat-fill" style="width:65%"></div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Certifications</div>
+            <div class="stat-val">7</div>
+            <div class="stat-sub">Across 4 platforms</div>
+            <div class="stat-bar"><div class="stat-fill" style="width:70%"></div></div>
+          </div>
+        </div>
+
+        <div class="grid-21">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title"><span class="card-title-icon">📋</span> About</div>
+            </div>
+            <div class="card-body">
+              <p class="about-text">I'm a full-stack engineer obsessed with building fast, elegant products. I've shipped features used by millions at companies ranging from seed-stage startups to late-stage unicorns. My stack lives mostly in the TypeScript ecosystem — React, Next.js, Node — but I'm just as comfortable deep in cloud infra or designing system architecture.</p>
+              <div class="divider"></div>
+              <p class="about-text">Outside of code I contribute to open-source tooling (most notably <span style="color:var(--em);font-family:var(--font-mono)">@dx-kit</span>), write a weekly newsletter on developer experience, and occasionally speak at meetups. I believe great software is a craft, and I treat it as one.</p>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card">
+              <div class="card-head"><div class="card-title"><span class="card-title-icon">⚡</span> Quick Facts</div></div>
+              <div class="card-body" style="padding:1rem 1.2rem;">
+                <div style="display:flex;flex-direction:column;gap:0.7rem;">
+                  <div style="display:flex;justify-content:space-between;font-size:0.8rem;">
+                    <span style="color:var(--text3);font-family:var(--font-mono)">Timezone</span>
+                    <span style="color:var(--text2)">PST (UTC-8)</span>
+                  </div>
+                  <div style="height:1px;background:var(--border)"></div>
+                  <div style="display:flex;justify-content:space-between;font-size:0.8rem;">
+                    <span style="color:var(--text3);font-family:var(--font-mono)">Languages</span>
+                    <span style="color:var(--text2)">EN, ZH</span>
+                  </div>
+                  <div style="height:1px;background:var(--border)"></div>
+                  <div style="display:flex;justify-content:space-between;font-size:0.8rem;">
+                    <span style="color:var(--text3);font-family:var(--font-mono)">Education</span>
+                    <span style="color:var(--text2)">BS CS · MIT</span>
+                  </div>
+                  <div style="height:1px;background:var(--border)"></div>
+                  <div style="display:flex;justify-content:space-between;font-size:0.8rem;">
+                    <span style="color:var(--text3);font-family:var(--font-mono)">Role type</span>
+                    <span style="color:var(--text2)">IC / Lead</span>
+                  </div>
+                  <div style="height:1px;background:var(--border)"></div>
+                  <div style="display:flex;justify-content:space-between;font-size:0.8rem;">
+                    <span style="color:var(--text3);font-family:var(--font-mono)">Work mode</span>
+                    <span style="color:var(--em)">Remote ✓</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><div class="card-title"><span class="card-title-icon">📊</span> Focus</div></div>
+              <div class="card-body" style="padding:1rem 1.2rem;">
+                <div style="display:flex;flex-direction:column;gap:0.6rem;">
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text2);margin-bottom:0.3rem;"><span>Frontend</span><span style="color:var(--em);font-family:var(--font-mono)">90%</span></div>
+                    <div class="skill-track"><div class="skill-bar" style="width:90%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text2);margin-bottom:0.3rem;"><span>Backend</span><span style="color:var(--em);font-family:var(--font-mono)">80%</span></div>
+                    <div class="skill-track"><div class="skill-bar" style="width:80%"></div></div>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text2);margin-bottom:0.3rem;"><span>DevOps</span><span style="color:var(--em);font-family:var(--font-mono)">65%</span></div>
+                    <div class="skill-track"><div class="skill-bar" style="width:65%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SKILLS ══ -->
+      <div class="pane" id="pane-skills">
+        <div class="section-title">Skills</div>
+        <div class="section-sub">Technologies, tools and frameworks I work with regularly.</div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><div class="card-title"><span class="card-title-icon">🎨</span> Frontend</div></div>
+            <div class="card-body">
+              <div class="skill-category">
+                <div class="skill-cat-name">Core</div>
+                <div class="skill-row"><span class="skill-name">React / Next.js</span><div class="skill-track"><div class="skill-bar" data-w="95"></div></div><span class="skill-pct">95%</span></div>
+                <div class="skill-row"><span class="skill-name">TypeScript</span><div class="skill-track"><div class="skill-bar" data-w="92"></div></div><span class="skill-pct">92%</span></div>
+                <div class="skill-row"><span class="skill-name">CSS / Tailwind</span><div class="skill-track"><div class="skill-bar" data-w="90"></div></div><span class="skill-pct">90%</span></div>
+              </div>
+              <div class="skill-category">
+                <div class="skill-cat-name">Libraries</div>
+                <div class="skill-tags">
+                  <span class="skill-tag">Zustand</span><span class="skill-tag">React Query</span>
+                  <span class="skill-tag">Framer Motion</span><span class="skill-tag">Radix UI</span>
+                  <span class="skill-tag">Vite</span><span class="skill-tag">Storybook</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title"><span class="card-title-icon">⚙️</span> Backend</div></div>
+            <div class="card-body">
+              <div class="skill-category">
+                <div class="skill-cat-name">Core</div>
+                <div class="skill-row"><span class="skill-name">Node.js</span><div class="skill-track"><div class="skill-bar" data-w="88"></div></div><span class="skill-pct">88%</span></div>
+                <div class="skill-row"><span class="skill-name">PostgreSQL</span><div class="skill-track"><div class="skill-bar" data-w="82"></div></div><span class="skill-pct">82%</span></div>
+                <div class="skill-row"><span class="skill-name">Redis</span><div class="skill-track"><div class="skill-bar" data-w="75"></div></div><span class="skill-pct">75%</span></div>
+              </div>
+              <div class="skill-category">
+                <div class="skill-cat-name">Frameworks</div>
+                <div class="skill-tags">
+                  <span class="skill-tag">Express</span><span class="skill-tag">Fastify</span>
+                  <span class="skill-tag">tRPC</span><span class="skill-tag">GraphQL</span>
+                  <span class="skill-tag">Prisma</span><span class="skill-tag">Drizzle</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title"><span class="card-title-icon">☁️</span> Cloud & DevOps</div></div>
+            <div class="card-body">
+              <div class="skill-category">
+                <div class="skill-cat-name">Platforms</div>
+                <div class="skill-row"><span class="skill-name">AWS</span><div class="skill-track"><div class="skill-bar" data-w="78"></div></div><span class="skill-pct">78%</span></div>
+                <div class="skill-row"><span class="skill-name">Docker / K8s</span><div class="skill-track"><div class="skill-bar" data-w="70"></div></div><span class="skill-pct">70%</span></div>
+                <div class="skill-row"><span class="skill-name">GitHub Actions</span><div class="skill-track"><div class="skill-bar" data-w="85"></div></div><span class="skill-pct">85%</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title"><span class="card-title-icon">🔧</span> Tooling</div></div>
+            <div class="card-body">
+              <div class="skill-cat-name" style="margin-bottom:0.8rem">Daily drivers</div>
+              <div class="skill-tags">
+                <span class="skill-tag">Git</span><span class="skill-tag">VS Code</span>
+                <span class="skill-tag">Figma</span><span class="skill-tag">Linear</span>
+                <span class="skill-tag">Notion</span><span class="skill-tag">Postman</span>
+                <span class="skill-tag">Jest</span><span class="skill-tag">Playwright</span>
+                <span class="skill-tag">Datadog</span><span class="skill-tag">Sentry</span>
+                <span class="skill-tag">Vercel</span><span class="skill-tag">Fly.io</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PROJECTS ══ -->
+      <div class="pane" id="pane-projects">
+        <div class="section-title">Projects</div>
+        <div class="section-sub">A selection of work I'm proud of.</div>
+        <div class="grid-3">
+          <div class="proj-card">
+            <div class="proj-thumb" style="background:linear-gradient(135deg,#0d1f2d,#1a3a4a)">
+              <div class="proj-thumb-pattern"></div>🤖
+            </div>
+            <div class="proj-body">
+              <div class="proj-status-row"><span class="badge badge-green">Live</span><span class="proj-arrow">↗</span></div>
+              <div class="proj-name">DX Kit</div>
+              <div class="proj-tech">TypeScript · Vite · Vitest</div>
+              <p class="proj-desc">Open-source developer experience toolkit used by 2k+ projects. Linting, formatting, and CI setup in one command.</p>
+            </div>
+            <div class="proj-footer">
+              <div class="proj-links">
+                <a class="proj-link" href="#">↗ Demo</a>
+                <a class="proj-link" href="#">⌥ GitHub</a>
+              </div>
+              <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--em)">★ 1.4k</div>
+            </div>
+          </div>
+          <div class="proj-card">
+            <div class="proj-thumb" style="background:linear-gradient(135deg,#1a0d2d,#2d1a4a)">
+              <div class="proj-thumb-pattern"></div>📊
+            </div>
+            <div class="proj-body">
+              <div class="proj-status-row"><span class="badge badge-blue">Beta</span><span class="proj-arrow">↗</span></div>
+              <div class="proj-name">QueryFlow</div>
+              <div class="proj-tech">React · tRPC · PostgreSQL</div>
+              <p class="proj-desc">Visual query builder for PostgreSQL databases with real-time collaboration, AI suggestions, and one-click exports.</p>
+            </div>
+            <div class="proj-footer">
+              <div class="proj-links">
+                <a class="proj-link" href="#">↗ Demo</a>
+                <a class="proj-link" href="#">⌥ GitHub</a>
+              </div>
+              <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--blue)">★ 890</div>
+            </div>
+          </div>
+          <div class="proj-card">
+            <div class="proj-thumb" style="background:linear-gradient(135deg,#1f1a0d,#3a2d0d)">
+              <div class="proj-thumb-pattern"></div>⚡
+            </div>
+            <div class="proj-body">
+              <div class="proj-status-row"><span class="badge badge-amber">Archived</span><span class="proj-arrow">↗</span></div>
+              <div class="proj-name">Snapdeploy</div>
+              <div class="proj-tech">Node.js · Docker · AWS ECS</div>
+              <p class="proj-desc">Zero-config deploy tool that packages any Node app into a production-ready container and ships it to AWS in under 60s.</p>
+            </div>
+            <div class="proj-footer">
+              <div class="proj-links">
+                <a class="proj-link" href="#">⌥ GitHub</a>
+              </div>
+              <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--amber)">★ 540</div>
+            </div>
+          </div>
+          <div class="proj-card">
+            <div class="proj-thumb" style="background:linear-gradient(135deg,#1a0d1f,#2d0d3a)">
+              <div class="proj-thumb-pattern"></div>🎨
+            </div>
+            <div class="proj-body">
+              <div class="proj-status-row"><span class="badge badge-green">Live</span><span class="proj-arrow">↗</span></div>
+              <div class="proj-name">PaletteOS</div>
+              <div class="proj-tech">Next.js · Canvas API · Zustand</div>
+              <p class="proj-desc">Browser-based design tool for building and exporting color systems. Generates accessible palettes with WCAG contrast scores.</p>
+            </div>
+            <div class="proj-footer">
+              <div class="proj-links">
+                <a class="proj-link" href="#">↗ Demo</a>
+                <a class="proj-link" href="#">⌥ GitHub</a>
+              </div>
+              <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--violet)">★ 720</div>
+            </div>
+          </div>
+          <div class="proj-card">
+            <div class="proj-thumb" style="background:linear-gradient(135deg,#0d1a1a,#0d2d2d)">
+              <div class="proj-thumb-pattern"></div>🔐
+            </div>
+            <div class="proj-body">
+              <div class="proj-status-row"><span class="badge badge-green">Live</span><span class="proj-arrow">↗</span></div>
+              <div class="proj-name">VaultKey</div>
+              <div class="proj-tech">React · Web Crypto API · IndexedDB</div>
+              <p class="proj-desc">Client-side password manager with zero-knowledge encryption. No server, no breach risk. Syncs via encrypted export/import.</p>
+            </div>
+            <div class="proj-footer">
+              <div class="proj-links">
+                <a class="proj-link" href="#">↗ Demo</a>
+                <a class="proj-link" href="#">⌥ GitHub</a>
+              </div>
+              <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--em)">★ 310</div>
+            </div>
+          </div>
+          <div class="proj-card">
+            <div class="proj-thumb" style="background:linear-gradient(135deg,#1f0d0d,#3a1212)">
+              <div class="proj-thumb-pattern"></div>📝
+            </div>
+            <div class="proj-body">
+              <div class="proj-status-row"><span class="badge badge-blue">WIP</span><span class="proj-arrow">↗</span></div>
+              <div class="proj-name">Scribe AI</div>
+              <div class="proj-tech">Next.js · OpenAI · Supabase</div>
+              <p class="proj-desc">AI-powered documentation generator. Point it at a codebase and get structured, accurate docs with examples in minutes.</p>
+            </div>
+            <div class="proj-footer">
+              <div class="proj-links">
+                <a class="proj-link" href="#">⌥ GitHub</a>
+              </div>
+              <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--rose)">Private</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EXPERIENCE ══ -->
+      <div class="pane" id="pane-experience">
+        <div class="section-title">Experience</div>
+        <div class="section-sub">My career timeline — roles, companies, and what I built.</div>
+        <div class="grid-12">
+          <div class="col">
+            <div class="stat-card">
+              <div class="stat-label">Total Experience</div>
+              <div class="stat-val">5yr</div>
+              <div class="stat-sub">3 companies</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Current Role</div>
+              <div class="stat-val" style="font-size:1.1rem;letter-spacing:-0.01em;">Senior SWE</div>
+              <div class="stat-sub">@ Vercel</div>
+            </div>
+            <div class="card">
+              <div class="card-head"><div class="card-title">🎓 Education</div></div>
+              <div class="card-body" style="padding:1rem 1.2rem;">
+                <div style="margin-bottom:0.8rem;">
+                  <div style="font-size:0.85rem;font-weight:600;color:var(--text)">MIT</div>
+                  <div style="font-size:0.75rem;color:var(--text3);font-family:var(--font-mono)">2017–2021</div>
+                  <div style="font-size:0.78rem;color:var(--text2);margin-top:0.2rem">B.S. Computer Science</div>
+                </div>
+                <div style="height:1px;background:var(--border);margin:0.7rem 0;"></div>
+                <div>
+                  <div style="font-size:0.85rem;font-weight:600;color:var(--text)">Harvard Extension</div>
+                  <div style="font-size:0.75rem;color:var(--text3);font-family:var(--font-mono)">2022–2023</div>
+                  <div style="font-size:0.78rem;color:var(--text2);margin-top:0.2rem">Advanced Systems Design</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title"><span class="card-title-icon">📅</span> Career Timeline</div></div>
+            <div class="card-body">
+              <div class="timeline">
+                <div class="tl-item">
+                  <div class="tl-dot"></div>
+                  <div class="tl-date">Jan 2023 — Present</div>
+                  <div class="tl-title">Senior Software Engineer</div>
+                  <div class="tl-company">Vercel <div class="tl-company-dot"></div> San Francisco, CA</div>
+                  <div class="tl-desc">Leading frontend infrastructure on the dashboard team. Built the new deployment logs viewer (used by 400k+ teams), improved bundle analysis tooling, and contributed to the Edge Runtime developer experience.</div>
+                  <div class="tl-tags">
+                    <span class="tl-tag">Next.js</span><span class="tl-tag">Edge Runtime</span><span class="tl-tag">Rust</span><span class="tl-tag">TypeScript</span>
+                  </div>
+                </div>
+                <div class="tl-item">
+                  <div class="tl-dot past"></div>
+                  <div class="tl-date past">Jun 2021 — Dec 2022</div>
+                  <div class="tl-title">Full-Stack Engineer</div>
+                  <div class="tl-company">Linear <div class="tl-company-dot"></div> Remote</div>
+                  <div class="tl-desc">Joined as a founding engineer. Built the search infrastructure from scratch, designed the notification system, and owned the mobile web experience. Helped grow from 10k to 200k active teams.</div>
+                  <div class="tl-tags">
+                    <span class="tl-tag">React</span><span class="tl-tag">GraphQL</span><span class="tl-tag">Elasticsearch</span><span class="tl-tag">Node.js</span>
+                  </div>
+                </div>
+                <div class="tl-item">
+                  <div class="tl-dot past"></div>
+                  <div class="tl-date past">Jan 2020 — May 2021</div>
+                  <div class="tl-title">Software Engineer Intern → FT</div>
+                  <div class="tl-company">Stripe <div class="tl-company-dot"></div> San Francisco, CA</div>
+                  <div class="tl-desc">Interned on the Dashboard team, converted full-time. Rebuilt the payout timeline UI and shipped the first version of the revenue recognition module used by enterprise customers.</div>
+                  <div class="tl-tags">
+                    <span class="tl-tag">React</span><span class="tl-tag">Ruby</span><span class="tl-tag">MySQL</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CERTIFICATIONS ══ -->
+      <div class="pane" id="pane-certifications">
+        <div class="section-title">Certifications</div>
+        <div class="section-sub">Verified credentials from leading platforms and providers.</div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><div class="card-title"><span class="card-title-icon">☁️</span> Cloud</div></div>
+            <div class="card-body">
+              <div class="cert-item">
+                <div class="cert-icon" style="background:rgba(255,153,0,0.12);">☁️</div>
+                <div class="cert-body">
+                  <div class="cert-name">AWS Solutions Architect — Professional</div>
+                  <div class="cert-issuer">Amazon Web Services</div>
+                  <div class="cert-footer">
+                    <div class="cert-date">Issued Nov 2023</div>
+                    <a class="cert-verify" href="#">Verify ↗</a>
+                  </div>
+                </div>
+              </div>
+              <div class="cert-item">
+                <div class="cert-icon" style="background:rgba(0,120,212,0.12);">💙</div>
+                <div class="cert-body">
+                  <div class="cert-name">Azure Developer Associate (AZ-204)</div>
+                  <div class="cert-issuer">Microsoft</div>
+                  <div class="cert-footer">
+                    <div class="cert-date">Issued Mar 2023</div>
+                    <a class="cert-verify" href="#">Verify ↗</a>
+                  </div>
+                </div>
+              </div>
+              <div class="cert-item">
+                <div class="cert-icon" style="background:rgba(52,168,83,0.12);">🟢</div>
+                <div class="cert-body">
+                  <div class="cert-name">Google Cloud Professional Developer</div>
+                  <div class="cert-issuer">Google Cloud</div>
+                  <div class="cert-footer">
+                    <div class="cert-date">Issued Jan 2024</div>
+                    <a class="cert-verify" href="#">Verify ↗</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title"><span class="card-title-icon">🛠</span> Engineering</div></div>
+            <div class="card-body">
+              <div class="cert-item">
+                <div class="cert-icon" style="background:rgba(0,232,122,0.1);">⚡</div>
+                <div class="cert-body">
+                  <div class="cert-name">Kubernetes Application Developer (CKAD)</div>
+                  <div class="cert-issuer">CNCF / Linux Foundation</div>
+                  <div class="cert-footer">
+                    <div class="cert-date">Issued Aug 2023</div>
+                    <a class="cert-verify" href="#">Verify ↗</a>
+                  </div>
+                </div>
+              </div>
+              <div class="cert-item">
+                <div class="cert-icon" style="background:rgba(139,92,246,0.12);">◈</div>
+                <div class="cert-body">
+                  <div class="cert-name">GraphQL Associate</div>
+                  <div class="cert-issuer">Apollo GraphQL</div>
+                  <div class="cert-footer">
+                    <div class="cert-date">Issued Feb 2022</div>
+                    <a class="cert-verify" href="#">Verify ↗</a>
+                  </div>
+                </div>
+              </div>
+              <div class="cert-item">
+                <div class="cert-icon" style="background:rgba(59,130,246,0.12);">🐳</div>
+                <div class="cert-body">
+                  <div class="cert-name">Docker Foundations Professional</div>
+                  <div class="cert-issuer">Docker Inc.</div>
+                  <div class="cert-footer">
+                    <div class="cert-date">Issued Apr 2022</div>
+                    <a class="cert-verify" href="#">Verify ↗</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="grid-column:1/-1">
+            <div class="card-head"><div class="card-title"><span class="card-title-icon">🎓</span> Courses & Specializations</div></div>
+            <div class="card-body">
+              <div class="cert-item">
+                <div class="cert-icon" style="background:rgba(245,158,11,0.12);">🧠</div>
+                <div class="cert-body">
+                  <div class="cert-name">Deep Learning Specialization</div>
+                  <div class="cert-issuer">Coursera · deeplearning.ai · Andrew Ng</div>
+                  <div class="cert-footer">
+                    <div class="cert-date">Issued Jun 2023 · 5 courses</div>
+                    <a class="cert-verify" href="#">Verify ↗</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CONTACT ══ -->
+      <div class="pane" id="pane-contact">
+        <div class="section-title">Contact</div>
+        <div class="section-sub">Let's talk about your project, a role, or just geek out about tech.</div>
+        <div class="contact-split">
+          <div class="col">
+            <div class="card">
+              <div class="card-head"><div class="card-title">📡 Reach Out</div></div>
+              <div class="card-body">
+                <a class="channel-item" href="mailto:alex@chendev.io">
+                  <div class="ch-icon">✉</div>
+                  <div class="ch-text"><div class="ch-label">Email</div><div class="ch-value">alex@chendev.io</div></div>
+                </a>
+                <a class="channel-item" href="#">
+                  <div class="ch-icon">💼</div>
+                  <div class="ch-text"><div class="ch-label">LinkedIn</div><div class="ch-value">linkedin.com/in/alexchen</div></div>
+                </a>
+                <a class="channel-item" href="#">
+                  <div class="ch-icon">🐙</div>
+                  <div class="ch-text"><div class="ch-label">GitHub</div><div class="ch-value">github.com/alexchen</div></div>
+                </a>
+                <a class="channel-item" href="#">
+                  <div class="ch-icon">🐦</div>
+                  <div class="ch-text"><div class="ch-label">Twitter / X</div><div class="ch-value">@alexchendev</div></div>
+                </a>
+              </div>
+            </div>
+            <div class="availability-widget">
+              <div class="av-label">Current availability</div>
+              <div class="av-status">Open to opportunities</div>
+              <div class="av-sub">Full-time or senior contract roles</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title">✉ Send a Message</div></div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group"><label>Name</label><input type="text" placeholder="Your name"></div>
+                <div class="form-group"><label>Email</label><input type="email" placeholder="you@company.com"></div>
+              </div>
+              <div class="form-group">
+                <label>Type</label>
+                <select>
+                  <option>Role / Opportunity</option>
+                  <option>Collaboration</option>
+                  <option>Open Source</option>
+                  <option>Just saying hi</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Message</label><textarea rows="4" placeholder="Tell me what's on your mind…"></textarea></div>
+              <button class="btn-em" onclick="handleMsg(this)">Send message →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ── Navigation ──
+const labels = {
+  profile:'Profile',skills:'Skills',projects:'Projects',
+  experience:'Experience',certifications:'Certifications',contact:'Contact'
+};
+
+function show(id, el) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('pane-' + id).classList.add('active');
+  if(el) el.classList.add('active');
+  document.getElementById('tb-sub').textContent = labels[id] || id;
+  document.getElementById('content').scrollTop = 0;
+  // Animate timeline items when showing experience
+  if(id === 'experience') {
+    setTimeout(() => {
+      document.querySelectorAll('.tl-item').forEach((el,i) => {
+        setTimeout(() => el.classList.add('visible'), i * 120);
+      });
+    }, 100);
+  }
+  // Animate skill bars when showing skills
+  if(id === 'skills') {
+    setTimeout(() => animateBars(), 150);
+  }
+  // Close mobile menu
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleMenu() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ── Skill bars ──
+function animateBars() {
+  document.querySelectorAll('.skill-bar[data-w]').forEach(bar => {
+    bar.style.width = bar.dataset.w + '%';
+  });
+}
+
+// ── Init ──
+window.addEventListener('load', () => {
+  // Animate profile stat bars on load
+  setTimeout(() => {
+    document.querySelectorAll('.stat-fill').forEach(el => {
+      const w = el.style.width; el.style.width = '0';
+      requestAnimationFrame(() => { setTimeout(() => el.style.width = w, 50); });
+    });
+    // Also profile focus bars
+    document.querySelectorAll('.profile-hero ~ * .skill-bar:not([data-w])').forEach(bar => {
+      const w = bar.style.width; bar.style.width='0';
+      requestAnimationFrame(() => { setTimeout(() => bar.style.width = w, 50); });
+    });
+  }, 300);
+  // Animate visible tl items in experience if already open
+  document.querySelectorAll('.tl-item').forEach((el,i) => {
+    setTimeout(() => el.classList.add('visible'), i * 120 + 200);
+  });
+});
+
+// ── Form ──
+function handleMsg(btn) {
+  btn.textContent = '✓ Sent!';
+  btn.style.background = '#00c469';
+  btn.disabled = true;
+  setTimeout(() => { btn.textContent = 'Send message →'; btn.style.background=''; btn.disabled=false; }, 3000);
+}
+</script>
+</body>
+</html>

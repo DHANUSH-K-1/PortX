@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ name }}'s Photography Portfolio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: {{ theme_color | default('#D4AF37') }};
+            --dark: #1A1A1A;
+            --light: #FFFFFF;
+            --gray: #F5F5F5;
+            --text: #333333;
+            --text-light: #666666;
+            
+            --font-serif: 'Lora', serif;
+            --font-sans: 'Raleway', sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--light);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 2rem 0;
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 1.2rem 0;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 0 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-serif);
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark);
+            text-decoration: none;
+            letter-spacing: 0.5px;
+        }
+
+        nav.scrolled .logo,
+        nav.scrolled .nav-links a {
+            color: var(--dark);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        nav.scrolled .nav-links a {
+            color: var(--text);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .menu-toggle span {
+            width: 25px;
+            height: 2px;
+            background: var(--light);
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled .menu-toggle span {
+            background: var(--dark);
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            padding: 2rem;
+            animation: fadeInUp 1.2s ease-out;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+        }
+
+        .hero-title {
+            font-family: var(--font-serif);
+            font-size: 5rem;
+            line-height: 1.1;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-description {
+            font-size: 1.2rem;
+            margin-bottom: 3rem;
+            font-weight: 300;
+            line-height: 1.8;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            padding: 1.2rem 3rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .hero-cta:hover {
+            background: transparent;
+            box-shadow: inset 0 0 0 2px var(--primary);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            animation: bounce 2s infinite;
+        }
+
+        .scroll-indicator i {
+            font-size: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+
+        /* Section Styles */
+        section {
+            padding: 8rem 4rem;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-label {
+            font-size: 0.85rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-family: var(--font-serif);
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .section-description {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.9;
+            font-weight: 300;
+        }
+
+        /* Portfolio Gallery */
+        .gallery-filters {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 4rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.8rem 2rem;
+            background: transparent;
+            border: 1px solid var(--text-light);
+            color: var(--text);
+            font-family: var(--font-sans);
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 1;
+            cursor: pointer;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .gallery-item:nth-child(1) { animation-delay: 0.1s; }
+        .gallery-item:nth-child(2) { animation-delay: 0.2s; }
+        .gallery-item:nth-child(3) { animation-delay: 0.3s; }
+        .gallery-item:nth-child(4) { animation-delay: 0.4s; }
+        .gallery-item:nth-child(5) { animation-delay: 0.5s; }
+        .gallery-item:nth-child(6) { animation-delay: 0.6s; }
+
+        .gallery-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .gallery-item:hover .gallery-image {
+            transform: scale(1.1);
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 2rem;
+        }
+
+        .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+
+        .gallery-title {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .gallery-category {
+            color: var(--primary);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Lightbox */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+
+        .lightbox-image {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .lightbox-close:hover {
+            background: white;
+            color: var(--primary);
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .lightbox-nav:hover {
+            background: var(--primary);
+        }
+
+        .lightbox-prev {
+            left: 2rem;
+        }
+
+        .lightbox-next {
+            right: 2rem;
+        }
+
+        /* About Section */
+        #about {
+            background: var(--gray);
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6rem;
+            align-items: center;
+        }
+
+        .about-image {
+            position: relative;
+        }
+
+        .about-image img {
+            width: 100%;
+            height: 600px;
+            object-fit: cover;
+            filter: grayscale(100%);
+            transition: filter 0.5s ease;
+        }
+
+        .about-image:hover img {
+            filter: grayscale(0%);
+        }
+
+        .about-text h3 {
+            font-family: var(--font-serif);
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            letter-spacing: -0.02em;
+        }
+
+        .about-text p {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            line-height: 2;
+            font-weight: 300;
+        }
+
+        .about-signature {
+            font-family: var(--font-serif);
+            font-size: 2rem;
+            color: var(--primary);
+            margin-top: 2rem;
+        }
+
+        /* Services */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .service-card {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: var(--gray);
+            transition: all 0.3s ease;
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .service-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 2rem;
+        }
+
+        .service-title {
+            font-family: var(--font-serif);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .service-description {
+            color: var(--text-light);
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        /* Testimonials */
+        #testimonials {
+            background: var(--dark);
+            color: white;
+        }
+
+        #testimonials .section-title {
+            color: white;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .testimonial-card {
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid var(--primary);
+        }
+
+        .testimonial-text {
+            font-family: var(--font-serif);
+            font-size: 1.3rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .author-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .author-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .author-info h4 {
+            font-family: var(--font-sans);
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .author-info p {
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        /* Contact */
+        .contact-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin: 4rem 0;
+        }
+
+        .contact-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .contact-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-item h3 {
+            font-family: var(--font-serif);
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-item a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-item a:hover {
+            color: var(--primary);
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .social-link {
+            width: 60px;
+            height: 60px;
+            background: var(--gray);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 1.3rem;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-5px);
+        }
+
+        .contact-form {
+            margin-top: 4rem;
+            text-align: left;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 1.2rem;
+            background: var(--gray);
+            border: 1px solid transparent;
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: var(--dark);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem;
+            text-align: center;
+        }
+
+        footer p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 2rem;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 80px;
+                left: -100%;
+                width: 100%;
+                background: white;
+                flex-direction: column;
+                padding: 2rem;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                transition: left 0.3s ease;
+            }
+
+            .nav-links.active {
+                left: 0;
+            }
+
+            .nav-links a {
+                color: var(--dark);
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .menu-toggle.active span:nth-child(1) {
+                transform: rotate(45deg) translate(7px, 7px);
+            }
+
+            .menu-toggle.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .menu-toggle.active span:nth-child(3) {
+                transform: rotate(-45deg) translate(7px, -7px);
+            }
+
+            section {
+                padding: 4rem 2rem;
+            }
+
+            .hero-title {
+                font-size: 3rem;
+            }
+
+            .section-title {
+                font-size: 2.5rem;
+            }
+
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-info {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .lightbox-nav {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+
+            .lightbox-prev {
+                left: 1rem;
+            }
+
+            .lightbox-next {
+                right: 1rem;
+            }
+
+            .lightbox-close {
+                top: 1rem;
+                right: 1rem;
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-container">
+            <a href="#home" class="logo">{{ name or 'Photographer' }}</a>
+            <div class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#portfolio">Portfolio</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#testimonials">Testimonials</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        {% if hero_image %}
+        <img src="{{ hero_image }}" alt="Hero" class="hero-image">
+        {% else %}
+        <img src="https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1920&h=1080&fit=crop" alt="Hero" class="hero-image">
+        {% endif %}
+        <div class="hero-overlay">
+            <div class="hero-content">
+                <div class="hero-subtitle">{{ role or 'Visual Storyteller' }}</div>
+                <h1 class="hero-title">{{ hero_title or 'Capturing Moments' }}</h1>
+                <p class="hero-description">
+                    {{ hero_description or 'Creating timeless visual stories through the art of photography' }}
+                </p>
+                <a href="#portfolio" class="hero-cta">View Portfolio</a>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll</span>
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </section>
+
+    <!-- Portfolio Gallery -->
+    <section id="portfolio">
+        <div class="section-header">
+            <div class="section-label">My Work</div>
+            <h2 class="section-title">Portfolio</h2>
+            <p class="section-description">
+                Explore a curated collection of my finest work across different genres
+            </p>
+        </div>
+
+        <div class="gallery-filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="wedding">Wedding</button>
+            <button class="filter-btn" data-filter="portrait">Portrait</button>
+            <button class="filter-btn" data-filter="travel">Travel</button>
+            <button class="filter-btn" data-filter="nature">Nature</button>
+        </div>
+
+        <div class="gallery-grid">
+            {% if gallery %}
+            {% for item in gallery %}
+            <div class="gallery-item" data-category="{{ item.category or 'all' }}">
+                <img src="{{ item.image }}" alt="{{ item.title }}" class="gallery-image">
+                <div class="gallery-overlay">
+                    <h3 class="gallery-title">{{ item.title or 'Photo' }}</h3>
+                    <p class="gallery-category">{{ item.category or 'Photography' }}</p>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="gallery-item" data-category="wedding">
+                <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=800&fit=crop" alt="Wedding" class="gallery-image">
+                <div class="gallery-overlay">
+                    <h3 class="gallery-title">Wedding Ceremony</h3>
+                    <p class="gallery-category">Wedding</p>
+                </div>
+            </div>
+            <div class="gallery-item" data-category="portrait">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&h=800&fit=crop" alt="Portrait" class="gallery-image">
+                <div class="gallery-overlay">
+                    <h3 class="gallery-title">Portrait Session</h3>
+                    <p class="gallery-category">Portrait</p>
+                </div>
+            </div>
+            <div class="gallery-item" data-category="travel">
+                <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=800&fit=crop" alt="Travel" class="gallery-image">
+                <div class="gallery-overlay">
+                    <h3 class="gallery-title">Mountain Landscape</h3>
+                    <p class="gallery-category">Travel</p>
+                </div>
+            </div>
+            <div class="gallery-item" data-category="nature">
+                <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=800&fit=crop" alt="Nature" class="gallery-image">
+                <div class="gallery-overlay">
+                    <h3 class="gallery-title">Natural Beauty</h3>
+                    <p class="gallery-category">Nature</p>
+                </div>
+            </div>
+            <div class="gallery-item" data-category="wedding">
+                <img src="https://images.unsplash.com/photo-1606800052052-a08af7148866?w=800&h=800&fit=crop" alt="Wedding" class="gallery-image">
+                <div class="gallery-overlay">
+                    <h3 class="gallery-title">Romantic Moment</h3>
+                    <p class="gallery-category">Wedding</p>
+                </div>
+            </div>
+            <div class="gallery-item" data-category="portrait">
+                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&h=800&fit=crop" alt="Portrait" class="gallery-image">
+                <div class="gallery-overlay">
+                    <h3 class="gallery-title">Classic Portrait</h3>
+                    <p class="gallery-category">Portrait</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" id="closeLightbox">
+            <i class="fas fa-times"></i>
+        </button>
+        <button class="lightbox-nav lightbox-prev" id="prevImage">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="lightbox-content">
+            <img src="" alt="Lightbox Image" class="lightbox-image" id="lightboxImage">
+        </div>
+        <button class="lightbox-nav lightbox-next" id="nextImage">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- About Section -->
+    <section id="about">
+        <div class="section-header">
+            <div class="section-label">About Me</div>
+            <h2 class="section-title">The Photographer</h2>
+        </div>
+        <div class="about-content">
+            <div class="about-image">
+                {% if about_image %}
+                <img src="{{ about_image }}" alt="{{ name }}">
+                {% else %}
+                <img src="https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=800&h=1000&fit=crop" alt="Photographer">
+                {% endif %}
+            </div>
+            <div class="about-text">
+                <h3>{{ about_title or 'Passionate Visual Artist' }}</h3>
+                <p>{{ about or 'With over a decade of experience in photography, I specialize in capturing authentic moments and creating timeless visual stories. My work is driven by a passion for light, composition, and the beauty of genuine human connection.' }}</p>
+                <p>{{ about_2 or 'Each project is approached with creativity, professionalism, and attention to detail, ensuring that every image tells a unique and compelling story.' }}</p>
+                <div class="about-signature">{{ name or 'Photographer' }}</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services -->
+    <section id="services">
+        <div class="section-header">
+            <div class="section-label">What I Offer</div>
+            <h2 class="section-title">Services</h2>
+            <p class="section-description">
+                Professional photography services tailored to your unique needs
+            </p>
+        </div>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h3 class="service-title">Wedding Photography</h3>
+                <p class="service-description">
+                    Capturing your special day with elegance and emotion, from intimate moments to grand celebrations.
+                </p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3 class="service-title">Portrait Sessions</h3>
+                <p class="service-description">
+                    Professional portraits that showcase personality, style, and authenticity.
+                </p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-plane"></i>
+                </div>
+                <h3 class="service-title">Travel Photography</h3>
+                <p class="service-description">
+                    Documenting journeys and destinations with artistic vision and storytelling.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section id="testimonials">
+        <div class="section-header">
+            <div class="section-label">Client Love</div>
+            <h2 class="section-title">Testimonials</h2>
+            <p class="section-description">
+                Words from those who trusted me to capture their moments
+            </p>
+        </div>
+        <div class="testimonials-grid">
+            {% if testimonials %}
+            {% for testimonial in testimonials %}
+            <div class="testimonial-card">
+                <p class="testimonial-text">"{{ testimonial.text }}"</p>
+                <div class="testimonial-author">
+                    <div class="author-image">
+                        {% if testimonial.image %}
+                        <img src="{{ testimonial.image }}" alt="{{ testimonial.name }}">
+                        {% endif %}
+                    </div>
+                    <div class="author-info">
+                        <h4>{{ testimonial.name }}</h4>
+                        <p>{{ testimonial.role or 'Client' }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="testimonial-card">
+                <p class="testimonial-text">"Absolutely stunning work! Every photo captured the essence of our special day perfectly. We couldn't be happier with the results."</p>
+                <div class="testimonial-author">
+                    <div class="author-image">
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop" alt="Client">
+                    </div>
+                    <div class="author-info">
+                        <h4>Sarah & Michael</h4>
+                        <p>Wedding Clients</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <p class="testimonial-text">"Professional, creative, and incredibly talented. The portraits exceeded all our expectations. Highly recommended!"</p>
+                <div class="testimonial-author">
+                    <div class="author-image">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" alt="Client">
+                    </div>
+                    <div class="author-info">
+                        <h4>James Anderson</h4>
+                        <p>Portrait Client</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact">
+        <div class="section-header">
+            <div class="section-label">Get In Touch</div>
+            <h2 class="section-title">Contact</h2>
+            <p class="section-description">
+                Let's create something beautiful together
+            </p>
+        </div>
+        <div class="contact-wrapper">
+            <div class="contact-info">
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3>Email</h3>
+                    <a href="mailto:{{ email or 'hello@photographer.com' }}">{{ email or 'hello@photographer.com' }}</a>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <h3>Phone</h3>
+                    <a href="tel:{{ phone or '' }}">{{ phone or '+1 234 567 890' }}</a>
+                </div>
+            </div>
+
+            <div class="social-links">
+                {% if social.instagram %}<a href="{{ social.instagram }}" class="social-link"><i class="fab fa-instagram"></i></a>{% endif %}
+                {% if social.facebook %}<a href="{{ social.facebook }}" class="social-link"><i class="fab fa-facebook"></i></a>{% endif %}
+                {% if social.pinterest %}<a href="{{ social.pinterest }}" class="social-link"><i class="fab fa-pinterest"></i></a>{% endif %}
+                {% if social.vimeo %}<a href="{{ social.vimeo }}" class="social-link"><i class="fab fa-vimeo"></i></a>{% endif %}
+            </div>
+
+            <form class="contact-form" id="contactForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" name="subject" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Send Message</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; {{ year or '2024' }} {{ name or 'Photographer' }}. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Navigation scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 100);
+        });
+
+        // Mobile menu
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+
+        menuToggle.addEventListener('click', () => {
+            menuToggle.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                menuToggle.classList.remove('active');
+                navLinks.classList.remove('active');
+            });
+        });
+
+        // Gallery filter
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const galleryItems = document.querySelectorAll('.gallery-item');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const filter = btn.getAttribute('data-filter');
+
+                galleryItems.forEach(item => {
+                    if (filter === 'all' || item.getAttribute('data-category') === filter) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Lightbox
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImage = document.getElementById('lightboxImage');
+        const closeLightbox = document.getElementById('closeLightbox');
+        const prevImage = document.getElementById('prevImage');
+        const nextImage = document.getElementById('nextImage');
+        let currentImageIndex = 0;
+        let visibleImages = [];
+
+        function updateVisibleImages() {
+            visibleImages = Array.from(galleryItems).filter(item => item.style.display !== 'none');
+        }
+
+        galleryItems.forEach((item, index) => {
+            item.addEventListener('click', () => {
+                updateVisibleImages();
+                currentImageIndex = visibleImages.indexOf(item);
+                const imgSrc = item.querySelector('.gallery-image').src;
+                lightboxImage.src = imgSrc;
+                lightbox.classList.add('active');
+            });
+        });
+
+        closeLightbox.addEventListener('click', () => {
+            lightbox.classList.remove('active');
+        });
+
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                lightbox.classList.remove('active');
+            }
+        });
+
+        prevImage.addEventListener('click', () => {
+            currentImageIndex = (currentImageIndex - 1 + visibleImages.length) % visibleImages.length;
+            lightboxImage.src = visibleImages[currentImageIndex].querySelector('.gallery-image').src;
+        });
+
+        nextImage.addEventListener('click', () => {
+            currentImageIndex = (currentImageIndex + 1) % visibleImages.length;
+            lightboxImage.src = visibleImages[currentImageIndex].querySelector('.gallery-image').src;
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (lightbox.classList.contains('active')) {
+                if (e.key === 'Escape') {
+                    lightbox.classList.remove('active');
+                } else if (e.key === 'ArrowLeft') {
+                    prevImage.click();
+                } else if (e.key === 'ArrowRight') {
+                    nextImage.click();
+                }
+            }
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Form submission
+        document.getElementById('contactForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Thank you for your message! I will get back to you soon.');
+            e.target.reset();
+        });
+
+        // Initialize visible images
+        updateVisibleImages();
+    </script>
+</body>
+</html>

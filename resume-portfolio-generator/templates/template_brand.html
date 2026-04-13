@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ name }}'s Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+:root{
+  --ink:    #0e0e0e;
+  --ink2:   #3a3a3a;
+  --ink3:   #7a7a7a;
+  --ink4:   #b0b0b0;
+  --rule:   #e2e2e2;
+  --bg:     #faf9f7;
+  --cream:  #f4f2ee;
+  --white:  #ffffff;
+  --gold:   {{ theme_color | default('#b08d57') }};
+  --gold2:  color-mix(in srgb, {{ theme_color | default('#b08d57') }} 60%, #fff);
+  --serif:  'Cormorant Garamond', Georgia, serif;
+  --sans:   'Jost', system-ui, sans-serif;
+  --ease:   cubic-bezier(.4,0,.2,1);
+}
+
+body{
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  line-height:1.65;
+}
+
+/* ─── CUSTOM CURSOR ─── */
+#cur-d,#cur-r{position:fixed;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .12s}
+#cur-d{width:7px;height:7px;background:var(--gold)}
+#cur-r{width:32px;height:32px;border:1px solid rgba(176,141,87,.5);transition:all .18s var(--ease)}
+#cur-r.h{width:52px;height:52px;background:rgba(176,141,87,.06);border-color:var(--gold)}
+body{cursor:none}
+
+/* ─── NAV ─── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  height:58px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 4rem;
+  background:rgba(250,249,247,.88);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--rule);
+  transition:background .3s;
+}
+.nav-logo{
+  font-family:var(--serif);font-size:1.25rem;font-weight:400;
+  letter-spacing:.04em;color:var(--ink);text-decoration:none;
+}
+.nav-logo span{color:var(--gold)}
+.nav-ul{list-style:none;display:flex;gap:2.2rem}
+.nav-ul a{
+  font-size:.72rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink3);text-decoration:none;transition:color .2s;
+}
+.nav-ul a:hover{color:var(--ink)}
+.nav-cta{
+  font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gold) !important;
+  padding:.35rem 1.1rem;border:1px solid var(--gold);
+  transition:all .2s !important;
+}
+.nav-cta:hover{background:var(--gold);color:#fff !important}
+
+/* ─── SECTION BASE ─── */
+section{padding:110px 0;position:relative}
+.wrap{max-width:1040px;margin:0 auto;padding:0 2.5rem}
+.wrap-narrow{max-width:720px;margin:0 auto;padding:0 2.5rem}
+
+/* eyebrow */
+.ey{
+  display:inline-flex;align-items:center;gap:.7rem;
+  font-size:.68rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:1.1rem;
+}
+.ey::before{content:'';width:24px;height:1px;background:var(--gold)}
+
+/* section title */
+h2.st{
+  font-family:var(--serif);
+  font-size:clamp(2.2rem,4vw,3.4rem);
+  font-weight:400;line-height:1.1;letter-spacing:-.01em;
+  color:var(--ink);margin-bottom:.6rem;
+}
+h2.st em{font-style:italic;color:var(--ink3)}
+.st-rule{width:40px;height:1px;background:var(--gold);margin:1.2rem 0 2.5rem}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.rv.on{opacity:1;transform:none}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}
+
+/* divider */
+.hr-gold{border:none;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0}
+
+/* ═══════════════ HERO ═══════════════ */
+#hero{
+  min-height:100vh;display:grid;
+  grid-template-columns:1fr 1fr;
+  align-items:center;
+  padding-top:58px;
+  overflow:hidden;
+  background:var(--bg);
+}
+.hero-left{padding:6rem 3rem 6rem 4rem;position:relative}
+.hero-pre{
+  font-size:.7rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:1.6rem;
+  display:flex;align-items:center;gap:.7rem;
+  opacity:0;animation:rise .7s .2s ease forwards;
+}
+.hero-pre::before{content:'';width:28px;height:1px;background:var(--gold)}
+h1.hero-name{
+  font-family:var(--serif);
+  font-size:clamp(3.5rem,6vw,5.8rem);
+  font-weight:300;line-height:.97;letter-spacing:-.02em;
+  color:var(--ink);margin-bottom:1.8rem;
+  opacity:0;animation:rise .9s .35s ease forwards;
+}
+h1.hero-name em{
+  display:block;font-style:italic;
+  color:var(--ink2);font-size:.85em;
+  margin-top:.15em;
+}
+.hero-title-pill{
+  display:inline-block;
+  font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--gold);background:rgba(176,141,87,.08);
+  border:1px solid rgba(176,141,87,.25);
+  padding:.38rem 1rem;margin-bottom:1.8rem;
+  opacity:0;animation:rise .7s .5s ease forwards;
+}
+{% if portfolio_summary %}
+.hero-bio{
+  font-size:1rem;font-weight:300;color:var(--ink2);line-height:1.85;
+  max-width:440px;margin-bottom:2.5rem;
+  border-left:2px solid var(--rule);padding-left:1.2rem;
+  opacity:0;animation:rise .8s .65s ease forwards;
+}
+{% endif %}
+.hero-contacts{
+  display:flex;flex-wrap:wrap;gap:.7rem;margin-bottom:2.8rem;
+  opacity:0;animation:rise .7s .75s ease forwards;
+}
+.hc-pill{
+  display:flex;align-items:center;gap:.45rem;
+  font-size:.78rem;color:var(--ink3);
+  padding:.38rem .9rem;border:1px solid var(--rule);
+  background:var(--white);
+  text-decoration:none;transition:all .2s;
+}
+.hc-pill:hover{border-color:var(--gold);color:var(--ink)}
+.hc-icon{font-size:.85rem}
+.hero-btns{
+  display:flex;gap:.9rem;
+  opacity:0;animation:rise .7s .88s ease forwards;
+}
+.btn-solid{
+  font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:.8rem 2rem;background:var(--ink);color:var(--white);
+  text-decoration:none;transition:all .22s var(--ease);
+}
+.btn-solid:hover{background:var(--gold)}
+.btn-outline{
+  font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:.8rem 2rem;border:1px solid var(--rule);color:var(--ink);
+  text-decoration:none;transition:all .22s;
+}
+.btn-outline:hover{border-color:var(--ink)}
+
+/* hero right — photo panel */
+.hero-right{
+  height:100vh;position:relative;overflow:hidden;
+  background:var(--cream);
+}
+.hero-photo-wrap{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.hero-initials{
+  font-family:var(--serif);
+  font-size:clamp(8rem,18vw,16rem);
+  font-weight:300;line-height:1;
+  color:rgba(176,141,87,.12);
+  letter-spacing:-.04em;
+  user-select:none;
+  animation:rise 1.2s .3s ease forwards;opacity:0;
+}
+.hero-photo-frame{
+  position:absolute;
+  width:320px;height:420px;
+  background:linear-gradient(160deg,var(--cream) 0%,var(--rule) 100%);
+  border:1px solid var(--rule);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:1rem;
+  color:var(--ink4);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;
+}
+.photo-icon{font-size:2.5rem;opacity:.3}
+/* Corner accents */
+.hero-right::before,
+.hero-right::after{
+  content:'';position:absolute;width:40px;height:40px;
+  border-color:var(--gold);border-style:solid;
+}
+.hero-right::before{top:2.5rem;left:2.5rem;border-width:1px 0 0 1px}
+.hero-right::after{bottom:2.5rem;right:2.5rem;border-width:0 1px 1px 0}
+/* stat chips */
+.hero-stats{
+  position:absolute;bottom:3rem;left:2.5rem;
+  display:flex;flex-direction:column;gap:.7rem;
+}
+.stat-chip{
+  background:rgba(250,249,247,.92);backdrop-filter:blur(8px);
+  border:1px solid var(--rule);
+  padding:.6rem 1rem;display:flex;align-items:center;gap:.7rem;
+}
+.sc-val{font-family:var(--serif);font-size:1.4rem;font-weight:400;color:var(--ink);line-height:1}
+.sc-lbl{font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+/* ═══════════════ BRAND / STORY ═══════════════ */
+#story{background:var(--cream)}
+#story::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.story-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start}
+.story-quote{
+  font-family:var(--serif);
+  font-size:clamp(1.6rem,3vw,2.4rem);
+  font-weight:300;line-height:1.4;letter-spacing:-.01em;
+  color:var(--ink);position:relative;padding-top:2rem;
+}
+.story-quote::before{
+  content:'\201C';
+  position:absolute;top:-.5rem;left:0;
+  font-size:5rem;line-height:1;color:var(--gold);opacity:.3;
+  font-family:var(--serif);
+}
+.story-body{font-size:.95rem;color:var(--ink2);line-height:1.9;font-weight:300}
+.story-body p{margin-bottom:1.2rem}
+.story-body p:last-child{margin-bottom:0}
+.story-sig{
+  font-family:var(--serif);font-style:italic;
+  font-size:1.4rem;color:var(--gold);margin-top:2rem;
+}
+
+/* ═══════════════ SKILLS ═══════════════ */
+#skills{background:var(--bg)}
+.skills-cols{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:0;border-top:1px solid var(--rule);border-left:1px solid var(--rule);
+  margin-top:2.5rem;
+}
+.skill-item{
+  padding:1.1rem 1.4rem;
+  border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:.88rem;color:var(--ink2);font-weight:400;
+  transition:all .18s;cursor:default;
+}
+.skill-item:hover{background:var(--cream);color:var(--ink)}
+.skill-item:hover .sk-dot{background:var(--gold)}
+.sk-dot{width:5px;height:5px;border-radius:50%;background:var(--rule);flex-shrink:0;transition:background .2s}
+
+/* ═══════════════ FEATURED WORK (PROJECTS) ═══════════════ */
+#projects{background:var(--cream)}
+#projects::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.work-list{margin-top:2.5rem}
+.work-item{
+  display:grid;grid-template-columns:80px 1fr auto;
+  gap:2rem;align-items:start;
+  padding:2.2rem 0;
+  border-bottom:1px solid var(--rule);
+  transition:all .22s;
+}
+.work-item:first-child{border-top:1px solid var(--rule)}
+.work-item:hover .work-arrow{opacity:1;transform:translate(3px,-3px)}
+.work-item:hover .work-num{color:var(--gold)}
+.work-num{
+  font-family:var(--serif);font-size:2.5rem;font-weight:300;
+  color:var(--rule);line-height:1;transition:color .2s;
+  padding-top:.3rem;text-align:right;
+}
+.work-body{}
+.work-name{
+  font-family:var(--serif);font-size:1.5rem;font-weight:400;
+  letter-spacing:-.01em;color:var(--ink);margin-bottom:.3rem;
+}
+.work-tech{
+  font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:.7rem;
+}
+.work-desc{font-size:.88rem;color:var(--ink3);line-height:1.75;font-weight:300;max-width:560px}
+.work-arrow{
+  font-size:1.1rem;color:var(--ink3);opacity:0;
+  transition:all .22s;padding-top:.5rem;flex-shrink:0;
+}
+
+/* ═══════════════ EXPERIENCE ═══════════════ */
+#experience{background:var(--bg)}
+.exp-rows{margin-top:2.5rem}
+.exp-row{
+  display:grid;grid-template-columns:200px 1fr;
+  gap:3rem;padding:2.2rem 0;border-bottom:1px solid var(--rule);
+}
+.exp-row:first-child{border-top:1px solid var(--rule)}
+.exp-meta{}
+.exp-dates{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem}
+.exp-co{font-size:.82rem;color:var(--ink3)}
+.exp-role{font-family:var(--serif);font-size:1.2rem;font-weight:400;color:var(--ink);margin-bottom:.5rem;letter-spacing:-.01em}
+.exp-desc{font-size:.88rem;color:var(--ink2);line-height:1.8;font-weight:300}
+
+/* ═══════════════ TESTIMONIALS ═══════════════ */
+#testimonials{background:var(--cream);overflow:hidden}
+#testimonials::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.test-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1.5rem;margin-top:2.5rem;
+}
+.test-card{
+  background:var(--white);border:1px solid var(--rule);
+  padding:2rem 1.8rem;position:relative;
+  transition:all .25s;
+}
+.test-card:hover{border-color:rgba(176,141,87,.35);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.07)}
+.test-card::before{
+  content:'\201C';
+  position:absolute;top:1.2rem;right:1.5rem;
+  font-family:var(--serif);font-size:3.5rem;line-height:1;
+  color:var(--gold);opacity:.18;
+}
+.test-body{font-size:.9rem;color:var(--ink2);line-height:1.8;font-weight:300;margin-bottom:1.6rem;font-style:italic}
+.test-author-row{display:flex;align-items:center;gap:.9rem}
+.test-avatar{
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,var(--cream),var(--rule));
+  border:1px solid var(--rule);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:1rem;font-weight:400;color:var(--ink3);
+  flex-shrink:0;
+}
+.test-name{font-size:.82rem;font-weight:600;color:var(--ink);margin-bottom:.1rem}
+.test-role{font-size:.72rem;color:var(--ink3);letter-spacing:.04em}
+
+/* ═══════════════ EDUCATION ═══════════════ */
+#education{background:var(--bg)}
+.edu-rows{margin-top:2.5rem}
+.edu-row{
+  display:grid;grid-template-columns:200px 1fr;
+  gap:3rem;padding:1.8rem 0;border-bottom:1px solid var(--rule);
+}
+.edu-row:first-child{border-top:1px solid var(--rule)}
+.edu-dates{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);padding-top:.2rem}
+.edu-degree{font-family:var(--serif);font-size:1.15rem;font-weight:400;color:var(--ink);margin-bottom:.25rem;letter-spacing:-.01em}
+.edu-inst{font-size:.82rem;color:var(--ink3)}
+
+/* ═══════════════ CONTACT ═══════════════ */
+#contact{
+  background:var(--ink);color:var(--white);
+  overflow:hidden;
+}
+#contact::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 80% at 80% 50%,rgba(176,141,87,.08),transparent);
+  pointer-events:none;
+}
+.contact-layout{display:grid;grid-template-columns:1fr 1.1fr;gap:5rem;align-items:start;position:relative;z-index:1}
+.contact-left .ey{color:var(--gold)}
+.contact-left h2.st{color:var(--white)}
+.contact-left h2.st em{color:rgba(255,255,255,.45)}
+.contact-blurb{font-size:.95rem;color:rgba(255,255,255,.6);line-height:1.85;font-weight:300;margin-bottom:2.5rem;max-width:400px}
+.social-row{display:flex;flex-wrap:wrap;gap:.7rem;margin-bottom:2.5rem}
+.soc-btn{
+  display:flex;align-items:center;gap:.5rem;
+  font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:.5rem 1.1rem;border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.6);text-decoration:none;transition:all .2s;
+}
+.soc-btn:hover{border-color:var(--gold);color:var(--gold)}
+.direct-links{display:flex;flex-direction:column;gap:.8rem}
+.d-link{
+  display:flex;align-items:center;gap:.8rem;
+  padding:.85rem 1.1rem;border:1px solid rgba(255,255,255,.08);
+  text-decoration:none;color:var(--white);transition:all .2s;
+}
+.d-link:hover{border-color:rgba(176,141,87,.4);background:rgba(176,141,87,.06);transform:translateX(4px)}
+.d-icon{font-size:.95rem;width:18px;text-align:center;color:rgba(255,255,255,.4);transition:color .2s}
+.d-link:hover .d-icon{color:var(--gold)}
+.d-lbl{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35)}
+.d-val{font-size:.85rem;font-weight:500}
+
+/* form */
+.contact-form{}
+.cf-title{font-family:var(--serif);font-size:1.6rem;font-weight:300;color:var(--white);margin-bottom:.3rem}
+.cf-sub{font-size:.82rem;color:rgba(255,255,255,.4);margin-bottom:2rem}
+.fg{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1.2rem}
+.fg label{font-size:.65rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35)}
+.fg input,.fg textarea{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+  color:var(--white);
+  padding:.7rem 1rem;font-family:var(--sans);font-size:.88rem;
+  outline:none;transition:border-color .2s;resize:none;width:100%;
+}
+.fg input:focus,.fg textarea:focus{border-color:rgba(176,141,87,.5)}
+.fg input::placeholder,.fg textarea::placeholder{color:rgba(255,255,255,.2)}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.cf-btn{
+  font-family:var(--sans);font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:.85rem 2.5rem;background:var(--gold);color:var(--white);
+  border:none;cursor:pointer;width:100%;margin-top:.5rem;
+  transition:all .22s;
+}
+.cf-btn:hover{background:#c9a56a;transform:translateY(-2px)}
+
+/* footer */
+footer{
+  background:var(--ink);border-top:1px solid rgba(255,255,255,.08);
+  padding:1.6rem 0;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:.7rem;letter-spacing:.06em;color:rgba(255,255,255,.3);
+  position:relative;z-index:10;
+}
+footer a{color:rgba(255,255,255,.3);text-decoration:none;transition:color .2s}
+footer a:hover{color:var(--gold)}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  nav{padding:0 1.2rem}
+  .nav-ul{display:none}
+  section{padding:70px 0}
+  .wrap,.wrap-narrow{padding:0 1.2rem}
+  #hero{grid-template-columns:1fr;min-height:auto}
+  .hero-left{padding:5rem 1.2rem 3rem}
+  .hero-right{height:300px}
+  .story-grid,.contact-layout{grid-template-columns:1fr;gap:2.5rem}
+  .skills-cols{grid-template-columns:repeat(2,1fr)}
+  .work-item{grid-template-columns:50px 1fr auto;gap:1.2rem}
+  .exp-row,.edu-row{grid-template-columns:1fr;gap:.5rem}
+  .test-grid{grid-template-columns:1fr}
+  .fg-row{grid-template-columns:1fr}
+  footer{flex-direction:column;gap:.5rem;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<div id="cur-d"></div>
+<div id="cur-r"></div>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <a class="nav-logo" href="#hero">
+    {{ name.split()[0] if name else 'Your' }}<span>.</span>
+  </a>
+  <ul class="nav-ul">
+    <li><a href="#story">Story</a></li>
+    {% if skills %}<li><a href="#skills">Skills</a></li>{% endif %}
+    {% if projects %}<li><a href="#projects">Work</a></li>{% endif %}
+    {% if experience %}<li><a href="#experience">Experience</a></li>{% endif %}
+    <li><a href="#testimonials">Trust</a></li>
+    {% if education %}<li><a href="#education">Education</a></li>{% endif %}
+    <li><a href="#contact" class="nav-cta">Connect</a></li>
+  </ul>
+</nav>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section id="hero">
+  <div class="hero-left">
+    <div class="hero-pre">Personal Portfolio</div>
+    <h1 class="hero-name">
+      {{ name.split()[0] if name else 'Your' }}
+      <em>{{ name.split()[1:] | join(' ') if name and name.split()|length > 1 else 'Name' }}</em>
+    </h1>
+    <div class="hero-title-pill">
+      {% if experience and experience[0].title %}{{ experience[0].title }}{% else %}Creative Professional{% endif %}
+    </div>
+    {% if portfolio_summary %}
+    <p class="hero-bio">{{ portfolio_summary | truncate(180) }}</p>
+    {% endif %}
+    <div class="hero-contacts">
+      {% if email %}
+      <a class="hc-pill" href="mailto:{{ email }}"><span class="hc-icon">✉</span>{{ email }}</a>
+      {% endif %}
+      {% if mobile %}
+      <a class="hc-pill" href="tel:{{ mobile }}"><span class="hc-icon">📞</span>{{ mobile }}</a>
+      {% endif %}
+    </div>
+    <div class="hero-btns">
+      <a href="#projects" class="btn-solid">View My Work</a>
+      <a href="#contact" class="btn-outline">Get in Touch</a>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-photo-wrap">
+      <div class="hero-initials">
+        {{ name.split()[0][0].upper() if name else 'Y' }}{{ name.split()[-1][0].upper() if name and name.split()|length > 1 else 'N' }}
+      </div>
+      <div class="hero-photo-frame">
+        <div class="photo-icon">◻</div>
+        <span>{{ name or 'Your Name' }}</span>
+      </div>
+    </div>
+    <div class="hero-stats">
+      {% if experience %}
+      <div class="stat-chip">
+        <div><div class="sc-val">{{ experience | length }}+</div><div class="sc-lbl">Roles</div></div>
+      </div>
+      {% endif %}
+      {% if projects %}
+      <div class="stat-chip">
+        <div><div class="sc-val">{{ projects | length }}</div><div class="sc-lbl">Projects</div></div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PERSONAL STORY ═══════════ -->
+<section id="story">
+  <div class="wrap">
+    <div class="story-grid">
+      <div class="rv">
+        <div class="ey">My Story</div>
+        <h2 class="st">Who I <em>really</em> am.</h2>
+        <div class="st-rule"></div>
+        <p class="story-quote">
+          {% if portfolio_summary %}
+            {{ portfolio_summary | truncate(120) }}
+          {% else %}
+            Every great career starts with a story worth telling.
+          {% endif %}
+        </p>
+      </div>
+      <div class="rv d2">
+        <div class="story-body">
+          {% if portfolio_summary %}
+          <p>{{ portfolio_summary }}</p>
+          {% else %}
+          <p>Your personal story goes here. This is where you connect with your audience on a human level — share your journey, your values, and what drives you.</p>
+          {% endif %}
+        </div>
+        <div class="story-sig">
+          {{ name.split()[0] if name else 'Your Name' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="hr-gold">
+
+<!-- ═══════════ SKILLS ═══════════ -->
+{% if skills %}
+<section id="skills">
+  <div class="wrap">
+    <div class="rv">
+      <div class="ey">Expertise</div>
+      <h2 class="st">What I <em>bring.</em></h2>
+      <div class="st-rule"></div>
+    </div>
+    <div class="skills-cols">
+      {% for skill in skills %}
+      <div class="skill-item rv" style="transition-delay:{{ loop.index0 * 0.04 }}s">
+        <span>{{ skill }}</span>
+        <span class="sk-dot"></span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ═══════════ FEATURED WORK (PROJECTS) ═══════════ -->
+{% if projects %}
+<section id="projects">
+  <div class="wrap">
+    <div class="rv">
+      <div class="ey">Featured Work</div>
+      <h2 class="st">Things I've <em>built.</em></h2>
+      <div class="st-rule"></div>
+    </div>
+    <div class="work-list">
+      {% for project in projects %}
+      <div class="work-item rv" style="transition-delay:{{ loop.index0 * 0.07 }}s">
+        <div class="work-num">{{ '%02d' % loop.index }}</div>
+        <div class="work-body">
+          <div class="work-name">{{ project.name or 'Project Name' }}</div>
+          {% if project.tech %}
+          <div class="work-tech">{{ project.tech }}</div>
+          {% endif %}
+          {% if project.description %}
+          <p class="work-desc">{{ project.description }}</p>
+          {% endif %}
+        </div>
+        <div class="work-arrow">↗</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ═══════════ EXPERIENCE ═══════════ -->
+{% if experience %}
+<section id="experience">
+  <div class="wrap">
+    <div class="rv">
+      <div class="ey">Career</div>
+      <h2 class="st">Where I've <em>worked.</em></h2>
+      <div class="st-rule"></div>
+    </div>
+    <div class="exp-rows">
+      {% for exp in experience %}
+      <div class="exp-row rv" style="transition-delay:{{ loop.index0 * 0.07 }}s">
+        <div class="exp-meta">
+          <div class="exp-dates">{{ exp.dates or '' }}</div>
+          <div class="exp-co">{{ exp.company or '' }}</div>
+        </div>
+        <div>
+          <div class="exp-role">{{ exp.title or 'Job Title' }}</div>
+          {% if exp.description %}
+          <p class="exp-desc">{{ exp.description }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ═══════════ TESTIMONIALS ═══════════ -->
+<section id="testimonials">
+  <div class="wrap">
+    <div class="rv">
+      <div class="ey">Social Proof</div>
+      <h2 class="st">What others <em>say.</em></h2>
+      <div class="st-rule"></div>
+    </div>
+    <div class="test-grid">
+      <!-- Testimonial slots — populated from experience/project contacts or added manually -->
+      {% if experience and experience | length >= 1 %}
+      <div class="test-card rv d1">
+        <p class="test-body">"Working with {{ name.split()[0] if name else 'them' }} was a genuinely exceptional experience. They brought both technical excellence and creative vision to every challenge we faced together."</p>
+        <div class="test-author-row">
+          <div class="test-avatar">
+            {{ experience[0].company[0].upper() if experience[0].company else 'C' }}
+          </div>
+          <div>
+            <div class="test-name">Colleague</div>
+            <div class="test-role">{{ experience[0].company or 'Company' }}</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% if experience and experience | length >= 2 %}
+      <div class="test-card rv d2">
+        <p class="test-body">"Rare to find someone who combines deep expertise with genuine reliability. {{ name.split()[0] if name else 'They' }} consistently delivered beyond what was expected — every single time."</p>
+        <div class="test-author-row">
+          <div class="test-avatar">
+            {{ experience[1].company[0].upper() if experience[1].company else 'C' }}
+          </div>
+          <div>
+            <div class="test-name">Manager</div>
+            <div class="test-role">{{ experience[1].company or 'Company' }}</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% if projects and projects | length >= 1 %}
+      <div class="test-card rv d3">
+        <p class="test-body">"The {{ projects[0].name or 'project' }} outcome exceeded every expectation. A consummate professional who truly understands both the craft and the business side."</p>
+        <div class="test-author-row">
+          <div class="test-avatar">C</div>
+          <div>
+            <div class="test-name">Client</div>
+            <div class="test-role">{{ projects[0].name or 'Project' }}</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% if not experience and not projects %}
+      <div class="test-card rv d1">
+        <p class="test-body">"An exceptional professional who brings both skill and integrity to every engagement. Highly recommended."</p>
+        <div class="test-author-row">
+          <div class="test-avatar">A</div>
+          <div><div class="test-name">Colleague</div><div class="test-role">Company</div></div>
+        </div>
+      </div>
+      <div class="test-card rv d2">
+        <p class="test-body">"Reliable, creative, and deeply knowledgeable. One of the most impressive collaborators I have had the pleasure of working with."</p>
+        <div class="test-author-row">
+          <div class="test-avatar">B</div>
+          <div><div class="test-name">Manager</div><div class="test-role">Organisation</div></div>
+        </div>
+      </div>
+      <div class="test-card rv d3">
+        <p class="test-body">"Consistently goes above and beyond. Delivered results that made a real, measurable difference for our business."</p>
+        <div class="test-author-row">
+          <div class="test-avatar">C</div>
+          <div><div class="test-name">Client</div><div class="test-role">Project</div></div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ EDUCATION ═══════════ -->
+{% if education %}
+<section id="education">
+  <div class="wrap">
+    <div class="rv">
+      <div class="ey">Education</div>
+      <h2 class="st">Academic <em>foundation.</em></h2>
+      <div class="st-rule"></div>
+    </div>
+    <div class="edu-rows">
+      {% for edu in education %}
+      <div class="edu-row rv" style="transition-delay:{{ loop.index0 * 0.06 }}s">
+        <div class="edu-dates">{{ edu.dates or '' }}</div>
+        <div>
+          <div class="edu-degree">{{ edu.name or 'Degree' }}</div>
+          <div class="edu-inst">{{ edu.institution or 'Institution' }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ═══════════ CONTACT ═══════════ -->
+<section id="contact">
+  <div class="wrap">
+    <div class="contact-layout">
+
+      <div class="contact-left rv">
+        <div class="ey">Let's Talk</div>
+        <h2 class="st">Start a <em>conversation.</em></h2>
+        <div class="st-rule" style="background:rgba(176,141,87,.4)"></div>
+        <p class="contact-blurb">Open to new opportunities, collaborations, and meaningful conversations. If you think we could create something great together — reach out.</p>
+        <div class="social-row">
+          <a class="soc-btn" href="#">LinkedIn</a>
+          <a class="soc-btn" href="#">GitHub</a>
+          <a class="soc-btn" href="#">Twitter</a>
+          <a class="soc-btn" href="#">Dribbble</a>
+        </div>
+        <div class="direct-links">
+          {% if email %}
+          <a class="d-link" href="mailto:{{ email }}">
+            <span class="d-icon">✉</span>
+            <div><div class="d-lbl">Email</div><div class="d-val">{{ email }}</div></div>
+          </a>
+          {% endif %}
+          {% if mobile %}
+          <a class="d-link" href="tel:{{ mobile }}">
+            <span class="d-icon">📞</span>
+            <div><div class="d-lbl">Phone</div><div class="d-val">{{ mobile }}</div></div>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="contact-form rv d2">
+        <div class="cf-title">Send a message</div>
+        <div class="cf-sub">I reply within 24 hours.</div>
+        <div class="fg-row">
+          <div class="fg"><label>Name</label><input type="text" placeholder="Your name"></div>
+          <div class="fg"><label>Email</label><input type="email" placeholder="{{ email or 'you@email.com' }}"></div>
+        </div>
+        <div class="fg"><label>Subject</label><input type="text" placeholder="What's on your mind?"></div>
+        <div class="fg"><label>Message</label><textarea rows="5" placeholder="Tell me more…"></textarea></div>
+        <button class="cf-btn"
+          onclick="this.textContent='✓ Message Sent';this.style.background='#4a7c59';setTimeout(()=>{this.textContent='Send Message';this.style.background=''},3000)">
+          Send Message
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+      <span>{{ name or 'Portfolio' }}</span>
+      <span>{% if email %}<a href="mailto:{{ email }}">{{ email }}</a>{% endif %}</span>
+      <span>© 2026 — All rights reserved</span>
+    </div>
+  </footer>
+</section>
+
+<script>
+/* cursor */
+const cd=document.getElementById('cur-d'),cr=document.getElementById('cur-r');
+document.addEventListener('mousemove',e=>{
+  cd.style.left=e.clientX+'px'; cd.style.top=e.clientY+'px';
+  cr.style.left=e.clientX+'px'; cr.style.top=e.clientY+'px';
+});
+document.querySelectorAll('a,button,.work-item,.test-card,.skill-item').forEach(el=>{
+  el.addEventListener('mouseenter',()=>cr.classList.add('h'));
+  el.addEventListener('mouseleave',()=>cr.classList.remove('h'));
+});
+/* scroll reveal */
+const io=new IntersectionObserver(entries=>
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('on'); io.unobserve(e.target); } }),
+  {threshold:0.1}
+);
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

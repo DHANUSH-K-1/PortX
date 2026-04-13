@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ name }}'s Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Syne:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+:root{
+  --bg:     #0b0b0d;
+  --bg2:    #111116;
+  --bg3:    #16161c;
+  --card:   #1a1a22;
+  --border: rgba(255,255,255,.07);
+  --border2:rgba(255,255,255,.13);
+
+  --ac:     {{ theme_color | default('#e8c97e') }};
+  --ac-dim: color-mix(in srgb,{{ theme_color | default('#e8c97e') }} 30%,transparent);
+  --ac-glow:color-mix(in srgb,{{ theme_color | default('#e8c97e') }} 20%,transparent);
+
+  --t:   #f0ede8;
+  --t2:  #9a9590;
+  --t3:  #5a5550;
+
+  --serif:'Playfair Display',Georgia,serif;
+  --sans: 'Syne',system-ui,sans-serif;
+  --mono: 'DM Mono',monospace;
+
+  --ease:cubic-bezier(.4,0,.2,1);
+  --spring:cubic-bezier(.34,1.56,.64,1);
+}
+
+body{
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--t);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  line-height:1.65;
+}
+
+/* ── CURSOR ── */
+#cd,#cr{position:fixed;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+#cd{width:5px;height:5px;background:var(--ac);transition:transform .1s}
+#cr{width:28px;height:28px;border:1px solid color-mix(in srgb,var(--ac) 40%,transparent);transition:all .2s var(--ease)}
+#cr.h{width:46px;height:46px;background:var(--ac-glow);border-color:var(--ac)}
+body{cursor:none}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  height:56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 3.5rem;
+  background:rgba(11,11,13,.85);
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{
+  font-family:var(--serif);font-size:1.15rem;font-weight:400;font-style:italic;
+  color:var(--t);text-decoration:none;letter-spacing:.02em;
+}
+.nav-logo em{color:var(--ac);font-style:normal}
+.nav-ul{list-style:none;display:flex;gap:2rem}
+.nav-ul a{
+  font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--t3);text-decoration:none;transition:color .2s;
+}
+.nav-ul a:hover{color:var(--t)}
+.nav-hire{
+  font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  padding:.38rem 1.1rem;
+  border:1px solid var(--ac);
+  color:var(--ac) !important;
+  transition:all .2s !important;
+}
+.nav-hire:hover{background:var(--ac);color:var(--bg) !important}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1020px;margin:0 auto;padding:0 2.5rem}
+section{padding:108px 0;position:relative}
+
+/* ── EYEBROW + TITLE ── */
+.ey{
+  font-family:var(--mono);font-size:.65rem;font-weight:400;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ac);margin-bottom:1rem;
+  display:flex;align-items:center;gap:.7rem;
+}
+.ey::before{content:'';width:22px;height:1px;background:var(--ac)}
+h2.st{
+  font-family:var(--serif);
+  font-size:clamp(2rem,4vw,3rem);
+  font-weight:400;letter-spacing:-.02em;line-height:1.1;
+  color:var(--t);margin-bottom:2.5rem;
+}
+h2.st em{font-style:italic;color:var(--t2)}
+
+/* ── REVEAL ── */
+.rv{opacity:0;transform:translateY(20px);transition:opacity .75s var(--ease),transform .75s var(--ease)}
+.rv.on{opacity:1;transform:none}
+.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}
+.d4{transition-delay:.32s}.d5{transition-delay:.40s}.d6{transition-delay:.48s}
+
+/* ════════════════ HERO ════════════════ */
+#hero{
+  min-height:100vh;
+  display:flex;align-items:center;
+  padding-top:56px;
+  overflow:hidden;
+  background:var(--bg);
+  position:relative;
+}
+/* subtle grid */
+#hero::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:48px 48px;
+  pointer-events:none;
+}
+/* glow blob */
+#hero::after{
+  content:'';position:absolute;
+  width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,var(--ac-dim),transparent 70%);
+  top:-150px;right:-150px;pointer-events:none;
+  animation:blob 12s ease-in-out infinite alternate;
+}
+@keyframes blob{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,30px) scale(1.05)}100%{transform:translate(20px,-20px) scale(.97)}}
+
+.hero-inner{
+  position:relative;z-index:2;
+  display:grid;grid-template-columns:1fr 380px;
+  gap:4rem;align-items:center;width:100%;
+}
+/* left */
+.hero-status{
+  display:inline-flex;align-items:center;gap:.55rem;
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--t2);margin-bottom:1.8rem;
+  opacity:0;animation:rise .7s .15s ease forwards;
+}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;animation:pd 2s infinite}
+@keyframes pd{0%,100%{opacity:1}50%{opacity:.3}}
+h1.hero-name{
+  font-family:var(--serif);
+  font-size:clamp(3.5rem,7.5vw,6.5rem);
+  font-weight:400;line-height:.93;letter-spacing:-.03em;
+  color:var(--t);margin-bottom:1.6rem;
+  opacity:0;animation:rise .9s .3s ease forwards;
+}
+h1.hero-name .first{display:block}
+h1.hero-name .last{
+  display:block;font-style:italic;
+  color:transparent;
+  -webkit-text-stroke:1px color-mix(in srgb,var(--t) 35%,transparent);
+}
+.hero-role{
+  font-family:var(--mono);font-size:.8rem;font-weight:300;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ac);margin-bottom:1.5rem;
+  opacity:0;animation:rise .7s .45s ease forwards;
+}
+{% if portfolio_summary %}
+.hero-bio{
+  font-size:.95rem;font-weight:400;color:var(--t2);line-height:1.85;
+  max-width:480px;margin-bottom:2.2rem;
+  border-left:1px solid var(--border2);padding-left:1.1rem;
+  opacity:0;animation:rise .8s .58s ease forwards;
+}
+{% endif %}
+.hero-contacts{
+  display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:2.4rem;
+  opacity:0;animation:rise .7s .68s ease forwards;
+}
+.hc-tag{
+  font-family:var(--mono);font-size:.7rem;
+  display:flex;align-items:center;gap:.4rem;
+  padding:.32rem .85rem;border:1px solid var(--border2);
+  color:var(--t2);text-decoration:none;transition:all .18s;
+}
+.hc-tag:hover{border-color:var(--ac);color:var(--t)}
+.hero-btns{
+  display:flex;gap:.8rem;
+  opacity:0;animation:rise .7s .78s ease forwards;
+}
+.btn-fill{
+  font-family:var(--mono);font-size:.72rem;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:.75rem 2rem;background:var(--ac);color:var(--bg);
+  text-decoration:none;border:1px solid var(--ac);
+  transition:all .22s var(--ease);
+}
+.btn-fill:hover{background:transparent;color:var(--ac)}
+.btn-ghost{
+  font-family:var(--mono);font-size:.72rem;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:.75rem 2rem;border:1px solid var(--border2);color:var(--t2);
+  text-decoration:none;transition:all .22s;
+}
+.btn-ghost:hover{border-color:var(--t2);color:var(--t)}
+
+/* right side card */
+.hero-card{
+  background:var(--card);border:1px solid var(--border);
+  padding:2rem;
+  opacity:0;animation:rise 1s .5s ease forwards;
+  position:relative;overflow:hidden;
+}
+.hero-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at top right,var(--ac-glow),transparent 65%);
+}
+.hc-avatar{
+  width:72px;height:72px;border-radius:50%;
+  background:linear-gradient(135deg,var(--bg3),var(--card));
+  border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:1.5rem;font-weight:400;color:var(--ac);
+  margin:0 0 1.4rem;position:relative;z-index:1;
+}
+.hc-name{font-family:var(--serif);font-size:1rem;font-weight:500;color:var(--t);margin-bottom:.25rem;position:relative;z-index:1}
+.hc-title{font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:1.5rem;position:relative;z-index:1}
+.hc-divider{height:1px;background:var(--border);margin-bottom:1.3rem;position:relative;z-index:1}
+.hc-stat{display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem;position:relative;z-index:1}
+.hc-stat:last-child{margin-bottom:0}
+.hc-lbl{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.hc-val{font-family:var(--serif);font-size:1rem;color:var(--t);font-weight:400}
+/* corner accent */
+.hero-card::after{
+  content:'';position:absolute;top:0;right:0;
+  width:40px;height:40px;
+  border-top:1px solid var(--ac);border-right:1px solid var(--ac);
+}
+
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ════════════════ ABOUT ════════════════ */
+#about{background:var(--bg2)}
+#about::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--ac),transparent);
+}
+.about-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:5rem;align-items:start}
+.about-body{font-size:.95rem;color:var(--t2);line-height:1.9;font-weight:400}
+.about-body p{margin-bottom:1.2rem}
+.about-body p:last-child{margin-bottom:0}
+.about-quick{display:flex;flex-direction:column;gap:0}
+.aq-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.9rem 0;border-bottom:1px solid var(--border);
+}
+.aq-row:first-child{border-top:1px solid var(--border)}
+.aq-lbl{font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.aq-val{font-size:.85rem;color:var(--t);font-weight:500;text-align:right}
+
+/* ════════════════ SKILLS ════════════════ */
+#skills{background:var(--bg)}
+.skills-wrap{
+  display:flex;flex-wrap:wrap;gap:.7rem;
+  margin-top:.5rem;
+}
+.skill-tag{
+  font-family:var(--mono);font-size:.78rem;font-weight:400;
+  padding:.45rem 1rem;
+  border:1px solid var(--border);
+  color:var(--t2);
+  background:var(--bg3);
+  transition:all .2s var(--ease);
+  cursor:default;position:relative;overflow:hidden;
+}
+.skill-tag::before{
+  content:'';position:absolute;inset:0;
+  background:var(--ac-glow);
+  opacity:0;transition:opacity .2s;
+}
+.skill-tag:hover{border-color:var(--ac);color:var(--t);transform:translateY(-2px)}
+.skill-tag:hover::before{opacity:1}
+.skill-tag span{position:relative;z-index:1}
+
+/* ════════════════ PROJECTS ════════════════ */
+#projects{background:var(--bg2)}
+#projects::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2),transparent);
+}
+.proj-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:1.2rem;margin-top:.5rem;
+}
+.proj-card{
+  background:var(--card);border:1px solid var(--border);
+  overflow:hidden;
+  transition:all .28s var(--ease);
+  position:relative;cursor:default;
+}
+.proj-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--ac),transparent);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .35s var(--ease);
+}
+.proj-card:hover{border-color:var(--border2);transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.proj-card:hover::before{transform:scaleX(1)}
+.proj-card:hover .proj-arrow{opacity:1;transform:translate(3px,-3px)}
+/* thumb */
+.proj-thumb{
+  height:120px;position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.4rem;
+}
+.proj-thumb-bg{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:20px 20px;
+}
+.proj-thumb-tint{position:absolute;inset:0;background:var(--thumb-tint,rgba(232,201,126,.12))}
+.proj-icon{position:relative;z-index:1;filter:drop-shadow(0 0 10px currentColor)}
+/* body */
+.proj-body{padding:1.3rem}
+.proj-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.35rem}
+.proj-name{font-family:var(--serif);font-size:1.15rem;font-weight:400;color:var(--t);letter-spacing:-.01em}
+.proj-arrow{font-size:.95rem;color:var(--t3);opacity:0;transition:all .22s var(--spring)}
+.proj-tech{
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ac);margin-bottom:.7rem;
+}
+.proj-desc{font-size:.82rem;color:var(--t2);line-height:1.72;font-weight:400}
+
+/* ════════════════ EXPERIENCE ════════════════ */
+#experience{background:var(--bg)}
+.exp-list{margin-top:.5rem}
+.exp-item{
+  display:grid;grid-template-columns:180px 1fr;
+  gap:2.5rem;padding:2rem 0;
+  border-bottom:1px solid var(--border);
+  transition:all .2s;
+}
+.exp-item:first-child{border-top:1px solid var(--border)}
+.exp-item:hover .exp-role{color:var(--ac)}
+.exp-side{}
+.exp-dates{font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);margin-bottom:.3rem}
+.exp-co{font-size:.8rem;color:var(--t3)}
+.exp-role{font-family:var(--serif);font-size:1.15rem;font-weight:400;color:var(--t);letter-spacing:-.01em;margin-bottom:.5rem;transition:color .2s}
+.exp-desc{font-size:.85rem;color:var(--t2);line-height:1.8}
+
+/* ════════════════ EDUCATION ════════════════ */
+#education{background:var(--bg2)}
+#education::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2),transparent);
+}
+.edu-list{margin-top:.5rem}
+.edu-item{
+  display:grid;grid-template-columns:180px 1fr;
+  gap:2.5rem;padding:1.8rem 0;
+  border-bottom:1px solid var(--border);
+}
+.edu-item:first-child{border-top:1px solid var(--border)}
+.edu-dates{font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ac);padding-top:.2rem}
+.edu-degree{font-family:var(--serif);font-size:1.1rem;font-weight:400;color:var(--t);margin-bottom:.25rem;letter-spacing:-.01em}
+.edu-inst{font-size:.82rem;color:var(--t3)}
+
+/* ════════════════ CONTACT ════════════════ */
+#contact{background:var(--bg)}
+#contact::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--ac),transparent);
+}
+.contact-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:5rem;align-items:start}
+.contact-blurb{font-size:.92rem;color:var(--t2);line-height:1.88;margin-bottom:2rem}
+.avail-row{
+  display:inline-flex;align-items:center;gap:.55rem;
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
+  color:#4ade80;padding:.45rem .9rem;
+  background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.2);
+  margin-bottom:2rem;
+}
+.av-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;box-shadow:0 0 7px #4ade80;animation:pd 2s infinite}
+.social-links{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:2rem}
+.soc{
+  font-family:var(--mono);font-size:.65rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;
+  padding:.42rem 1rem;border:1px solid var(--border2);color:var(--t2);
+  text-decoration:none;transition:all .18s;
+}
+.soc:hover{border-color:var(--ac);color:var(--ac)}
+.direct-list{display:flex;flex-direction:column;gap:.6rem}
+.d-link{
+  display:flex;align-items:center;gap:.85rem;
+  padding:.8rem 1rem;background:var(--card);
+  border:1px solid var(--border);text-decoration:none;color:var(--t);
+  transition:all .2s;
+}
+.d-link:hover{border-color:var(--border2);transform:translateX(5px)}
+.d-link:hover .d-ic{color:var(--ac)}
+.d-ic{font-size:.9rem;color:var(--t3);width:18px;text-align:center;transition:color .2s}
+.d-lbl{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.d-val{font-size:.82rem;font-weight:500;color:var(--t2)}
+
+/* form */
+.contact-form-wrap{}
+.cf-label{font-family:var(--mono);font-size:.62rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:.45rem;display:block}
+.fg{margin-bottom:1.1rem}
+.fg input,.fg textarea{
+  width:100%;background:var(--card);
+  border:1px solid var(--border);color:var(--t);
+  padding:.7rem 1rem;font-family:var(--sans);font-size:.88rem;
+  outline:none;transition:border-color .2s,box-shadow .2s;resize:none;
+}
+.fg input:focus,.fg textarea:focus{border-color:color-mix(in srgb,var(--ac) 50%,transparent);box-shadow:0 0 16px var(--ac-glow)}
+.fg input::placeholder,.fg textarea::placeholder{color:var(--t3)}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.cf-btn{
+  width:100%;padding:.85rem;
+  background:var(--ac);color:var(--bg);
+  border:1px solid var(--ac);
+  font-family:var(--mono);font-size:.75rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+  cursor:pointer;transition:all .22s var(--ease);margin-top:.4rem;
+}
+.cf-btn:hover{background:transparent;color:var(--ac);box-shadow:0 0 24px var(--ac-dim)}
+
+/* ── FOOTER ── */
+footer{
+  background:var(--bg2);border-top:1px solid var(--border);
+  padding:1.6rem 0;
+  font-family:var(--mono);font-size:.65rem;letter-spacing:.06em;color:var(--t3);
+}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
+footer a{color:var(--t3);text-decoration:none;transition:color .18s}
+footer a:hover{color:var(--ac)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:860px){
+  nav{padding:0 1.2rem}
+  .nav-ul{display:none}
+  section{padding:70px 0}
+  .wrap{padding:0 1.2rem}
+  .hero-inner,.about-grid,.contact-grid{grid-template-columns:1fr;gap:2.5rem}
+  .hero-card{display:none}
+  .proj-grid{grid-template-columns:1fr}
+  .exp-item,.edu-item{grid-template-columns:1fr;gap:.4rem}
+  .fg-row{grid-template-columns:1fr}
+  footer .wrap{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<div id="cd"></div>
+<div id="cr"></div>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-logo" href="#hero">
+    {{ name.split()[0] if name else 'Your' }}<em>.</em>
+  </a>
+  <ul class="nav-ul">
+    {% if portfolio_summary %}<li><a href="#about">About</a></li>{% endif %}
+    {% if skills %}<li><a href="#skills">Skills</a></li>{% endif %}
+    {% if projects %}<li><a href="#projects">Projects</a></li>{% endif %}
+    {% if experience %}<li><a href="#experience">Experience</a></li>{% endif %}
+    {% if education %}<li><a href="#education">Education</a></li>{% endif %}
+    <li><a href="#contact" class="nav-hire">Hire Me</a></li>
+  </ul>
+</nav>
+
+<!-- ════════ HERO ════════ -->
+<section id="hero">
+  <div class="wrap">
+    <div class="hero-inner">
+
+      <!-- left -->
+      <div>
+        <div class="hero-status">
+          <span class="status-dot"></span>
+          Available for work
+        </div>
+        <h1 class="hero-name">
+          <span class="first">{{ name.split()[0] if name else 'Your' }}</span>
+          <span class="last">{{ name.split()[1:] | join(' ') if name and name.split()|length > 1 else 'Name' }}</span>
+        </h1>
+        <div class="hero-role">
+          {% if experience and experience[0].title %}{{ experience[0].title }}{% else %}Creative Developer{% endif %}
+        </div>
+        {% if portfolio_summary %}
+        <p class="hero-bio">{{ portfolio_summary | truncate(160) }}</p>
+        {% endif %}
+        <div class="hero-contacts">
+          {% if email %}<a class="hc-tag" href="mailto:{{ email }}">✉ {{ email }}</a>{% endif %}
+          {% if mobile %}<a class="hc-tag" href="tel:{{ mobile }}">✆ {{ mobile }}</a>{% endif %}
+        </div>
+        <div class="hero-btns">
+          <a href="#projects" class="btn-fill">View Work</a>
+          <a href="#contact" class="btn-ghost">Get in Touch</a>
+        </div>
+      </div>
+
+      <!-- right card -->
+      <div class="hero-card">
+        <div class="hc-avatar">{{ name[0].upper() if name else '?' }}</div>
+        <div class="hc-name">{{ name or 'Your Name' }}</div>
+        <div class="hc-title">
+          {% if experience and experience[0].title %}{{ experience[0].title }}{% else %}Portfolio{% endif %}
+        </div>
+        <div class="hc-divider"></div>
+        {% if experience %}
+        <div class="hc-stat">
+          <span class="hc-lbl">Roles</span>
+          <span class="hc-val">{{ experience | length }}</span>
+        </div>
+        {% endif %}
+        {% if projects %}
+        <div class="hc-stat">
+          <span class="hc-lbl">Projects</span>
+          <span class="hc-val">{{ projects | length }}</span>
+        </div>
+        {% endif %}
+        {% if skills %}
+        <div class="hc-stat">
+          <span class="hc-lbl">Skills</span>
+          <span class="hc-val">{{ skills | length }}</span>
+        </div>
+        {% endif %}
+        {% if email %}
+        <div class="hc-stat">
+          <span class="hc-lbl">Email</span>
+          <span class="hc-val" style="font-size:.68rem">{{ email | truncate(20,true,'…') }}</span>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════════ ABOUT ════════ -->
+{% if portfolio_summary %}
+<section id="about">
+  <div class="wrap">
+    <div class="rv"><div class="ey">About Me</div><h2 class="st">Who I <em>am.</em></h2></div>
+    <div class="about-grid">
+      <div class="about-body rv d1">
+        <p>{{ portfolio_summary }}</p>
+      </div>
+      <div class="about-quick rv d2">
+        {% if email %}
+        <div class="aq-row">
+          <span class="aq-lbl">Email</span>
+          <span class="aq-val">{{ email }}</span>
+        </div>
+        {% endif %}
+        {% if mobile %}
+        <div class="aq-row">
+          <span class="aq-lbl">Phone</span>
+          <span class="aq-val">{{ mobile }}</span>
+        </div>
+        {% endif %}
+        {% if experience %}
+        <div class="aq-row">
+          <span class="aq-lbl">Experience</span>
+          <span class="aq-val">{{ experience | length }} Roles</span>
+        </div>
+        {% endif %}
+        {% if projects %}
+        <div class="aq-row">
+          <span class="aq-lbl">Projects</span>
+          <span class="aq-val">{{ projects | length }} Built</span>
+        </div>
+        {% endif %}
+        {% if skills %}
+        <div class="aq-row">
+          <span class="aq-lbl">Skills</span>
+          <span class="aq-val">{{ skills | length }} Listed</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ════════ SKILLS ════════ -->
+{% if skills %}
+<section id="skills">
+  <div class="wrap">
+    <div class="rv"><div class="ey">Expertise</div><h2 class="st">My <em>toolkit.</em></h2></div>
+    <div class="skills-wrap">
+      {% for skill in skills %}
+      <div class="skill-tag rv" style="transition-delay:{{ loop.index0 * 0.04 }}s">
+        <span>{{ skill }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ════════ PROJECTS ════════ -->
+{% if projects %}
+<section id="projects">
+  <div class="wrap">
+    <div class="rv"><div class="ey">Featured Projects</div><h2 class="st">Things I've <em>built.</em></h2></div>
+    {% set icons = ['⬡','◈','⬢','✦','⬟','◆'] %}
+    {% set tints = [
+      'rgba(232,201,126,.14)',
+      'rgba(139,92,246,.13)',
+      'rgba(244,63,94,.12)',
+      'rgba(6,182,212,.12)',
+      'rgba(34,197,94,.10)',
+      'rgba(249,115,22,.11)'
+    ] %}
+    <div class="proj-grid">
+      {% for project in projects %}
+      <div class="proj-card rv" style="transition-delay:{{ loop.index0 * 0.07 }}s">
+        <div class="proj-thumb">
+          <div class="proj-thumb-bg"></div>
+          <div class="proj-thumb-tint" style="--thumb-tint:{{ tints[loop.index0 % 6] }}"></div>
+          <span class="proj-icon" style="color:{{ ['#e8c97e','#a78bfa','#f87171','#67e8f9','#86efac','#fdba74'][loop.index0 % 6] }}">
+            {{ icons[loop.index0 % 6] }}
+          </span>
+        </div>
+        <div class="proj-body">
+          <div class="proj-top">
+            <div class="proj-name">{{ project.name or 'Project Name' }}</div>
+            <div class="proj-arrow">↗</div>
+          </div>
+          {% if project.tech %}
+          <div class="proj-tech">{{ project.tech }}</div>
+          {% endif %}
+          {% if project.description %}
+          <p class="proj-desc">{{ project.description }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ════════ EXPERIENCE ════════ -->
+{% if experience %}
+<section id="experience">
+  <div class="wrap">
+    <div class="rv"><div class="ey">Experience</div><h2 class="st">Where I've <em>worked.</em></h2></div>
+    <div class="exp-list">
+      {% for exp in experience %}
+      <div class="exp-item rv" style="transition-delay:{{ loop.index0 * 0.07 }}s">
+        <div class="exp-side">
+          <div class="exp-dates">{{ exp.dates or '' }}</div>
+          <div class="exp-co">{{ exp.company or '' }}</div>
+        </div>
+        <div>
+          <div class="exp-role">{{ exp.title or 'Job Title' }}</div>
+          {% if exp.description %}
+          <p class="exp-desc">{{ exp.description }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ════════ EDUCATION ════════ -->
+{% if education %}
+<section id="education">
+  <div class="wrap">
+    <div class="rv"><div class="ey">Education</div><h2 class="st">Academic <em>background.</em></h2></div>
+    <div class="edu-list">
+      {% for edu in education %}
+      <div class="edu-item rv" style="transition-delay:{{ loop.index0 * 0.06 }}s">
+        <div class="edu-dates">{{ edu.dates or '' }}</div>
+        <div>
+          <div class="edu-degree">{{ edu.name or 'Degree' }}</div>
+          <div class="edu-inst">{{ edu.institution or 'Institution' }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ════════ CONTACT ════════ -->
+<section id="contact">
+  <div class="wrap">
+    <div class="rv"><div class="ey">Contact</div><h2 class="st">Let's <em>connect.</em></h2></div>
+    <div class="contact-grid">
+
+      <!-- info side -->
+      <div class="rv d1">
+        <p class="contact-blurb">Open to new roles, collaborations and interesting problems. Drop me a message — I read everything.</p>
+        <div class="avail-row"><div class="av-dot"></div>Currently available</div>
+        <div class="social-links">
+          <a class="soc" href="#">LinkedIn</a>
+          <a class="soc" href="#">GitHub</a>
+          <a class="soc" href="#">Twitter</a>
+          <a class="soc" href="#">Dribbble</a>
+        </div>
+        <div class="direct-list">
+          {% if email %}
+          <a class="d-link" href="mailto:{{ email }}">
+            <span class="d-ic">✉</span>
+            <div><div class="d-lbl">Email</div><div class="d-val">{{ email }}</div></div>
+          </a>
+          {% endif %}
+          {% if mobile %}
+          <a class="d-link" href="tel:{{ mobile }}">
+            <span class="d-ic">✆</span>
+            <div><div class="d-lbl">Phone</div><div class="d-val">{{ mobile }}</div></div>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- form side -->
+      <div class="contact-form-wrap rv d2">
+        <div class="fg-row">
+          <div class="fg">
+            <label class="cf-label">Name</label>
+            <input type="text" placeholder="Your name">
+          </div>
+          <div class="fg">
+            <label class="cf-label">Email</label>
+            <input type="email" placeholder="{{ email or 'you@email.com' }}">
+          </div>
+        </div>
+        <div class="fg">
+          <label class="cf-label">Subject</label>
+          <input type="text" placeholder="What's this about?">
+        </div>
+        <div class="fg">
+          <label class="cf-label">Message</label>
+          <textarea rows="5" placeholder="Tell me more…"></textarea>
+        </div>
+        <button class="cf-btn"
+          onclick="this.textContent='✓ SENT';this.style.background='#4ade80';this.style.color='#0b0b0d';this.style.borderColor='#4ade80';setTimeout(()=>{this.textContent='SEND MESSAGE';this.style.background='';this.style.color='';this.style.borderColor=''},3000)">
+          Send Message
+        </button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="wrap">
+    <span>{{ name or 'Portfolio' }}</span>
+    <span>{% if email %}<a href="mailto:{{ email }}">{{ email }}</a>{% endif %}</span>
+    <span>© 2026</span>
+  </div>
+</footer>
+
+<script>
+/* cursor */
+const cd=document.getElementById('cd'),cr=document.getElementById('cr');
+document.addEventListener('mousemove',e=>{
+  cd.style.left=e.clientX+'px';cd.style.top=e.clientY+'px';
+  cr.style.left=e.clientX+'px';cr.style.top=e.clientY+'px';
+});
+document.querySelectorAll('a,button,.proj-card,.skill-tag,.exp-item,.d-link,.soc').forEach(el=>{
+  el.addEventListener('mouseenter',()=>cr.classList.add('h'));
+  el.addEventListener('mouseleave',()=>cr.classList.remove('h'));
+});
+/* scroll reveal */
+const io=new IntersectionObserver(
+  e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('on');io.unobserve(x.target)}}),
+  {threshold:.08}
+);
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

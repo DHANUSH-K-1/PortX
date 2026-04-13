@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Portfolio Data</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        form { display: flex; flex-direction: column; }
+        label { font-weight: bold; margin-top: 10px; }
+        input[type="text"], textarea { width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ddd; box-sizing: border-box; }
+        textarea { resize: vertical; min-height: 100px; }
+        .form-group { margin-bottom: 15px; }
+        .skills-info { font-size: 0.9em; color: #666; }
+        .template-selection { margin-top: 20px; }
+        .template-selection h2 { font-size: 1.2em; }
+        .template-options { display: flex; gap: 20px; flex-wrap: wrap; }
+        .template-option { border: 2px solid #ddd; border-radius: 8px; padding: 10px; cursor: pointer; text-align: center; }
+        .template-option:hover, .template-option input:checked + label { border-color: #007bff; }
+        .template-option input { display: none; }
+        .template-option label { cursor: pointer; }
+        .template-option img { max-width: 150px; display: block; margin-bottom: 10px; border-radius: 4px; }
+        input[type="submit"] { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 20px; }
+        input[type="submit"]:hover { background-color: #0056b3; }
+        .non-editable-section { background-color: #f9f9f9; padding: 15px; border-radius: 4px; border: 1px solid #eee; }
+        .non-editable-section h3 { margin-top: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Edit Your Portfolio Details</h1>
+        <p>Review and edit the information extracted from your resume. When you're ready, choose a template and generate your portfolio.</p>
+        
+        <form action="{{ url_for('edit_portfolio', filename=filename) }}" method="post">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" value="{{ data.name }}">
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="text" id="email" name="email" value="{{ data.email }}">
+            </div>
+            <div class="form-group">
+                <label for="mobile">Mobile</label>
+                <input type="text" id="mobile" name="mobile" value="{{ data.mobile }}">
+            </div>
+            <div class="form-group">
+                <label for="portfolio_summary">Summary</label>
+                <textarea id="portfolio_summary" name="portfolio_summary">{{ data.portfolio_summary }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="skills">Skills</label>
+                <input type="text" id="skills" name="skills" value="{{ data.skills | join(', ') }}">
+                <p class="skills-info">Enter skills separated by commas.</p>
+            </div>
+
+            <div class="non-editable-section">
+                <h3>Education & Experience</h3>
+                <p>Editing for Education and Experience sections is not yet supported in this version. The data below is what was extracted from your resume.</p>
+                <h4>Education</h4>
+                <ul>
+                {% for edu in data.education %}
+                    <li>{{ edu.name if edu.name else edu }}</li>
+                {% endfor %}
+                </ul>
+                <h4>Experience</h4>
+                <ul>
+                {% for exp in data.experience %}
+                    <li>{{ exp.title }} at {{ exp.company }}</li>
+                {% else %}
+                    <li>No experience listed.</li>
+                {% endfor %}
+                </ul>
+            </div>
+
+            <div class="template-selection">
+                <h2>Choose a Template</h2>
+                <div class="template-options">
+                    <div class="template-option">
+                        <input type="radio" id="template1" name="template" value="portfolio_template_1.html" checked>
+                        <label for="template1">
+                            <img src="https://via.placeholder.com/150x100.png?text=Modern" alt="Template 1 Preview">
+                            Modern
+                        </label>
+                    </div>
+                    <div class="template-option">
+                        <input type="radio" id="template2" name="template" value="portfolio_template_2.html">
+                        <label for="template2">
+                            <img src="https://via.placeholder.com/150x100.png?text=Classic" alt="Template 2 Preview">
+                            Classic
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <input type="submit" value="Generate Portfolio">
+        </form>
+    </div>
+</body>
+</html>

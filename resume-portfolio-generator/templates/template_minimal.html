@@ -1,204 +1,574 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ name }}'s Portfolio</title>
-    <style>
-        :root {
-            --primary-color: {
-                    {
-                    theme_color | default('#333')
-                }
-            }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ name }}'s Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-            ;
+  :root {
+    --accent: {{ theme_color | default('#111111') }};
+    --ink:    #111111;
+    --ink2:   #555555;
+    --ink3:   #999999;
+    --line:   #e8e8e8;
+    --bg:     #fafaf8;
+    --white:  #ffffff;
+    --serif:  'Lora', Georgia, serif;
+    --sans:   'DM Sans', sans-serif;
+  }
 
-            --text-font: {
-                    {
-                    font | default("'Helvetica Neue', Arial, sans-serif")
-                }
-            }
+  html { scroll-behavior: smooth; font-size: 16px; }
 
-            ;
-        }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
 
-        body {
-            font-family: var(--text-font);
-            background-color: #fff;
-            color: #222;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-        }
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 1.2rem 2.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(250,250,248,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-name {
+    font-family: var(--serif);
+    font-size: 1rem; font-weight: 400; font-style: italic;
+    color: var(--ink); text-decoration: none;
+    letter-spacing: 0.01em;
+  }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    font-size: 0.78rem; font-weight: 400; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink2);
+    text-decoration: none; transition: color 0.18s;
+  }
+  .nav-links a:hover { color: var(--ink); }
 
-        .container {
-            max-width: 900px;
-            margin: auto;
-            background: #fff;
-            padding: 40px;
-            border: 1px solid #ddd;
-        }
+  /* ── WRAPPER ── */
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 2rem; }
 
-        header {
-            text-align: center;
-            padding-bottom: 30px;
-            border-bottom: 1px solid #ccc;
-            margin-bottom: 30px;
-        }
+  /* ── SECTIONS ── */
+  section { padding: 100px 0; }
+  section + section { border-top: 1px solid var(--line); }
 
-        header h1 {
-            margin: 0;
-            font-size: 3rem;
-            color: #111;
-            font-weight: 300;
-        }
+  /* ── HERO ── */
+  #home {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding-top: 120px;
+  }
+  .hero-inner { width: 100%; }
+  .hero-label {
+    font-size: 0.72rem; font-weight: 400; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink3);
+    margin-bottom: 2rem;
+    display: flex; align-items: center; gap: 0.8rem;
+    opacity: 0; animation: rise 0.8s 0.1s ease forwards;
+  }
+  .hero-label::before { content: ''; width: 28px; height: 1px; background: var(--ink3); }
 
-        header p {
-            margin: 5px 0;
-            font-size: 1.1rem;
-            color: #555;
-        }
+  h1.hero-name {
+    font-family: var(--serif);
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 400; line-height: 1.0;
+    letter-spacing: -0.02em; color: var(--ink);
+    margin-bottom: 2.5rem;
+    opacity: 0; animation: rise 0.9s 0.25s ease forwards;
+  }
+  h1.hero-name em { font-style: italic; color: var(--ink2); }
 
-        .section {
-            margin-bottom: 30px;
-        }
+  .hero-meta {
+    display: flex; gap: 2.5rem; flex-wrap: wrap;
+    font-size: 0.82rem; color: var(--ink3);
+    margin-bottom: 2.5rem;
+    opacity: 0; animation: rise 0.8s 0.4s ease forwards;
+  }
+  .hero-meta a { color: var(--ink3); text-decoration: none; transition: color 0.18s; }
+  .hero-meta a:hover { color: var(--ink); }
 
-        .section h2 {
-            font-size: 1.5rem;
-            color: var(--primary-color);
-            border-bottom: 1px solid var(--primary-color);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 600;
-        }
+  {% if portfolio_summary %}
+  .hero-bio {
+    font-size: 1.05rem; font-weight: 300; color: var(--ink2);
+    line-height: 1.85; max-width: 520px;
+    border-left: 2px solid var(--line);
+    padding-left: 1.2rem;
+    opacity: 0; animation: rise 0.8s 0.55s ease forwards;
+  }
+  {% endif %}
 
-        .summary p {
-            font-size: 1.1rem;
-            text-align: justify;
-        }
+  .hero-scroll {
+    margin-top: 4rem;
+    font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink3);
+    display: flex; align-items: center; gap: 0.7rem;
+    opacity: 0; animation: rise 0.8s 0.8s ease forwards;
+    text-decoration: none; transition: color 0.2s;
+  }
+  .hero-scroll:hover { color: var(--ink); }
+  .scroll-line {
+    width: 32px; height: 1px; background: var(--ink3);
+    animation: grow 2s ease-in-out infinite;
+  }
+  @keyframes grow { 0%,100%{width:20px;opacity:.4} 50%{width:40px;opacity:1} }
+  @keyframes rise { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
 
-        .skills-list {
-            list-style: none;
-            padding: 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+  /* ── SECTION HEADERS ── */
+  .s-head { margin-bottom: 3rem; }
+  .s-label {
+    font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink3); margin-bottom: 0.6rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .s-label::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  h2.s-title {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    font-weight: 400; letter-spacing: -0.02em;
+    color: var(--ink); line-height: 1.15;
+  }
+  h2.s-title em { font-style: italic; color: var(--ink2); }
 
-        .skills-list li {
-            background: #eee;
-            color: #333;
-            padding: 8px 15px;
-            border-radius: 4px;
-            font-size: 0.95rem;
-        }
+  /* reveal */
+  .rv { opacity: 0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .rv.on { opacity: 1; transform: none; }
+  .d1 { transition-delay: 0.08s; } .d2 { transition-delay: 0.16s; } .d3 { transition-delay: 0.24s; }
 
-        .item {
-            margin-bottom: 20px;
-        }
+  /* ── ABOUT ── */
+  #about {}
+  .about-text {
+    font-size: 1.05rem; font-weight: 300; color: var(--ink2);
+    line-height: 1.9; margin-bottom: 1.5rem;
+  }
+  .about-text:last-child { margin-bottom: 0; }
+  .about-facts {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 0; margin-top: 3rem;
+    border-top: 1px solid var(--line); border-left: 1px solid var(--line);
+  }
+  .fact {
+    padding: 1.5rem 1.2rem;
+    border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  }
+  .fact-val {
+    font-family: var(--serif); font-size: 2rem;
+    font-weight: 400; color: var(--ink); line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+  .fact-lbl { font-size: 0.75rem; color: var(--ink3); letter-spacing: 0.04em; }
 
-        .item h3 {
-            margin: 0 0 5px 0;
-            font-size: 1.25rem;
-            color: #333;
-        }
+  /* ── SKILLS ── */
+  #skills {}
+  .skill-list { display: flex; flex-direction: column; gap: 0; }
+  .skill-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--line);
+    transition: background 0.15s;
+  }
+  .skill-row:first-child { border-top: 1px solid var(--line); }
+  .skill-row:hover { padding-left: 0.5rem; }
+  .skill-name { font-size: 0.9rem; font-weight: 400; color: var(--ink); }
+  .skill-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--line); flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .skill-row:hover .skill-dot { background: var(--ink); }
 
-        .item .sub-header {
-            margin: 0;
-            font-size: 1rem;
-            color: #666;
-            font-style: italic;
-            margin-bottom: 8px;
-        }
+  /* ── PROJECTS ── */
+  #projects {}
+  .project-list { display: flex; flex-direction: column; gap: 0; }
+  .project-item {
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--line);
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 1.5rem; align-items: start;
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .project-item:first-child { border-top: 1px solid var(--line); }
+  .project-item:hover .project-arrow { opacity: 1; transform: translate(3px, -3px); }
+  .proj-num {
+    font-size: 0.68rem; letter-spacing: 0.1em; color: var(--ink3);
+    margin-bottom: 0.5rem; font-weight: 400;
+  }
+  .proj-name {
+    font-family: var(--serif); font-size: 1.25rem; font-weight: 400;
+    color: var(--ink); letter-spacing: -0.01em; margin-bottom: 0.4rem;
+  }
+  .proj-tech {
+    font-size: 0.75rem; color: var(--ink3); letter-spacing: 0.04em;
+    margin-bottom: 0.7rem;
+  }
+  .proj-desc { font-size: 0.88rem; color: var(--ink2); line-height: 1.7; font-weight: 300; }
+  .project-arrow {
+    font-size: 1rem; color: var(--ink3);
+    opacity: 0; transition: all 0.25s;
+    padding-top: 0.25rem; flex-shrink: 0;
+  }
 
-        .item p {
-            margin: 0;
-            color: #444;
-        }
-    </style>
+  /* ── EXPERIENCE ── */
+  #experience {}
+  .exp-list { display: flex; flex-direction: column; gap: 0; }
+  .exp-item {
+    display: grid; grid-template-columns: 160px 1fr;
+    gap: 2rem; padding: 2rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .exp-item:first-child { border-top: 1px solid var(--line); }
+  .exp-dates { font-size: 0.75rem; color: var(--ink3); letter-spacing: 0.04em; padding-top: 0.2rem; }
+  .exp-co { font-size: 0.78rem; color: var(--ink2); margin-top: 0.2rem; }
+  .exp-role {
+    font-family: var(--serif); font-size: 1.1rem; font-weight: 400;
+    color: var(--ink); letter-spacing: -0.01em; margin-bottom: 0.5rem;
+  }
+  .exp-desc { font-size: 0.86rem; color: var(--ink2); line-height: 1.75; font-weight: 300; }
+
+  /* ── EDUCATION ── */
+  #education {}
+  .edu-list { display: flex; flex-direction: column; gap: 0; }
+  .edu-item {
+    display: grid; grid-template-columns: 160px 1fr;
+    gap: 2rem; padding: 1.6rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .edu-item:first-child { border-top: 1px solid var(--line); }
+  .edu-dates { font-size: 0.75rem; color: var(--ink3); letter-spacing: 0.04em; padding-top: 0.2rem; }
+  .edu-degree {
+    font-family: var(--serif); font-size: 1.05rem; font-weight: 400;
+    color: var(--ink); letter-spacing: -0.01em; margin-bottom: 0.2rem;
+  }
+  .edu-inst { font-size: 0.82rem; color: var(--ink2); }
+
+  /* ── CONTACT ── */
+  #contact { padding-bottom: 120px; }
+  .contact-intro {
+    font-size: 1rem; color: var(--ink2); line-height: 1.8;
+    font-weight: 300; max-width: 480px; margin-bottom: 3rem;
+  }
+  .contact-links { display: flex; flex-direction: column; gap: 0; margin-bottom: 4rem; }
+  .contact-link {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none; color: var(--ink);
+    transition: padding-left 0.2s;
+  }
+  .contact-link:first-child { border-top: 1px solid var(--line); }
+  .contact-link:hover { padding-left: 0.5rem; }
+  .cl-left { display: flex; flex-direction: column; gap: 0.15rem; }
+  .cl-type { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); }
+  .cl-val { font-size: 0.9rem; color: var(--ink); }
+  .cl-arrow { font-size: 0.85rem; color: var(--ink3); transition: transform 0.2s; }
+  .contact-link:hover .cl-arrow { transform: translate(3px, -3px); color: var(--ink); }
+
+  /* form */
+  .contact-form { display: flex; flex-direction: column; gap: 0; }
+  .cf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .cf-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.5rem; }
+  .cf-group label {
+    font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink3);
+  }
+  .cf-group input, .cf-group textarea {
+    background: transparent;
+    border: none; border-bottom: 1px solid var(--line);
+    color: var(--ink); padding: 0.6rem 0;
+    font-family: var(--sans); font-size: 0.9rem;
+    outline: none; transition: border-color 0.2s;
+    resize: none;
+  }
+  .cf-group input:focus, .cf-group textarea:focus { border-color: var(--ink); }
+  .cf-group input::placeholder, .cf-group textarea::placeholder { color: var(--ink3); }
+  .cf-submit {
+    align-self: flex-start;
+    background: var(--ink); color: var(--bg);
+    border: none; padding: 0.75rem 2rem;
+    font-family: var(--sans); font-size: 0.8rem;
+    font-weight: 500; letter-spacing: 0.06em;
+    text-transform: uppercase; cursor: pointer;
+    transition: all 0.2s; margin-top: 0.5rem;
+  }
+  .cf-submit:hover { background: #333; transform: translateY(-1px); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 1.8rem 0;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.72rem; color: var(--ink3); letter-spacing: 0.04em;
+  }
+  footer a { color: var(--ink3); text-decoration: none; transition: color 0.18s; }
+  footer a:hover { color: var(--ink); }
+
+  @media (max-width: 640px) {
+    nav { padding: 1rem 1.2rem; }
+    .nav-links { display: none; }
+    section { padding: 72px 0; }
+    .wrap { padding: 0 1.2rem; }
+    .exp-item, .edu-item { grid-template-columns: 1fr; gap: 0.3rem; }
+    .project-item { grid-template-columns: 1fr; }
+    .about-facts { grid-template-columns: 1fr 1fr; }
+    .cf-row { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 0.5rem; text-align: center; }
+  }
+</style>
 </head>
-
 <body>
-    <div class="container">
-        <header>
-            {% if profile_photo %}
-            <img src="{{ profile_photo }}" alt="{{ name }}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 20px; border: 1px solid #ccc; padding: 5px;">
-            {% endif %}
-            <h1>{{ name or 'Your Name' }}</h1>
-            <p>{{ email or 'your.email@example.com' }} | {{ mobile or 'Your Phone' }}</p>
-        </header>
 
-        {% if portfolio_summary %}
-        <div class="section summary">
-            <h2>Summary</h2>
-            <p>{{ portfolio_summary }}</p>
-        </div>
-        {% endif %}
+<!-- NAV -->
+<nav>
+  <a class="nav-name" href="#home">{{ name or 'Portfolio' }}</a>
+  <ul class="nav-links">
+    {% if portfolio_summary %}<li><a href="#about">About</a></li>{% endif %}
+    {% if skills %}<li><a href="#skills">Skills</a></li>{% endif %}
+    {% if projects %}<li><a href="#projects">Projects</a></li>{% endif %}
+    {% if experience %}<li><a href="#experience">Experience</a></li>{% endif %}
+    {% if education %}<li><a href="#education">Education</a></li>{% endif %}
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
 
-        {% if skills %}
-        <div class="section">
-            <h2>Skills</h2>
-            <ul class="skills-list">
-                {% for skill in skills %}
-                <li>{{ skill }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-
-        {% if experience %}
-        <div class="section">
-            <h2>Experience</h2>
-            {% for exp in experience %}
-            <div class="item">
-                <h3>{{ exp.title or 'Job Title' }}</h3>
-                <p class="sub-header">{{ exp.company or 'Company' }} | {{ exp.dates or 'Dates' }}</p>
-                <p>{{ exp.description or '' }}</p>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        {% if projects %}
-        <div class="section">
-            <h2>Projects</h2>
-            {% for project in projects %}
-            {% if project.link %}
-            <a href="{{ project.link }}" target="_blank" style="text-decoration: none; color: inherit;">
-            {% endif %}
-            <div class="item" style="{% if project.link %}border: 1px dashed #ddd; padding: 15px; border-radius: 4px; margin-bottom: 20px; transition: background 0.2s;{% endif %}" onmouseover="{% if project.link %}this.style.background='#f9f9f9'{% endif %}" onmouseout="this.style.background='transparent'">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <h3 style="margin: 0;">{{ project.name or 'Project Name' }}</h3>
-                    {% if project.link %}
-                    <span style="font-size: 0.8rem; color: var(--primary-color);">[Link ↗]</span>
-                    {% endif %}
-                </div>
-                <p class="sub-header">{{ project.tech or '' }}</p>
-                <p>{{ project.description or '' }}</p>
-            </div>
-            {% if project.link %}
-            </a>
-            {% endif %}
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        {% if education %}
-        <div class="section">
-            <h2>Education</h2>
-            {% for edu in education %}
-            <div class="item">
-                <h3>{{ edu.name or 'Degree or Certificate' }}</h3>
-                <p class="sub-header">{{ edu.institution or 'Institution' }} | {{ edu.dates or 'Dates' }}</p>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
+<!-- ── HERO ── -->
+<section id="home">
+  <div class="wrap">
+    <div class="hero-inner">
+      <div class="hero-label">Portfolio</div>
+      <h1 class="hero-name">
+        {{ name or 'Your Name' }}{% if name %}<br><em>{{ name.split()[-1] if name.split()|length > 1 else '' }}</em>{% endif %}
+      </h1>
+      <div class="hero-meta">
+        {% if email %}<a href="mailto:{{ email }}">{{ email }}</a>{% endif %}
+        {% if mobile %}<span>{{ mobile }}</span>{% endif %}
+      </div>
+      {% if portfolio_summary %}
+      <p class="hero-bio">{{ portfolio_summary | truncate(160) }}</p>
+      {% endif %}
+      <a href="#{% if portfolio_summary %}about{% elif skills %}skills{% elif projects %}projects{% else %}contact{% endif %}" class="hero-scroll">
+        <span class="scroll-line"></span> Scroll down
+      </a>
     </div>
-</body>
+  </div>
+</section>
 
+<!-- ── ABOUT ── -->
+{% if portfolio_summary %}
+<section id="about">
+  <div class="wrap">
+    <div class="s-head rv">
+      <div class="s-label">About</div>
+      <h2 class="s-title">A little about <em>me.</em></h2>
+    </div>
+    <p class="about-text rv d1">{{ portfolio_summary }}</p>
+    <div class="about-facts rv d2">
+      {% if experience %}
+      <div class="fact">
+        <div class="fact-val">{{ experience | length }}+</div>
+        <div class="fact-lbl">Roles held</div>
+      </div>
+      {% endif %}
+      {% if projects %}
+      <div class="fact">
+        <div class="fact-val">{{ projects | length }}</div>
+        <div class="fact-lbl">Projects built</div>
+      </div>
+      {% endif %}
+      {% if skills %}
+      <div class="fact">
+        <div class="fact-val">{{ skills | length }}</div>
+        <div class="fact-lbl">Skills</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── SKILLS ── -->
+{% if skills %}
+<section id="skills">
+  <div class="wrap">
+    <div class="s-head rv">
+      <div class="s-label">Skills</div>
+      <h2 class="s-title">What I <em>work with.</em></h2>
+    </div>
+    <div class="skill-list">
+      {% for skill in skills %}
+      <div class="skill-row rv" style="transition-delay: {{ loop.index0 * 0.04 }}s">
+        <span class="skill-name">{{ skill }}</span>
+        <span class="skill-dot"></span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── PROJECTS ── -->
+{% if projects %}
+<section id="projects">
+  <div class="wrap">
+    <div class="s-head rv">
+      <div class="s-label">Projects</div>
+      <h2 class="s-title">Things I've <em>built.</em></h2>
+    </div>
+    <div class="project-list">
+      {% for project in projects %}
+      <div class="project-item rv" style="transition-delay: {{ loop.index0 * 0.06 }}s">
+        <div>
+          <div class="proj-num">{{ '%02d' % loop.index }}</div>
+          <div class="proj-name">{{ project.name or 'Project' }}</div>
+          {% if project.tech %}
+          <div class="proj-tech">{{ project.tech }}</div>
+          {% endif %}
+          {% if project.description %}
+          <p class="proj-desc">{{ project.description }}</p>
+          {% endif %}
+        </div>
+        <div class="project-arrow">↗</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── EXPERIENCE ── -->
+{% if experience %}
+<section id="experience">
+  <div class="wrap">
+    <div class="s-head rv">
+      <div class="s-label">Experience</div>
+      <h2 class="s-title">Where I've <em>worked.</em></h2>
+    </div>
+    <div class="exp-list">
+      {% for exp in experience %}
+      <div class="exp-item rv" style="transition-delay: {{ loop.index0 * 0.07 }}s">
+        <div>
+          <div class="exp-dates">{{ exp.dates or '' }}</div>
+          <div class="exp-co">{{ exp.company or '' }}</div>
+        </div>
+        <div>
+          <div class="exp-role">{{ exp.title or '' }}</div>
+          {% if exp.description %}
+          <p class="exp-desc">{{ exp.description }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── EDUCATION ── -->
+{% if education %}
+<section id="education">
+  <div class="wrap">
+    <div class="s-head rv">
+      <div class="s-label">Education</div>
+      <h2 class="s-title">Where I <em>learned.</em></h2>
+    </div>
+    <div class="edu-list">
+      {% for edu in education %}
+      <div class="edu-item rv" style="transition-delay: {{ loop.index0 * 0.06 }}s">
+        <div class="edu-dates">{{ edu.dates or '' }}</div>
+        <div>
+          <div class="edu-degree">{{ edu.name or '' }}</div>
+          <div class="edu-inst">{{ edu.institution or '' }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── CONTACT ── -->
+<section id="contact">
+  <div class="wrap">
+    <div class="s-head rv">
+      <div class="s-label">Contact</div>
+      <h2 class="s-title">Let's <em>talk.</em></h2>
+    </div>
+    <p class="contact-intro rv d1">Open to new opportunities, collaborations, and conversations. Reach out — I reply to everything.</p>
+    <div class="contact-links rv d2">
+      {% if email %}
+      <a class="contact-link" href="mailto:{{ email }}">
+        <div class="cl-left">
+          <span class="cl-type">Email</span>
+          <span class="cl-val">{{ email }}</span>
+        </div>
+        <span class="cl-arrow">↗</span>
+      </a>
+      {% endif %}
+      {% if mobile %}
+      <a class="contact-link" href="tel:{{ mobile }}">
+        <div class="cl-left">
+          <span class="cl-type">Phone</span>
+          <span class="cl-val">{{ mobile }}</span>
+        </div>
+        <span class="cl-arrow">↗</span>
+      </a>
+      {% endif %}
+      <a class="contact-link" href="#">
+        <div class="cl-left">
+          <span class="cl-type">LinkedIn</span>
+          <span class="cl-val">Connect on LinkedIn</span>
+        </div>
+        <span class="cl-arrow">↗</span>
+      </a>
+      <a class="contact-link" href="#">
+        <div class="cl-left">
+          <span class="cl-type">GitHub</span>
+          <span class="cl-val">View my repositories</span>
+        </div>
+        <span class="cl-arrow">↗</span>
+      </a>
+    </div>
+
+    <div class="contact-form rv d3">
+      <div class="cf-row">
+        <div class="cf-group">
+          <label>Name</label>
+          <input type="text" placeholder="Your name">
+        </div>
+        <div class="cf-group">
+          <label>Email</label>
+          <input type="email" placeholder="{{ email or 'you@email.com' }}">
+        </div>
+      </div>
+      <div class="cf-group">
+        <label>Message</label>
+        <textarea rows="4" placeholder="What's on your mind?"></textarea>
+      </div>
+      <button class="cf-submit" onclick="this.textContent='Sent ✓';this.style.background='#333';setTimeout(()=>{this.textContent='Send Message';this.style.background=''},2500)">
+        Send Message
+      </button>
+    </div>
+
+    <footer>
+      <span>{{ name or 'Portfolio' }}</span>
+      <span>{% if email %}<a href="mailto:{{ email }}">{{ email }}</a>{% endif %}</span>
+      <span>© {{ "now" | strftime("%Y") if "now" else "2026" }}</span>
+    </footer>
+  </div>
+</section>
+
+<script>
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.rv').forEach(el => io.observe(el));
+</script>
+</body>
 </html>

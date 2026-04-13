@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ name }}'s Portfolio</title>
+    <title>Your Name - Portfolio</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -18,11 +18,11 @@
             --bg-secondary: #ffffff;
             --text-primary: #1a1a1a;
             --text-secondary: #666666;
-            --accent: {{ theme_color | default('#d97706') }};
+            --accent: #d97706;
             --accent-light: #fbbf24;
             --border: #e7e5e4;
             --shadow: rgba(0, 0, 0, 0.08);
-            --gradient: linear-gradient(135deg, #fbbf24 0%, var(--accent) 100%);
+            --gradient: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
             
             --font-serif: 'Cormorant Garamond', serif;
             --font-sans: 'Work Sans', sans-serif;
@@ -33,9 +33,11 @@
             --bg-secondary: #1a1a1a;
             --text-primary: #fafafa;
             --text-secondary: #a3a3a3;
+            --accent: #fbbf24;
             --accent-light: #fde68a;
             --border: #262626;
             --shadow: rgba(255, 255, 255, 0.05);
+            --gradient: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
         }
 
         html {
@@ -145,21 +147,6 @@
             color: white;
             border-color: var(--accent);
             transform: rotate(180deg);
-        }
-
-        .menu-toggle {
-            display: none;
-            flex-direction: column;
-            gap: 5px;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        .menu-toggle span {
-            width: 25px;
-            height: 2px;
-            background: var(--text-primary);
-            transition: all 0.3s ease;
         }
 
         /* Hero Section */
@@ -275,7 +262,18 @@
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 20px 60px var(--shadow);
+        }
+
+        .image-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: var(--gradient);
+            opacity: 0.15;
+            z-index: 1;
         }
 
         .image-wrapper img {
@@ -287,6 +285,42 @@
 
         .image-wrapper:hover img {
             transform: scale(1.05);
+        }
+
+        .floating-badge {
+            position: absolute;
+            background: var(--bg-secondary);
+            padding: 1.5rem 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px var(--shadow);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .badge-1 {
+            top: 10%;
+            left: -5%;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.8s forwards;
+        }
+
+        .badge-2 {
+            bottom: 15%;
+            right: -5%;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 1s forwards;
+        }
+
+        .floating-badge h4 {
+            font-size: 2rem;
+            font-family: var(--font-serif);
+            color: var(--accent);
+            margin-bottom: 0.3rem;
+        }
+
+        .floating-badge p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
         }
 
         /* Section Styles */
@@ -330,11 +364,49 @@
         }
 
         /* About Section */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6rem;
+            align-items: start;
+        }
+
         .about-content p {
             font-size: 1.1rem;
             color: var(--text-secondary);
             margin-bottom: 1.5rem;
             line-height: 1.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 3rem;
+        }
+
+        .stat-item {
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .stat-item:nth-child(1) { animation-delay: 0.1s; }
+        .stat-item:nth-child(2) { animation-delay: 0.2s; }
+        .stat-item:nth-child(3) { animation-delay: 0.3s; }
+        .stat-item:nth-child(4) { animation-delay: 0.4s; }
+
+        .stat-number {
+            font-family: var(--font-serif);
+            font-size: 3rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         /* Skills Section */
@@ -411,7 +483,7 @@
 
         .projects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 3rem;
         }
 
@@ -438,7 +510,7 @@
         .project-image {
             width: 100%;
             height: 280px;
-            background: var(--gradient);
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
             position: relative;
             overflow: hidden;
         }
@@ -755,6 +827,31 @@
             }
         }
 
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .menu-toggle span {
+            width: 25px;
+            height: 2px;
+            background: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
         /* Responsive Design */
         @media (max-width: 1200px) {
             .hero-container {
@@ -769,6 +866,11 @@
 
             .hero-title {
                 font-size: 4rem;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+                gap: 4rem;
             }
 
             .projects-grid {
@@ -840,6 +942,11 @@
                 flex-direction: column;
             }
 
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
             .skills-grid {
                 grid-template-columns: 1fr;
             }
@@ -848,8 +955,8 @@
                 padding-left: 2rem;
             }
 
-            .projects-grid {
-                grid-template-columns: 1fr;
+            .floating-badge {
+                display: none;
             }
         }
     </style>
@@ -858,7 +965,7 @@
     <!-- Navigation -->
     <nav id="navbar">
         <div class="nav-container">
-            <a href="#home" class="logo">{{ name or 'YourName' }}</a>
+            <a href="#home" class="logo">YourName</a>
             <div class="menu-toggle" id="menuToggle">
                 <span></span>
                 <span></span>
@@ -866,10 +973,10 @@
             </div>
             <ul class="nav-links" id="navLinks">
                 <li><a href="#home">Home</a></li>
-                {% if about %}<li><a href="#about">About</a></li>{% endif %}
-                {% if skills %}<li><a href="#skills">Skills</a></li>{% endif %}
-                {% if projects %}<li><a href="#projects">Projects</a></li>{% endif %}
-                {% if experience %}<li><a href="#experience">Experience</a></li>{% endif %}
+                <li><a href="#about">About</a></li>
+                <li><a href="#skills">Skills</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#experience">Experience</a></li>
                 <li><a href="#contact">Contact</a></li>
                 <li>
                     <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
@@ -884,9 +991,12 @@
     <section class="hero" id="home">
         <div class="hero-container">
             <div class="hero-content">
-                <div class="hero-label">{{ role or 'Creative Developer' }}</div>
-                <h1 class="hero-title">{{ hero_title or 'Crafting Digital <strong>Experiences</strong>' }}</h1>
-                <p class="hero-description">{{ hero_description or 'Portfolio description goes here' }}</p>
+                <div class="hero-label">Creative Developer & Designer</div>
+                <h1 class="hero-title">Crafting Digital <strong>Experiences</strong></h1>
+                <p class="hero-description">
+                    I design and develop elegant, high-performance web applications 
+                    that solve real problems and delight users.
+                </p>
                 <div class="hero-cta">
                     <a href="#contact" class="btn btn-primary">Get In Touch</a>
                     <a href="#projects" class="btn btn-secondary">View Work</a>
@@ -894,113 +1004,272 @@
             </div>
             <div class="hero-image">
                 <div class="image-wrapper">
-                    {% if profile_image %}
-                    <img src="{{ profile_image }}" alt="{{ name }}">
-                    {% endif %}
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=800&fit=crop" alt="Profile">
+                </div>
+                <div class="floating-badge badge-1">
+                    <h4>5+</h4>
+                    <p>Years Experience</p>
+                </div>
+                <div class="floating-badge badge-2">
+                    <h4>50+</h4>
+                    <p>Projects Completed</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- About Section -->
-    {% if about %}
     <section id="about">
         <div class="section-container">
             <div class="section-header">
                 <div class="section-label">Who I Am</div>
                 <h2 class="section-title">About Me</h2>
             </div>
-            <div class="about-content">
-                <p>{{ about }}</p>
+            <div class="about-grid">
+                <div class="about-content">
+                    <p>
+                        Hi, I'm a passionate full-stack developer with a keen eye for design. 
+                        I specialize in building modern, responsive web applications that 
+                        prioritize user experience and performance.
+                    </p>
+                    <p>
+                        With expertise spanning front-end frameworks, back-end systems, and 
+                        cloud infrastructure, I bring ideas to life through clean code and 
+                        thoughtful design. I'm always learning and exploring new technologies 
+                        to stay at the cutting edge.
+                    </p>
+                    <p>
+                        When I'm not coding, you'll find me exploring nature photography, 
+                        reading about design systems, or contributing to open-source projects.
+                    </p>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">5+</div>
+                        <div class="stat-label">Years Experience</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">50+</div>
+                        <div class="stat-label">Projects</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">30+</div>
+                        <div class="stat-label">Happy Clients</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">10+</div>
+                        <div class="stat-label">Awards</div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
-    {% endif %}
 
     <!-- Skills Section -->
-    {% if skills %}
     <section id="skills">
         <div class="section-container">
             <div class="section-header">
                 <div class="section-label">What I Do</div>
                 <h2 class="section-title">Skills & Expertise</h2>
+                <p class="section-description">
+                    A diverse skill set built over years of hands-on experience 
+                    in modern web development.
+                </p>
             </div>
             <div class="skills-grid">
-                {% for skill in skills %}
                 <div class="skill-card">
-                    <div class="skill-icon"><i class="{{ skill.icon or 'fas fa-code' }}"></i></div>
-                    <h3 class="skill-name">{{ skill.name or 'Skill Name' }}</h3>
+                    <div class="skill-icon"><i class="fab fa-react"></i></div>
+                    <h3 class="skill-name">React & Next.js</h3>
                     <div class="skill-level">
-                        <div class="skill-progress" style="width: {{ skill.level or 80 }}%"></div>
+                        <div class="skill-progress" style="width: 90%"></div>
                     </div>
-                    <p class="skill-percentage">{{ skill.level or 80 }}%</p>
+                    <p class="skill-percentage">90%</p>
                 </div>
-                {% endfor %}
+                <div class="skill-card">
+                    <div class="skill-icon"><i class="fab fa-node"></i></div>
+                    <h3 class="skill-name">Node.js & Express</h3>
+                    <div class="skill-level">
+                        <div class="skill-progress" style="width: 85%"></div>
+                    </div>
+                    <p class="skill-percentage">85%</p>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon"><i class="fas fa-database"></i></div>
+                    <h3 class="skill-name">Database Design</h3>
+                    <div class="skill-level">
+                        <div class="skill-progress" style="width: 80%"></div>
+                    </div>
+                    <p class="skill-percentage">80%</p>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon"><i class="fas fa-mobile-alt"></i></div>
+                    <h3 class="skill-name">Responsive Design</h3>
+                    <div class="skill-level">
+                        <div class="skill-progress" style="width: 95%"></div>
+                    </div>
+                    <p class="skill-percentage">95%</p>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon"><i class="fab fa-aws"></i></div>
+                    <h3 class="skill-name">Cloud & DevOps</h3>
+                    <div class="skill-level">
+                        <div class="skill-progress" style="width: 75%"></div>
+                    </div>
+                    <p class="skill-percentage">75%</p>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon"><i class="fas fa-palette"></i></div>
+                    <h3 class="skill-name">UI/UX Design</h3>
+                    <div class="skill-level">
+                        <div class="skill-progress" style="width: 88%"></div>
+                    </div>
+                    <p class="skill-percentage">88%</p>
+                </div>
             </div>
         </div>
     </section>
-    {% endif %}
 
     <!-- Projects Section -->
-    {% if projects %}
     <section id="projects">
         <div class="section-container">
             <div class="section-header">
                 <div class="section-label">My Work</div>
                 <h2 class="section-title">Featured Projects</h2>
+                <p class="section-description">
+                    A selection of recent projects that showcase my skills and approach 
+                    to problem-solving.
+                </p>
             </div>
             <div class="projects-grid">
-                {% for project in projects %}
                 <div class="project-card">
                     <div class="project-image">
-                        {% if project.image %}
-                        <img src="{{ project.image }}" alt="{{ project.name }}">
-                        {% endif %}
+                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop" alt="E-commerce Platform">
                     </div>
                     <div class="project-content">
-                        <h3 class="project-title">{{ project.name or 'Project Name' }}</h3>
-                        <p class="project-description">{{ project.description or '' }}</p>
-                        {% if project.tech %}
+                        <h3 class="project-title">E-commerce Platform</h3>
+                        <p class="project-description">
+                            A fully responsive e-commerce solution with real-time inventory 
+                            management, payment processing, and analytics dashboard.
+                        </p>
                         <div class="project-tags">
-                            {% for tech in project.tech %}
-                            <span class="tag">{{ tech }}</span>
-                            {% endfor %}
+                            <span class="tag">React</span>
+                            <span class="tag">Node.js</span>
+                            <span class="tag">MongoDB</span>
+                            <span class="tag">Stripe</span>
                         </div>
-                        {% endif %}
-                        {% if project.link %}
-                        <a href="{{ project.link }}" class="project-link">
+                        <a href="#" class="project-link">
                             View Project <i class="fas fa-arrow-right"></i>
                         </a>
-                        {% endif %}
                     </div>
                 </div>
-                {% endfor %}
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop" alt="Analytics Dashboard">
+                    </div>
+                    <div class="project-content">
+                        <h3 class="project-title">Analytics Dashboard</h3>
+                        <p class="project-description">
+                            Interactive data visualization dashboard with real-time updates, 
+                            custom reports, and team collaboration features.
+                        </p>
+                        <div class="project-tags">
+                            <span class="tag">Vue.js</span>
+                            <span class="tag">D3.js</span>
+                            <span class="tag">Firebase</span>
+                        </div>
+                        <a href="#" class="project-link">
+                            View Project <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=600&fit=crop" alt="Mobile App">
+                    </div>
+                    <div class="project-content">
+                        <h3 class="project-title">Fitness Tracking App</h3>
+                        <p class="project-description">
+                            Cross-platform mobile application for tracking workouts, 
+                            nutrition, and progress with social sharing capabilities.
+                        </p>
+                        <div class="project-tags">
+                            <span class="tag">React Native</span>
+                            <span class="tag">Redux</span>
+                            <span class="tag">GraphQL</span>
+                        </div>
+                        <a href="#" class="project-link">
+                            View Project <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=800&h=600&fit=crop" alt="AI Chatbot">
+                    </div>
+                    <div class="project-content">
+                        <h3 class="project-title">AI Customer Service Bot</h3>
+                        <p class="project-description">
+                            Intelligent chatbot powered by machine learning for automated 
+                            customer support with natural language processing.
+                        </p>
+                        <div class="project-tags">
+                            <span class="tag">Python</span>
+                            <span class="tag">TensorFlow</span>
+                            <span class="tag">NLP</span>
+                        </div>
+                        <a href="#" class="project-link">
+                            View Project <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
-    {% endif %}
 
     <!-- Experience Section -->
-    {% if experience %}
     <section id="experience">
         <div class="section-container">
             <div class="section-header">
                 <div class="section-label">Career Path</div>
                 <h2 class="section-title">Work Experience</h2>
+                <p class="section-description">
+                    My professional journey through different roles and companies.
+                </p>
             </div>
             <div class="timeline">
-                {% for exp in experience %}
                 <div class="timeline-item">
-                    <div class="timeline-date">{{ exp.dates or 'Date Range' }}</div>
-                    <h3 class="timeline-title">{{ exp.title or 'Job Title' }}</h3>
-                    <p class="timeline-company">{{ exp.company or 'Company Name' }}</p>
-                    <p class="timeline-description">{{ exp.description or '' }}</p>
+                    <div class="timeline-date">2021 - Present</div>
+                    <h3 class="timeline-title">Senior Full-Stack Developer</h3>
+                    <p class="timeline-company">Tech Innovations Inc.</p>
+                    <p class="timeline-description">
+                        Leading development of enterprise-scale web applications, mentoring 
+                        junior developers, and architecting scalable cloud solutions. 
+                        Responsible for technical decisions and code quality standards.
+                    </p>
                 </div>
-                {% endfor %}
+                <div class="timeline-item">
+                    <div class="timeline-date">2019 - 2021</div>
+                    <h3 class="timeline-title">Full-Stack Developer</h3>
+                    <p class="timeline-company">Digital Solutions Co.</p>
+                    <p class="timeline-description">
+                        Developed and maintained multiple client projects using modern web 
+                        technologies. Collaborated with design teams to implement pixel-perfect 
+                        interfaces and optimize application performance.
+                    </p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2017 - 2019</div>
+                    <h3 class="timeline-title">Junior Developer</h3>
+                    <p class="timeline-company">StartUp Studio</p>
+                    <p class="timeline-description">
+                        Started my professional journey building responsive websites and web 
+                        applications. Gained experience in various technologies and contributed 
+                        to multiple successful product launches.
+                    </p>
+                </div>
             </div>
         </div>
     </section>
-    {% endif %}
 
     <!-- Contact Section -->
     <section id="contact">
@@ -1008,6 +1277,9 @@
             <div class="section-header">
                 <div class="section-label">Get In Touch</div>
                 <h2 class="section-title">Let's Work Together</h2>
+                <p class="section-description">
+                    Have a project in mind? Let's discuss how we can bring your ideas to life.
+                </p>
             </div>
             <div class="contact-grid">
                 <div class="contact-info">
@@ -1017,7 +1289,7 @@
                         </div>
                         <div class="contact-details">
                             <h3>Email</h3>
-                            <a href="mailto:{{ email or 'hello@example.com' }}">{{ email or 'hello@example.com' }}</a>
+                            <a href="mailto:hello@yourname.com">hello@yourname.com</a>
                         </div>
                     </div>
                     <div class="contact-item">
@@ -1026,7 +1298,7 @@
                         </div>
                         <div class="contact-details">
                             <h3>Phone</h3>
-                            <a href="tel:{{ phone or '' }}">{{ phone or '+1 234 567 890' }}</a>
+                            <a href="tel:+1234567890">+1 (234) 567-890</a>
                         </div>
                     </div>
                     <div class="contact-item">
@@ -1035,30 +1307,22 @@
                         </div>
                         <div class="contact-details">
                             <h3>Location</h3>
-                            <p>{{ location or 'Your City' }}</p>
+                            <p>San Francisco, CA</p>
                         </div>
                     </div>
                     <div class="social-links">
-                        {% if social.github %}
-                        <a href="{{ social.github }}" class="social-link" aria-label="GitHub">
+                        <a href="#" class="social-link" aria-label="GitHub">
                             <i class="fab fa-github"></i>
                         </a>
-                        {% endif %}
-                        {% if social.linkedin %}
-                        <a href="{{ social.linkedin }}" class="social-link" aria-label="LinkedIn">
+                        <a href="#" class="social-link" aria-label="LinkedIn">
                             <i class="fab fa-linkedin-in"></i>
                         </a>
-                        {% endif %}
-                        {% if social.twitter %}
-                        <a href="{{ social.twitter }}" class="social-link" aria-label="Twitter">
+                        <a href="#" class="social-link" aria-label="Twitter">
                             <i class="fab fa-twitter"></i>
                         </a>
-                        {% endif %}
-                        {% if social.dribbble %}
-                        <a href="{{ social.dribbble }}" class="social-link" aria-label="Dribbble">
+                        <a href="#" class="social-link" aria-label="Dribbble">
                             <i class="fab fa-dribbble"></i>
                         </a>
-                        {% endif %}
                     </div>
                 </div>
                 <form class="contact-form" id="contactForm">
@@ -1082,7 +1346,7 @@
 
     <!-- Footer -->
     <footer>
-        <p>&copy; {{ year or '2024' }} {{ name or 'YourName' }}. All rights reserved.</p>
+        <p>&copy; 2024 YourName. All rights reserved. Designed & Developed with passion.</p>
     </footer>
 
     <script>
@@ -1091,6 +1355,7 @@
         const html = document.documentElement;
         const themeIcon = themeToggle.querySelector('i');
 
+        // Check for saved theme preference or default to light mode
         const currentTheme = localStorage.getItem('theme') || 'light';
         html.setAttribute('data-theme', currentTheme);
         updateThemeIcon(currentTheme);
@@ -1098,6 +1363,7 @@
         themeToggle.addEventListener('click', () => {
             const currentTheme = html.getAttribute('data-theme');
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
             html.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             updateThemeIcon(newTheme);
@@ -1107,7 +1373,7 @@
             themeIcon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
         }
 
-        // Mobile Menu
+        // Mobile Menu Toggle
         const menuToggle = document.getElementById('menuToggle');
         const navLinks = document.getElementById('navLinks');
 
@@ -1116,6 +1382,7 @@
             navLinks.classList.toggle('active');
         });
 
+        // Close mobile menu when clicking a link
         document.querySelectorAll('.nav-links a').forEach(link => {
             link.addEventListener('click', () => {
                 menuToggle.classList.remove('active');
@@ -1123,20 +1390,26 @@
             });
         });
 
-        // Navbar scroll
+        // Navbar scroll effect
         const navbar = document.getElementById('navbar');
+        
         window.addEventListener('scroll', () => {
-            navbar.classList.toggle('scrolled', window.scrollY > 100);
+            if (window.scrollY > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
         });
 
-        // Smooth scroll
+        // Smooth scroll for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
+                    const offsetTop = target.offsetTop - 80;
                     window.scrollTo({
-                        top: target.offsetTop - 80,
+                        top: offsetTop,
                         behavior: 'smooth'
                     });
                 }
@@ -1145,13 +1418,41 @@
 
         // Form submission
         const contactForm = document.getElementById('contactForm');
+        
         contactForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            
+            // Get form data
             const formData = new FormData(contactForm);
             const data = Object.fromEntries(formData);
+            
+            // Here you would normally send the data to a server
             console.log('Form submitted:', data);
-            alert('Thank you for your message!');
+            
+            // Show success message (you can customize this)
+            alert('Thank you for your message! I will get back to you soon.');
+            
+            // Reset form
             contactForm.reset();
+        });
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all animated elements
+        document.querySelectorAll('.skill-card, .project-card, .timeline-item, .stat-item').forEach(el => {
+            observer.observe(el);
         });
     </script>
 </body>

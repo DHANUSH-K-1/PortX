@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ name }}'s Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --glass-bg:        rgba(255,255,255,0.08);
+  --glass-border:    rgba(255,255,255,0.15);
+  --glass-highlight: rgba(255,255,255,0.22);
+  --glass-shadow:    0 8px 32px rgba(0,0,0,0.28);
+
+  --primary-gradient-start: {{ theme_color | default('#4338ca') }};
+  --primary-gradient-end:   #3b82f6;
+
+  --text-main:      #ffffff;
+  --text-secondary: rgba(255,255,255,0.80);
+  --text-muted:     rgba(255,255,255,0.55);
+
+  --font-heading: 'Outfit', sans-serif;
+  --font-body:    'Plus Jakarta Sans', sans-serif;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: radial-gradient(circle at top left,#1e1b4b,#0f172a);
+  background-color: #0f172a;
+  color: var(--text-main);
+  line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── ORB BACKGROUND ── */
+.orb {
+  position: fixed; border-radius: 50%;
+  filter: blur(80px); z-index: 0;
+  opacity: 0.6; pointer-events: none;
+  animation: float 20s infinite alternate ease-in-out;
+}
+.orb-1 { width:400px; height:400px; background:var(--primary-gradient-start); top:-100px; left:-100px; }
+.orb-2 { width:500px; height:500px; background:var(--primary-gradient-end);   bottom:-150px; right:-100px; animation-delay:-5s; }
+.orb-3 { width:300px; height:300px; background:#a855f7; top:40%; left:50%; transform:translate(-50%,-50%); opacity:0.4; animation-duration:25s; }
+@keyframes float {
+  0%   { transform:translate(0,0) rotate(0deg); }
+  100% { transform:translate(30px,50px) rotate(10deg); }
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:200;
+  height: 58px;
+  display: flex; align-items:center; justify-content:space-between;
+  padding: 0 2.5rem;
+  background: rgba(15,23,42,0.65);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--glass-border);
+}
+.nav-brand {
+  font-family: var(--font-heading);
+  font-size: 1.05rem; font-weight: 600;
+  background: linear-gradient(135deg,#fff 0%,#a5b4fc 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-decoration: none;
+}
+.nav-links { list-style:none; display:flex; gap:0.2rem; }
+.nav-links a {
+  font-family: var(--font-body);
+  font-size: 0.8rem; font-weight:500;
+  color: var(--text-muted); text-decoration:none;
+  padding: 0.38rem 0.85rem; border-radius:8px;
+  transition: all 0.2s ease;
+}
+.nav-links a:hover { color:#fff; background:var(--glass-bg); }
+.nav-contact {
+  color: #a5b4fc !important;
+  border: 1px solid rgba(165,180,252,0.3) !important;
+  border-radius: 20px !important;
+}
+.nav-contact:hover { background:rgba(165,180,252,0.1) !important; border-color:rgba(165,180,252,0.6) !important; }
+
+/* ── CONTAINER ── */
+.container {
+  max-width: 1000px; margin:0 auto;
+  padding: 100px 20px 60px;
+  position: relative; z-index:10;
+}
+
+/* ── GLASS PANEL ── */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-top-color: var(--glass-highlight);
+  border-radius: 24px;
+  box-shadow: var(--glass-shadow);
+  padding: 40px;
+  margin-bottom: 28px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeInUp 0.8s ease-out forwards;
+  opacity: 0;
+}
+.glass-panel:hover {
+  box-shadow: 0 16px 48px rgba(0,0,0,0.38);
+  border-color: rgba(255,255,255,0.22);
+}
+
+/* Staggered delays — same class names as reference */
+.header-panel   { animation-delay:0.1s; }
+.summary-panel  { animation-delay:0.2s; }
+.skills-panel   { animation-delay:0.3s; }
+.exp-panel      { animation-delay:0.4s; }
+.projects-panel { animation-delay:0.5s; }
+.edu-panel      { animation-delay:0.6s; }
+.contact-panel  { animation-delay:0.7s; }
+
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(22px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── HEADER ── */
+header { text-align:center; }
+header h1 {
+  font-family: var(--font-heading);
+  margin:0;
+  font-size: clamp(2.4rem,6vw,4rem);
+  font-weight: 700;
+  background: linear-gradient(135deg,#fff 0%,#a5b4fc 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+header p.contact-info {
+  margin: 14px 0 0;
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  font-weight: 300;
+  display:flex; align-items:center; justify-content:center; gap:0.6rem; flex-wrap:wrap;
+}
+header p.contact-info a { color:inherit; text-decoration:none; transition:color .2s; }
+header p.contact-info a:hover { color:#fff; }
+.sep { opacity:0.35; }
+
+/* avatar initial */
+.header-avatar {
+  width: 80px; height:80px; border-radius:50%; margin:0 auto 1.4rem;
+  background: linear-gradient(135deg,var(--primary-gradient-start),var(--primary-gradient-end),#a855f7);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-heading); font-size:2rem; font-weight:700; color:#fff;
+  box-shadow: 0 0 28px rgba(99,102,241,0.45);
+  position:relative;
+}
+.header-avatar::after {
+  content:''; position:absolute; inset:-5px; border-radius:50%;
+  border:1px solid rgba(255,255,255,0.18);
+  animation: spin-ring 10s linear infinite;
+}
+@keyframes spin-ring { to { transform:rotate(360deg); } }
+
+.header-badges {
+  display:flex; justify-content:center; flex-wrap:wrap; gap:0.6rem; margin-top:1.4rem;
+}
+.badge {
+  font-size:0.72rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase;
+  padding:0.3rem 0.85rem; border-radius:20px;
+  background:rgba(255,255,255,0.06); border:1px solid var(--glass-border);
+  color:var(--text-muted);
+}
+.badge-green  { background:rgba(34,197,94,0.12);  border-color:rgba(34,197,94,0.3);  color:#86efac; }
+
+/* ── SECTION HEADINGS ── */
+h2 {
+  font-family: var(--font-heading);
+  font-size: 1.9rem; font-weight:600;
+  color: var(--text-main);
+  margin:0 0 28px; position:relative;
+  display:flex; align-items:center; gap:0;
+}
+h2::after {
+  content:''; flex:1; height:1px;
+  background:linear-gradient(90deg,var(--glass-border),transparent);
+  margin-left:18px;
+}
+
+/* ── ABOUT / SUMMARY ── */
+.summary p {
+  font-size:1.05rem;
+  color:var(--text-secondary);
+  margin:0; line-height:1.85; max-width:92%;
+}
+
+/* ── SKILLS ── */
+.skills-list {
+  list-style:none; padding:0;
+  display:flex; flex-wrap:wrap; gap:10px;
+}
+.skills-list li {
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--glass-border);
+  color:var(--text-secondary);
+  padding:7px 18px; border-radius:50px;
+  font-size:0.9rem; font-weight:500;
+  transition:all 0.25s ease; cursor:default;
+}
+.skills-list li:hover {
+  transform:translateY(-3px);
+  background:rgba(255,255,255,0.14);
+  color:#fff; border-color:rgba(255,255,255,0.5);
+  box-shadow:0 6px 18px rgba(0,0,0,0.22);
+}
+
+/* ── CARD GRID ── */
+.card-grid { display:grid; grid-template-columns:1fr; gap:18px; }
+@media(min-width:640px){ .card-grid-2 { grid-template-columns:1fr 1fr; } }
+
+.card {
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:16px; padding:28px;
+  transition:all 0.3s ease;
+  position:relative; overflow:hidden;
+}
+.card::before {
+  content:''; position:absolute; top:0; left:0;
+  width:3px; height:100%;
+  background:linear-gradient(to bottom,var(--primary-gradient-start),var(--primary-gradient-end));
+  opacity:0; transition:opacity 0.3s ease;
+}
+.card:hover {
+  transform:translateY(-4px) scale(1.005);
+  background:rgba(255,255,255,0.07);
+  box-shadow:0 12px 32px rgba(0,0,0,0.2);
+  border-color:rgba(255,255,255,0.12);
+}
+.card:hover::before { opacity:1; }
+.card h3 {
+  margin:0 0 7px;
+  font-family:var(--font-heading);
+  font-size:1.25rem; font-weight:600; color:#fff;
+}
+.card .sub-header {
+  margin:0 0 13px;
+  font-size:0.85rem; font-weight:600;
+  color:var(--primary-gradient-end);
+  letter-spacing:0.03em; text-transform:uppercase;
+}
+.card p.description {
+  margin:0; color:var(--text-secondary); font-size:0.95rem; line-height:1.75;
+}
+
+/* ── CONTACT ── */
+.contact-grid {
+  display:grid; grid-template-columns:1fr 1.2fr; gap:2rem; align-items:start;
+}
+.contact-channels { display:flex; flex-direction:column; gap:0.65rem; margin-bottom:2rem; }
+.ch-item {
+  display:flex; align-items:center; gap:0.9rem;
+  padding:0.85rem 1.1rem; border-radius:12px;
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+  text-decoration:none; color:var(--text-main);
+  transition:all 0.22s ease;
+}
+.ch-item:hover { background:rgba(255,255,255,0.09); border-color:var(--glass-border); transform:translateX(4px); }
+.ch-icon { font-size:1rem; width:20px; text-align:center; }
+.ch-body {}
+.ch-lbl  { font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); }
+.ch-val  { font-size:0.85rem; font-weight:500; color:var(--text-secondary); }
+
+.avail-row {
+  display:flex; align-items:center; gap:0.55rem;
+  font-size:0.78rem; font-weight:500; color:#86efac;
+  padding:0.55rem 1rem; border-radius:20px;
+  background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.25);
+  margin-bottom:1.8rem; width:fit-content;
+}
+.avail-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:#22c55e; box-shadow:0 0 8px #22c55e;
+  animation:pd 2s infinite;
+}
+@keyframes pd { 0%,100%{opacity:1}50%{opacity:.3} }
+
+/* form */
+.form-group { display:flex; flex-direction:column; gap:0.4rem; margin-bottom:1.1rem; }
+.form-group label {
+  font-size:0.68rem; font-weight:600; letter-spacing:0.1em;
+  text-transform:uppercase; color:var(--text-muted);
+}
+.form-group input,
+.form-group textarea {
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--glass-border);
+  border-radius:10px; padding:0.7rem 1rem;
+  color:var(--text-main); font-family:var(--font-body);
+  font-size:0.9rem; outline:none; resize:none; width:100%;
+  transition:border-color 0.2s, box-shadow 0.2s;
+}
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color:rgba(99,102,241,0.5);
+  box-shadow:0 0 18px rgba(99,102,241,0.15);
+}
+.form-group input::placeholder,
+.form-group textarea::placeholder { color:rgba(255,255,255,0.25); }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.form-btn {
+  width:100%; padding:0.85rem;
+  background:linear-gradient(135deg,var(--primary-gradient-start),var(--primary-gradient-end));
+  color:#fff; border:none; border-radius:12px;
+  font-family:var(--font-heading); font-size:0.88rem; font-weight:600;
+  cursor:pointer; letter-spacing:0.04em;
+  box-shadow:0 0 22px rgba(67,56,202,0.4);
+  transition:all 0.25s ease; margin-top:0.4rem;
+}
+.form-btn:hover { transform:translateY(-2px); box-shadow:0 0 36px rgba(67,56,202,0.55); }
+
+/* footer */
+footer {
+  text-align:center; padding:2rem 0;
+  font-size:0.75rem; color:var(--text-muted);
+  border-top:1px solid var(--glass-border); margin-top:1rem;
+  position:relative; z-index:10;
+}
+footer a { color:var(--text-muted); text-decoration:none; transition:color .2s; }
+footer a:hover { color:#fff; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  nav { padding:0 1.2rem; }
+  .nav-links { display:none; }
+  .container { padding:80px 14px 50px; }
+  .glass-panel { padding:26px; }
+  header h1 { font-size:2.2rem; }
+  .contact-grid { grid-template-columns:1fr; }
+  .form-row { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-brand" href="#home">{{ name or 'Portfolio' }}</a>
+  <ul class="nav-links">
+    {% if portfolio_summary %}<li><a href="#about">About</a></li>{% endif %}
+    {% if skills %}<li><a href="#skills">Skills</a></li>{% endif %}
+    {% if experience %}<li><a href="#experience">Experience</a></li>{% endif %}
+    {% if projects %}<li><a href="#projects">Projects</a></li>{% endif %}
+    {% if education %}<li><a href="#education">Education</a></li>{% endif %}
+    <li><a href="#contact" class="nav-contact">Contact</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+
+  <!-- ── HERO / HEADER ── -->
+  <header class="glass-panel header-panel" id="home">
+    <div class="header-avatar">{{ name[0].upper() if name else '?' }}</div>
+    <h1>{{ name or 'Your Name' }}</h1>
+    <p class="contact-info">
+      {% if email %}<a href="mailto:{{ email }}">{{ email }}</a>{% endif %}
+      {% if email and mobile %}<span class="sep">•</span>{% endif %}
+      {% if mobile %}<a href="tel:{{ mobile }}">{{ mobile }}</a>{% endif %}
+    </p>
+    <div class="header-badges">
+      {% if experience %}<span class="badge">{{ experience | length }} Roles</span>{% endif %}
+      {% if projects %}<span class="badge">{{ projects | length }} Projects</span>{% endif %}
+      {% if skills %}<span class="badge">{{ skills | length }} Skills</span>{% endif %}
+      <span class="badge badge-green">Open to Work</span>
+    </div>
+  </header>
+
+  <!-- ── ABOUT / SUMMARY ── -->
+  {% if portfolio_summary %}
+  <div class="glass-panel summary-panel" id="about">
+    <h2>About Me</h2>
+    <div class="summary">
+      <p>{{ portfolio_summary }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── SKILLS ── -->
+  {% if skills %}
+  <div class="glass-panel skills-panel" id="skills">
+    <h2>Skills</h2>
+    <ul class="skills-list">
+      {% for skill in skills %}
+      <li>{{ skill }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- ── EXPERIENCE ── -->
+  {% if experience %}
+  <div class="glass-panel exp-panel" id="experience">
+    <h2>Experience</h2>
+    <div class="card-grid">
+      {% for exp in experience %}
+      <div class="card">
+        <h3>{{ exp.title or 'Job Title' }}</h3>
+        <p class="sub-header">{{ exp.company or 'Company' }} &mdash; {{ exp.dates or 'Dates' }}</p>
+        <p class="description">{{ exp.description or '' }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── PROJECTS ── -->
+  {% if projects %}
+  <div class="glass-panel projects-panel" id="projects">
+    <h2>Projects</h2>
+    <div class="card-grid card-grid-2">
+      {% for project in projects %}
+      <div class="card">
+        <h3>{{ project.name or 'Project Name' }}</h3>
+        <p class="sub-header">Tech: {{ project.tech or 'Technologies' }}</p>
+        <p class="description">{{ project.description or '' }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── EDUCATION ── -->
+  {% if education %}
+  <div class="glass-panel edu-panel" id="education">
+    <h2>Education</h2>
+    <div class="card-grid card-grid-2">
+      {% for edu in education %}
+      <div class="card">
+        <h3>{{ edu.name or 'Degree' }}</h3>
+        <p class="sub-header">{{ edu.institution or 'Institution' }} &mdash; {{ edu.dates or 'Dates' }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── CONTACT ── -->
+  <div class="glass-panel contact-panel" id="contact">
+    <h2>Contact</h2>
+    <div class="contact-grid">
+
+      <div>
+        <div class="avail-row"><div class="avail-dot"></div>Available for opportunities</div>
+        <div class="contact-channels">
+          {% if email %}
+          <a class="ch-item" href="mailto:{{ email }}">
+            <span class="ch-icon">✉️</span>
+            <div class="ch-body"><div class="ch-lbl">Email</div><div class="ch-val">{{ email }}</div></div>
+          </a>
+          {% endif %}
+          {% if mobile %}
+          <a class="ch-item" href="tel:{{ mobile }}">
+            <span class="ch-icon">📞</span>
+            <div class="ch-body"><div class="ch-lbl">Phone</div><div class="ch-val">{{ mobile }}</div></div>
+          </a>
+          {% endif %}
+          <a class="ch-item" href="#">
+            <span class="ch-icon">💼</span>
+            <div class="ch-body"><div class="ch-lbl">LinkedIn</div><div class="ch-val">View Profile →</div></div>
+          </a>
+          <a class="ch-item" href="#">
+            <span class="ch-icon">🐙</span>
+            <div class="ch-body"><div class="ch-lbl">GitHub</div><div class="ch-val">View Repositories →</div></div>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" placeholder="Your name">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" placeholder="{{ email or 'you@email.com' }}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Subject</label>
+          <input type="text" placeholder="What's this about?">
+        </div>
+        <div class="form-group">
+          <label>Message</label>
+          <textarea rows="4" placeholder="Tell me more…"></textarea>
+        </div>
+        <button class="form-btn"
+          onclick="this.textContent='✓ Sent!';this.style.background='linear-gradient(135deg,#22c55e,#16a34a)';setTimeout(()=>{this.textContent='Send Message';this.style.background=''},3000)">
+          Send Message
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <span>{{ name or 'Portfolio' }}</span>
+    {% if email %} &nbsp;·&nbsp; <a href="mailto:{{ email }}">{{ email }}</a>{% endif %}
+    &nbsp;·&nbsp; © 2026
+  </footer>
+
+</div><!-- /container -->
+</body>
+</html>

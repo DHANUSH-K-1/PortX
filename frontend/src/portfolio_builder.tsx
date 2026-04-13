@@ -70,12 +70,34 @@ export default function PortfolioBuilder() {
   const [editStep, setEditStep] = useState<1 | 2>(1);
 
   const ALL_LAYOUTS = [
+    { id: '3d', name: '3D Interactive', category: 'Creative' },
+    { id: 'brand', name: 'Brand Identity', category: 'Creative' },
+    { id: 'cards', name: 'Cards', category: 'Modern' },
+    { id: 'creative', name: 'Creative', category: 'Creative' },
+    { id: 'cyberpunk', name: 'Cyberpunk', category: 'Tech' },
+    { id: 'dark', name: 'Dark Mode', category: 'Modern' },
+    { id: 'dashboard', name: 'Dashboard', category: 'Professional' },
+    { id: 'designer', name: 'Designer', category: 'Creative' },
+    { id: 'developer', name: 'Developer', category: 'Tech' },
+    { id: 'glass', name: 'Glassmorphism', category: 'Modern' },
+    { id: 'glass2', name: 'Glassmorphism 2', category: 'Modern' },
+    { id: 'impact', name: 'High Impact', category: 'Creative' },
+    { id: 'magazine', name: 'Magazine', category: 'Creative' },
     { id: 'minimal', name: 'Minimal', category: 'Professional' },
     { id: 'modern', name: 'Modern', category: 'Creative' },
-    { id: 'creative', name: 'Creative', category: 'Creative' },
+    { id: 'nature', name: 'Nature', category: 'Creative' },
+    { id: 'neon', name: 'Cyberpunk Neon', category: 'Tech' },
+    { id: 'photographer', name: 'Photographer', category: 'Creative' },
+    { id: 'playful', name: 'Playful', category: 'Creative' },
+    { id: 'portfolio', name: 'Standard Portfolio', category: 'Professional' },
+    { id: 'portfolio_1', name: 'Portfolio 1', category: 'Professional' },
+    { id: 'portfolio_2', name: 'Portfolio 2', category: 'Professional' },
+    { id: 'portfolio_standalone', name: 'Portfolio Standalone', category: 'Professional' },
     { id: 'professional', name: 'Professional', category: 'Professional' },
-    { id: 'glass', name: 'Glassmorphism', category: 'Modern' },
-    { id: 'neon', name: 'Cyberpunk Neon', category: 'Tech' }
+    { id: 'resume', name: 'Classic Resume', category: 'Professional' },
+    { id: 'space', name: 'Space Theme', category: 'Creative' },
+    { id: 'story_v2', name: 'Storytelling V2', category: 'Creative' },
+    { id: 'terminal', name: 'Terminal / CLI', category: 'Tech' }
   ];
   
   const categories = ['All', 'Professional', 'Creative', 'Modern', 'Tech'];
