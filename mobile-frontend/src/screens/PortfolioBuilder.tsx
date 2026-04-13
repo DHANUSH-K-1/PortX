@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Animated, Dimensions, TextInput, Switch, Linking } from 'react-native';
-import { Upload, LogOut, Sparkles, CheckCircle2, FileText, Globe, ArrowLeft, Menu, X, Moon, Sun, ChevronRight, Edit3, Save, Copy, ExternalLink, RefreshCw, Plus, Eye, Trash2, Mail, Phone } from 'lucide-react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Animated, Dimensions, TextInput, Switch, Linking, Image } from 'react-native';
+import { Upload, LogOut, Sparkles, CheckCircle2, FileText, Globe, ArrowLeft, Menu, X, Moon, Sun, ChevronRight, Edit3, Save, Copy, ExternalLink, RefreshCw, Plus, Eye, Trash2, Mail, Phone, Camera, ImageIcon, Layout, Code, Briefcase, User } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Clipboard from 'expo-clipboard';
@@ -35,7 +35,7 @@ interface PortfolioData {
   mobile: string;
   profile_photo?: string;
   portfolio_summary: string;
-  skills: string[];
+  skills: any[];
   education: any[];
   experience: any[];
   projects: any[];
@@ -50,6 +50,7 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
   const smokeAnim2 = useRef(new Animated.Value(0)).current;
 
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [user, setUser] = useState<{name: string, email: string} | null>(null);
@@ -58,16 +59,57 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
   const [showAllTemplates, setShowAllTemplates] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const [notification, setNotification] = useState<{ message: string, visible: boolean }>({ message: '', visible: false });
 
   const ALL_TEMPLATES = [
-    { name: 'Modern Minimal', id: 'modern' },
-    { name: 'Creative Glass', id: 'glass' },
-    { name: 'Professional Dark', id: 'professional' },
-    { name: 'Neon Future', id: 'neon' },
-    { name: 'Classic Minimal', id: 'minimal' },
-    { name: 'Arty Creative', id: 'creative' }
+    // Developer
+    { id: 'developer', name: 'Software Engineer', category: 'Developer' },
+    { id: 'terminal', name: 'Hacker Terminal', category: 'Developer' },
+    { id: 'cyberpunk', name: 'Cyberpunk', category: 'Developer' },
+    { id: 'dark', name: 'Dark Mode', category: 'Developer' },
+    { id: 'modern', name: 'Modern', category: 'Developer' },
+    { id: '3d', name: '3D Interactive', category: 'Developer' },
+    { id: 'space', name: 'Galaxy', category: 'Developer' },
+    
+    // Creative
+    { id: 'creative', name: 'Creative Agency', category: 'Creative' },
+    { id: 'designer', name: 'UI/UX Designer', category: 'Creative' },
+    { id: 'glass', name: 'Glassmorphism', category: 'Creative' },
+    { id: 'glass2', name: 'Glassmorphism 2.0', category: 'Creative' },
+    { id: 'playful', name: 'Playful UI', category: 'Creative' },
+    { id: 'brand', name: 'Brand Story', category: 'Creative' },
+    { id: 'story_v2', name: 'Visual Storyteller', category: 'Creative' },
+    
+    // Professional
+    { id: 'professional', name: 'Corporate Executive', category: 'Professional' },
+    { id: 'resume', name: 'Digital Resume', category: 'Professional' },
+    { id: 'cards', name: 'Bento Grid', category: 'Professional' },
+    { id: 'minimal', name: 'Ultra Minimal', category: 'Professional' },
+    { id: 'impact', name: 'High Impact', category: 'Professional' },
+    { id: 'dashboard', name: 'Dashboard Portfolio', category: 'Professional' },
+    { id: 'portfolio', name: 'Portfolio Standard', category: 'Professional' },
+    { id: 'portfolio_1', name: 'Portfolio Template 1', category: 'Professional' },
+    { id: 'portfolio_2', name: 'Portfolio Template 2', category: 'Professional' },
+    { id: 'portfolio_standalone', name: 'Portfolio Standalone', category: 'Professional' },
+    
+    // Media
+    { id: 'photographer', name: 'Lens Master', category: 'Media' },
+    { id: 'magazine', name: 'Editorial', category: 'Media' },
+    { id: 'nature', name: 'Organic', category: 'Media' },
+    { id: 'neon', name: 'Neon Lights', category: 'Media' }
   ];
+
+  const categories = ['All', 'Developer', 'Creative', 'Professional', 'Media'];
+
+  const filteredTemplates = ALL_TEMPLATES.filter(layout => {
+    const matchesCategory = selectedCategory === 'All' || layout.category === selectedCategory;
+    const matchesSearch = layout.name.toLowerCase().includes(searchQuery.toLowerCase()) || layout.category.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  const visibleTemplates = showAllTemplates ? filteredTemplates : filteredTemplates.slice(0, 4);
 
   const showNotification = async (msg: string) => {
     setNotification({ message: msg, visible: true });
@@ -88,8 +130,6 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
       console.log("Error showing notification:", e);
     }
   };
-
-  const visibleTemplates = showAllTemplates ? ALL_TEMPLATES : ALL_TEMPLATES.slice(0, 4);
 
   useEffect(() => {
     fetchPortfolios();
@@ -181,18 +221,40 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
     }
   };
 
+  const handlePhotoUpload = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'image/*',
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled) {
+        const file = result.assets[0];
+        setIsUploadingPhoto(true);
+        const formData = new FormData();
+        // @ts-ignore
+        formData.append('photo', { uri: file.uri, name: file.name, type: file.mimeType || 'image/jpeg' });
+
+        const response = await fetch(API_ENDPOINTS.uploadPhoto, { method: 'POST', body: formData });
+        const data = await response.json();
+        if (response.ok) {
+          setEditData(prev => prev ? { ...prev, profile_photo: BASE_URL + data.url } : null);
+          showNotification("Photo uploaded successfully");
+        } else {
+          Alert.alert('Error', data.error || 'Photo upload failed');
+        }
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Photo selection failed');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
   const handleGeneratePortfolio = async () => {
     if (!currentFilename || !selectedTemplate || !editData) return;
     setIsGenerating(true);
     try {
-      const layoutMap: Record<string, string> = { 
-        'Modern Minimal': 'modern', 
-        'Creative Glass': 'glass', 
-        'Professional Dark': 'professional', 
-        'Neon Future': 'neon',
-        'Classic Minimal': 'minimal',
-        'Arty Creative': 'creative'
-      };
       await fetch(API_ENDPOINTS.updatePortfolio(currentFilename), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -201,7 +263,7 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
       const response = await fetch(API_ENDPOINTS.generatePortfolio(currentFilename), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ layout: layoutMap[selectedTemplate] }),
+        body: JSON.stringify({ layout: selectedTemplate }),
       });
       const data = await response.json();
       if (response.ok) {
@@ -311,6 +373,11 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
                 </View>
               </View>
             ))}
+            {portfolios.length === 0 && (
+              <View style={{ padding: 40, alignItems: 'center' }}>
+                <Text style={{ color: theme.textMuted }}>No portfolios yet. Click the button below to start!</Text>
+              </View>
+            )}
           </View>
         )}
 
@@ -318,7 +385,7 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
           <View style={styles.section}>
             <TouchableOpacity onPress={() => setStep(1)} style={styles.backLink}><ArrowLeft color="#a855f7" size={18} /><Text style={styles.backLinkText}>Dashboard</Text></TouchableOpacity>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Edit Details</Text>
-            <EditForm data={editData} setData={setEditData} onSave={() => { 
+            <EditForm data={editData} setData={setEditData} onPhotoUpload={handlePhotoUpload} isUploadingPhoto={isUploadingPhoto} onSave={() => { 
               showNotification("your portfolio is updated click to view");
               setStep(2); 
             }} theme={theme} />
@@ -328,19 +395,45 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
         {step === 2 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Choose Layout</Text>
+            
+            {/* Search & Filter */}
+            <View style={{ gap: 12 }}>
+              <TextInput 
+                style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} 
+                placeholder="Search templates..." 
+                placeholderTextColor={theme.textMuted}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                {categories.map(cat => (
+                  <TouchableOpacity 
+                    key={cat} 
+                    onPress={() => setSelectedCategory(cat)}
+                    style={[styles.categoryBtn, selectedCategory === cat && styles.categoryBtnActive, { borderColor: theme.border }]}
+                  >
+                    <Text style={[styles.categoryText, selectedCategory === cat && styles.categoryTextActive, { color: theme.text }]}>{cat}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
             <View style={styles.templateGrid}>
               {visibleTemplates.map(t => (
                 <TouchableOpacity 
                   key={t.id} 
-                  onPress={() => setSelectedTemplate(t.name)} 
-                  style={[styles.templateCard, selectedTemplate === t.name && styles.templateCardSelected, { backgroundColor: theme.cardBg, borderColor: theme.border }]}
+                  onPress={() => setSelectedTemplate(t.id)} 
+                  style={[styles.templateCard, selectedTemplate === t.id && styles.templateCardSelected, { backgroundColor: theme.cardBg, borderColor: theme.border }]}
                 >
                   <View style={[styles.templatePreview, { backgroundColor: theme.inputBg }]}>
-                    {/* Minimalist layout preview shapes */}
-                    <View style={{ width: '80%', height: 8, backgroundColor: '#9333ea30', borderRadius: 4 }} />
-                    <View style={{ width: '60%', height: 8, backgroundColor: '#9333ea30', borderRadius: 4, marginTop: 4 }} />
+                    <Image 
+                      source={{ uri: `${BASE_URL}/thumbnails/${t.id}.jpg` }} 
+                      style={{ width: '100%', height: '100%', borderRadius: 8 }}
+                      resizeMode="cover"
+                    />
                   </View>
-                  <Text style={[styles.templateName, { color: theme.text }]}>{t.name}</Text>
+                  <Text style={[styles.templateName, { color: theme.text }]} numberOfLines={1}>{t.name}</Text>
+                  <Text style={{ fontSize: 10, color: theme.textMuted }}>{t.category}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -427,7 +520,7 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
   );
 }
 
-function EditForm({ data, setData, onSave, theme }: { data: PortfolioData, setData: any, onSave: () => void, theme: any }) {
+function EditForm({ data, setData, onPhotoUpload, isUploadingPhoto, onSave, theme }: { data: PortfolioData, setData: any, onPhotoUpload: () => void, isUploadingPhoto: boolean, onSave: () => void, theme: any }) {
   const updateField = (field: string, value: string) => setData({ ...data, [field]: value });
 
   const addArrayItem = (field: string, item: any) => {
@@ -452,11 +545,52 @@ function EditForm({ data, setData, onSave, theme }: { data: PortfolioData, setDa
       <Text style={[styles.label, { color: theme.textMuted }]}>Email</Text>
       <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} value={data.email} onChangeText={(v) => updateField('email', v)} />
       
-      <Text style={[styles.label, { color: theme.textMuted }]}>Profile Photo URL (Optional)</Text>
-      <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} value={data.profile_photo} placeholder="https://example.com/photo.jpg" placeholderTextColor={theme.textMuted} onChangeText={(v) => updateField('profile_photo', v)} />
+      <Text style={[styles.label, { color: theme.textMuted }]}>Profile Photo</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, backgroundColor: theme.inputBg, borderRadius: 12, borderWidth: 1, borderColor: theme.border }}>
+        <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(0,0,0,0.2)', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          {data.profile_photo ? (
+            <Image source={{ uri: data.profile_photo }} style={{ width: '100%', height: '100%' }} />
+          ) : (
+            <ImageIcon color={theme.textMuted} size={24} />
+          )}
+        </View>
+        <TouchableOpacity 
+          style={{ flex: 1, height: 40, borderRadius: 20, backgroundColor: 'rgba(168, 85, 247, 0.1)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(168, 85, 247, 0.3)' }}
+          onPress={onPhotoUpload}
+          disabled={isUploadingPhoto}
+        >
+          {isUploadingPhoto ? (
+            <ActivityIndicator size="small" color="#a855f7" />
+          ) : (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Camera color="#a855f7" size={18} />
+              <Text style={{ color: '#a855f7', fontWeight: '600' }}>{data.profile_photo ? 'Change Photo' : 'Upload Photo'}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        {data.profile_photo && (
+          <TouchableOpacity onPress={() => updateField('profile_photo', '')}>
+            <Trash2 color="#ef4444" size={20} />
+          </TouchableOpacity>
+        )}
+      </View>
 
       <Text style={[styles.label, { color: theme.textMuted }]}>Summary</Text>
       <TextInput style={[styles.input, { height: 100, backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} value={data.portfolio_summary} multiline onChangeText={(v) => updateField('portfolio_summary', v)} />
+
+      <Text style={[styles.label, { color: theme.textMuted }]}>Skills (comma separated)</Text>
+      <TextInput 
+        style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} 
+        value={data.skills.map(s => typeof s === 'string' ? s : s.name).join(', ')} 
+        onChangeText={(v) => {
+          const names = v.split(',').map(s => s.trimStart());
+          const newSkills = names.map(name => {
+             const existing = data.skills.find(s => (typeof s === 'string' ? s : s.name).trim() === name.trim());
+             return existing || name;
+          });
+          setData({ ...data, skills: newSkills.filter(n => typeof n === 'string' ? n !== '' : n.name !== '') });
+        }} 
+      />
 
       {/* Experience Section */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
@@ -577,5 +711,9 @@ const styles = StyleSheet.create({
   menuProjectName: { fontSize: 15, fontWeight: '500' },
   logoutMenuItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 20, marginTop: 'auto' },
   notificationToast: { position: 'absolute', bottom: 120, left: 20, right: 20, padding: 16, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 10, zIndex: 1000 },
-  notificationText: { color: '#fff', fontSize: 14, fontWeight: '700', textAlign: 'center' }
+  notificationText: { color: '#fff', fontSize: 14, fontWeight: '700', textAlign: 'center' },
+  categoryBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.05)' },
+  categoryBtnActive: { backgroundColor: '#9333ea', borderColor: '#a855f7' },
+  categoryText: { fontSize: 12, fontWeight: '600' },
+  categoryTextActive: { color: '#fff' },
 });

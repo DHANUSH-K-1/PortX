@@ -1,6 +1,6 @@
 // If using a physical device, replace 'localhost' with your machine's IP address
 // For Android Emulator, use '10.0.2.2'
-const BASE_URL = 'http://192.168.1.5:5000';
+const BASE_URL = 'http://192.168.1.7:5000';
 
 export const API_ENDPOINTS = {
   login: `${BASE_URL}/api/auth/login`,
@@ -11,6 +11,7 @@ export const API_ENDPOINTS = {
   getPortfolio: (filename: string) => `${BASE_URL}/api/portfolio/${filename}`,
   updatePortfolio: (filename: string) => `${BASE_URL}/api/portfolio/${filename}`,
   deletePortfolio: (filename: string) => `${BASE_URL}/api/portfolio/${filename}/delete`,
+  uploadPhoto: `${BASE_URL}/api/upload-photo`,
 };
 
 export default BASE_URL;
