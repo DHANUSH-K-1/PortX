@@ -13,14 +13,16 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }: LoginProps
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      setError('Please fill in all fields');
       return;
     }
 
     setIsLoading(true);
+    setError(null);
     try {
       const response = await fetch(API_ENDPOINTS.login, {
         method: 'POST',
@@ -35,10 +37,10 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }: LoginProps
       if (response.ok) {
         onLoginSuccess();
       } else {
-        Alert.alert('Login Failed', data.error || 'Invalid credentials');
+        setError(data.error || 'Invalid email or password');
       }
     } catch (error) {
-      Alert.alert('Error', 'Could not connect to the server. Make sure the backend is running and the IP address in config.ts is correct.');
+      setError('Could not connect to the server');
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -52,6 +54,12 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }: LoginProps
     >
       <View style={styles.card}>
         <Text style={styles.title}>Welcome Back</Text>
+
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
@@ -182,6 +190,20 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  errorContainer: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.5)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 20,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '500',
   },
   footer: {
     flexDirection: 'row',

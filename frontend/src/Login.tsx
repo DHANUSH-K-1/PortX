@@ -10,10 +10,12 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }: LoginProps
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        setError(null);
 
         try {
             const response = await fetch('/api/auth/login', {
@@ -27,12 +29,12 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }: LoginProps
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || 'Login failed');
+                throw new Error(data.error || 'Invalid email or password');
             }
 
             onLoginSuccess(data.user);
         } catch (error: any) {
-            alert(error.message);
+            setError(error.message);
         } finally {
             setIsLoading(false);
         }
@@ -44,6 +46,12 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }: LoginProps
                 <h2 className="text-3xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
                     Welcome Back
                 </h2>
+
+                {error && (
+                    <div className="mb-6 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-500 text-sm text-center animate-shake">
+                        {error}
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
