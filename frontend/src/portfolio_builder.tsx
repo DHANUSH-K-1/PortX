@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Upload, CheckCircle, Layout, FileText, User, Briefcase, Code, Loader2, Plus, Trash2 } from 'lucide-react';
+import { Upload, CheckCircle, Layout, FileText, User, Briefcase, Code, Loader2, Plus, Trash2, Camera, ImageIcon } from 'lucide-react';
 import PortfolioPreview from './PortfolioPreview';
 
 export default function PortfolioBuilder() {
@@ -9,6 +9,7 @@ export default function PortfolioBuilder() {
   const [jsonFilename, setJsonFilename] = useState('');
   const [generatedHtmlFile, setGeneratedHtmlFile] = useState('');
   const [isProcessingResume, setIsProcessingResume] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const [portfolios, setPortfolios] = useState<any[]>([]);
   const [isLoadingPortfolios, setIsLoadingPortfolios] = useState(false);
@@ -62,45 +63,53 @@ export default function PortfolioBuilder() {
     portfolio_summary: '',
     experience: [] as { title: string; company: string; dates: string; description: string }[],
     education: [] as { name: string; institution: string; dates: string }[],
-    skills: [] as string[],
+    skills: [] as (string | { name: string; level: number })[],
     projects: [] as { name: string; description: string; tech: string; link?: string }[]
   });
   const [selectedLayout, setSelectedLayout] = useState('');
   const [showAllLayouts, setShowAllLayouts] = useState(false);
   const [editStep, setEditStep] = useState<1 | 2>(1);
+  const [showAdvancedSkills, setShowAdvancedSkills] = useState(false);
 
   const ALL_LAYOUTS = [
-    { id: '3d', name: '3D Interactive', category: 'Creative' },
-    { id: 'brand', name: 'Brand Identity', category: 'Creative' },
-    { id: 'cards', name: 'Cards', category: 'Modern' },
-    { id: 'creative', name: 'Creative', category: 'Creative' },
-    { id: 'cyberpunk', name: 'Cyberpunk', category: 'Tech' },
-    { id: 'dark', name: 'Dark Mode', category: 'Modern' },
-    { id: 'dashboard', name: 'Dashboard', category: 'Professional' },
-    { id: 'designer', name: 'Designer', category: 'Creative' },
-    { id: 'developer', name: 'Developer', category: 'Tech' },
-    { id: 'glass', name: 'Glassmorphism', category: 'Modern' },
-    { id: 'glass2', name: 'Glassmorphism 2', category: 'Modern' },
-    { id: 'impact', name: 'High Impact', category: 'Creative' },
-    { id: 'magazine', name: 'Magazine', category: 'Creative' },
-    { id: 'minimal', name: 'Minimal', category: 'Professional' },
-    { id: 'modern', name: 'Modern', category: 'Creative' },
-    { id: 'nature', name: 'Nature', category: 'Creative' },
-    { id: 'neon', name: 'Cyberpunk Neon', category: 'Tech' },
-    { id: 'photographer', name: 'Photographer', category: 'Creative' },
-    { id: 'playful', name: 'Playful', category: 'Creative' },
-    { id: 'portfolio', name: 'Standard Portfolio', category: 'Professional' },
-    { id: 'portfolio_1', name: 'Portfolio 1', category: 'Professional' },
-    { id: 'portfolio_2', name: 'Portfolio 2', category: 'Professional' },
+    // Developer
+    { id: 'developer', name: 'Software Engineer', category: 'Developer' },
+    { id: 'terminal', name: 'Hacker Terminal', category: 'Developer' },
+    { id: 'cyberpunk', name: 'Cyberpunk', category: 'Developer' },
+    { id: 'dark', name: 'Dark Mode', category: 'Developer' },
+    { id: 'modern', name: 'Modern', category: 'Developer' },
+    { id: '3d', name: '3D Interactive', category: 'Developer' },
+    { id: 'space', name: 'Galaxy', category: 'Developer' },
+    
+    // Creative
+    { id: 'creative', name: 'Creative Agency', category: 'Creative' },
+    { id: 'designer', name: 'UI/UX Designer', category: 'Creative' },
+    { id: 'glass', name: 'Glassmorphism', category: 'Creative' },
+    { id: 'glass2', name: 'Glassmorphism 2.0', category: 'Creative' },
+    { id: 'playful', name: 'Playful UI', category: 'Creative' },
+    { id: 'brand', name: 'Brand Story', category: 'Creative' },
+    { id: 'story_v2', name: 'Visual Storyteller', category: 'Creative' },
+    
+    // Professional
+    { id: 'professional', name: 'Corporate Executive', category: 'Professional' },
+    { id: 'resume', name: 'Digital Resume', category: 'Professional' },
+    { id: 'cards', name: 'Bento Grid', category: 'Professional' },
+    { id: 'minimal', name: 'Ultra Minimal', category: 'Professional' },
+    { id: 'impact', name: 'High Impact', category: 'Professional' },
+    { id: 'dashboard', name: 'Dashboard Portfolio', category: 'Professional' },
+    { id: 'portfolio', name: 'Portfolio Standard', category: 'Professional' },
+    { id: 'portfolio_1', name: 'Portfolio Template 1', category: 'Professional' },
+    { id: 'portfolio_2', name: 'Portfolio Template 2', category: 'Professional' },
     { id: 'portfolio_standalone', name: 'Portfolio Standalone', category: 'Professional' },
-    { id: 'professional', name: 'Professional', category: 'Professional' },
-    { id: 'resume', name: 'Classic Resume', category: 'Professional' },
-    { id: 'space', name: 'Space Theme', category: 'Creative' },
-    { id: 'story_v2', name: 'Storytelling V2', category: 'Creative' },
-    { id: 'terminal', name: 'Terminal / CLI', category: 'Tech' }
+    
+    // Media
+    { id: 'photographer', name: 'Lens Master', category: 'Media' },
+    { id: 'magazine', name: 'Editorial', category: 'Media' },
+    { id: 'nature', name: 'Organic', category: 'Media' },
+    { id: 'neon', name: 'Neon Lights', category: 'Media' }
   ];
-  
-  const categories = ['All', 'Professional', 'Creative', 'Modern', 'Tech'];
+
+  const categories = ['All', 'Developer', 'Creative', 'Professional', 'Media'];
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -116,6 +125,30 @@ export default function PortfolioBuilder() {
     const file = e.target.files?.[0];
     if (file) {
       setUploadedFile(file);
+    }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append('photo', file);
+      const response = await fetch('/api/upload-photo', { method: 'POST', body: formData });
+      if (!response.ok) {
+        const err = await response.json();
+        alert(err.error || 'Photo upload failed');
+        return;
+      }
+      const result = await response.json();
+      handleUpdateField('profile_photo', result.url);
+    } catch (err) {
+      alert('Photo upload error. Please try again.');
+    } finally {
+      setIsUploadingPhoto(false);
+      // Reset input so same file can be re-picked
+      e.target.value = '';
     }
   };
 
@@ -454,13 +487,32 @@ export default function PortfolioBuilder() {
                       placeholder="Phone"
                       className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
                     />
-                    <input
-                      type="text"
-                      value={resumeData.profile_photo || ''}
-                      onChange={(e) => handleUpdateField('profile_photo', e.target.value)}
-                      placeholder="Profile Photo URL (Optional)"
-                      className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
-                    />
+                    {/* Profile Photo Upload */}
+                    <div className="flex items-center gap-4 p-3 bg-black/30 border border-purple-500/20 rounded-lg">
+                      {/* Live preview */}
+                      <div className="relative flex-shrink-0 w-16 h-16 rounded-full overflow-hidden border-2 border-purple-500/40 bg-black/50 flex items-center justify-center">
+                        {resumeData.profile_photo ? (
+                          <img src={resumeData.profile_photo} alt="Profile preview" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }} />
+                        ) : (
+                          <ImageIcon className="w-6 h-6 text-purple-500/50" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-purple-300 mb-1">Profile Photo</p>
+                        <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 rounded-lg text-sm text-purple-300 transition-colors">
+                          {isUploadingPhoto ? (
+                            <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
+                          ) : (
+                            <><Camera className="w-4 h-4" /> {resumeData.profile_photo ? 'Change Photo' : 'Upload Photo'}</>
+                          )}
+                          <input type="file" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp" className="hidden" onChange={handlePhotoUpload} disabled={isUploadingPhoto} />
+                        </label>
+                        {resumeData.profile_photo && (
+                          <button onClick={() => handleUpdateField('profile_photo', '')} className="ml-2 text-xs text-red-400 hover:text-red-300 transition-colors">Remove</button>
+                        )}
+                        <p className="text-xs text-purple-500/60 mt-1">PNG, JPG, WEBP up to any size</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -607,17 +659,67 @@ export default function PortfolioBuilder() {
                 </div>
 
                 <div className="bg-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30">
-                  <h3 className="text-xl font-semibold mb-4 flex items-center">
-                    <Layout className="w-5 h-5 mr-2 text-purple-400" />
-                    Skills
-                  </h3>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                    <h3 className="text-xl font-semibold flex items-center">
+                      <Layout className="w-5 h-5 mr-2 text-purple-400" />
+                      Skills
+                    </h3>
+                    <label className="flex items-center space-x-2 text-sm text-purple-300 cursor-pointer hover:text-purple-200 transition-colors">
+                      <input 
+                        type="checkbox" 
+                        checked={showAdvancedSkills}
+                        onChange={(e) => setShowAdvancedSkills(e.target.checked)}
+                        className="rounded border-purple-500/30 text-purple-600 bg-black/50 focus:ring-purple-500 focus:ring-offset-0 focus:ring-offset-transparent"
+                      />
+                      <span>Adjust skill levels (optional)</span>
+                    </label>
+                  </div>
+                  
                   <input
                     type="text"
-                    value={resumeData.skills.join(', ')}
-                    onChange={(e) => handleUpdateField('skills', e.target.value.split(', '))}
+                    value={resumeData.skills.map(s => typeof s === 'string' ? s : s.name).join(', ')}
+                    onChange={(e) => {
+                      const names = e.target.value.split(',').map(s => s.trimStart());
+                      const newSkills = names.map(name => {
+                         const existing = resumeData.skills.find(s => (typeof s === 'string' ? s : s.name).trim() === name.trim());
+                         return existing || name;
+                      });
+                      handleUpdateField('skills', newSkills.filter(n => typeof n === 'string' ? n !== '' : n.name !== ''));
+                    }}
                     placeholder="JavaScript, React, Node.js..."
-                    className="w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors"
+                    className={`w-full px-4 py-3 bg-black/50 border border-purple-500/30 rounded-lg focus:outline-none focus:border-purple-400 transition-colors ${showAdvancedSkills ? 'mb-4' : ''}`}
                   />
+
+                  {showAdvancedSkills && resumeData.skills.length > 0 && (
+                    <div className="space-y-4 pt-4 border-t border-purple-500/30 mt-4">
+                      {resumeData.skills.map((skill, idx) => {
+                        const name = typeof skill === 'string' ? skill : skill.name;
+                        const level = typeof skill === 'string' ? 80 : skill.level;
+                        return (
+                          <div key={idx} className="flex items-center gap-4 bg-black/30 p-3 rounded-lg border border-purple-500/10 hover:border-purple-500/30 transition-colors">
+                            <span className="w-1/3 truncate text-sm font-medium text-gray-200">{name}</span>
+                            <div className="flex-1 flex items-center gap-3">
+                              <input 
+                                type="range" 
+                                min="10" 
+                                max="100" 
+                                step="5"
+                                value={level}
+                                onChange={(e) => {
+                                  const newLevel = parseInt(e.target.value);
+                                  const updatedSkills = [...resumeData.skills];
+                                  updatedSkills[idx] = { name, level: newLevel };
+                                  handleUpdateField('skills', updatedSkills);
+                                }}
+                                className="w-full h-1.5 bg-purple-900/60 rounded-lg appearance-none cursor-pointer accent-purple-400"
+                              />
+                              <span className="text-xs font-semibold text-purple-300 w-10 text-right">{level}%</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Next Button */}
@@ -676,26 +778,20 @@ export default function PortfolioBuilder() {
                           : 'border-purple-500/20 bg-black/20 hover:border-purple-400/50 hover:bg-purple-900/20 hover:-translate-y-1'
                           }`}
                       >
-                        <div className="w-full aspect-video bg-gradient-to-br from-purple-900/50 to-black rounded-lg mb-4 p-2 relative overflow-hidden ring-1 ring-white/10 group-hover:ring-purple-400/50 transition-all">
-                          {/* Dynamic Preview Placeholder based on layout.id */}
-                          {layout.id === 'minimal' && <div className="h-full bg-purple-800/30 rounded"></div>}
-                          {layout.id === 'modern' && <div className="h-full flex gap-1"><div className="w-1/3 bg-purple-800/30 rounded"></div><div className="flex-1 bg-purple-800/30 rounded"></div></div>}
-                          {layout.id === 'creative' && <div className="grid grid-cols-2 gap-1 h-full"><div className="bg-purple-800/30 rounded"></div><div className="bg-purple-800/30 rounded"></div></div>}
-                          {layout.id === 'professional' && <div className="space-y-1"><div className="h-2 bg-purple-800/30 rounded"></div><div className="h-2 bg-purple-800/30 rounded"></div><div className="h-2 bg-purple-800/30 rounded"></div></div>}
-                          {layout.id === 'glass' && (
-                            <div className="h-full flex items-center justify-center">
-                              <div className="w-3/4 h-3/4 bg-white/10 backdrop-blur-[2px] rounded border border-white/20"></div>
-                            </div>
-                          )}
-                          {layout.id === 'neon' && (
-                            <div className="h-full bg-black flex items-center justify-center border border-green-500/50 shadow-[inset_0_0_10px_rgba(34,197,94,0.3)]">
-                              <div className="text-[8px] text-green-400 font-mono">&gt; HELLO</div>
-                            </div>
-                          )}
-                          
+                        <div className="w-full aspect-video bg-gradient-to-br from-purple-900/50 to-black rounded-lg mb-4 relative overflow-hidden ring-1 ring-white/10 group-hover:ring-purple-400/50 transition-all">
+                          {/* Dynamic Thumbnail Preview */}
+                          <img 
+                            src={`/thumbnails/${layout.id}.jpg`} 
+                            alt={`${layout.name} Preview`}
+                            className="w-full h-full object-cover object-top"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMzYjA3NjQiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZmlsbD0iI2Q4YjRmZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGFsaWdubWVudC1iYXNlbGluZT0ibWlkZGxlIj5QcmV2aWV3IHVucmVhZHk8L3RleHQ+PC9zdmc+';
+                            }}
+                          />
+
                           {/* Select Overlay */}
                           <div className={`absolute inset-0 bg-purple-600/80 backdrop-blur-sm flex items-center justify-center transition-all duration-300 ${selectedLayout === layout.id ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
-                             <span className="text-white font-semibold flex items-center justify-center gap-2">Select Template</span>
+                            <span className="text-white font-semibold flex items-center justify-center gap-2">Select Template</span>
                           </div>
                         </div>
                         <div className="w-full">
@@ -704,13 +800,13 @@ export default function PortfolioBuilder() {
                         </div>
                       </button>
                     ))}
-                    
+
                     {visibleLayouts.length === 0 && (
-                       <div className="col-span-full py-12 flex flex-col items-center justify-center text-center bg-black/20 rounded-xl border border-dashed border-purple-500/30">
-                          <svg className="w-12 h-12 text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                          <h4 className="text-lg font-medium text-gray-400">No templates found</h4>
-                          <p className="text-sm text-gray-500 mt-1">Try adjusting your search or category filters.</p>
-                       </div>
+                      <div className="col-span-full py-12 flex flex-col items-center justify-center text-center bg-black/20 rounded-xl border border-dashed border-purple-500/30">
+                        <svg className="w-12 h-12 text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <h4 className="text-lg font-medium text-gray-400">No templates found</h4>
+                        <p className="text-sm text-gray-500 mt-1">Try adjusting your search or category filters.</p>
+                      </div>
                     )}
                   </div>
 
@@ -799,6 +895,7 @@ export default function PortfolioBuilder() {
                     name: '',
                     email: '',
                     mobile: '',
+                    profile_photo: '',
                     portfolio_summary: '',
                     experience: [],
                     education: [],

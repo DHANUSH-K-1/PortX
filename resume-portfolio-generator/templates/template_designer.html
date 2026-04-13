@@ -942,12 +942,12 @@
     <!-- Hero Section -->
     <section class="hero" id="home">
         <div class="hero-content">
-            <div class="hero-label">{{ role or 'UI/UX Designer' }}</div>
+            <div class="hero-label">{{ experience[0].title if experience else 'UI/UX Designer' }}</div>
             <h1 class="hero-title">
-                {{ hero_title or 'Creative <span class="text-outline">Designer</span>' }}
+                {{ (name or 'Creative <span class="text-outline">Designer</span>') | safe }}
             </h1>
             <p class="hero-subtitle">
-                {{ hero_description or 'Crafting beautiful digital experiences through thoughtful design and creative innovation.' }}
+                {{ portfolio_summary or 'Crafting beautiful digital experiences through thoughtful design and creative innovation.'  }}
             </p>
             <div class="hero-buttons">
                 <a href="#portfolio" class="btn btn-primary">
@@ -1206,7 +1206,7 @@
                         <div class="contact-icon">
                             <i class="fas fa-phone"></i>
                         </div>
-                        <a href="tel:{{ phone or '' }}">{{ phone or '+1 234 567 890' }}</a>
+                        <a href="tel:{{ mobile or ''  }}">{{ mobile or '+1 234 567 890'  }}</a>
                     </div>
                     <div class="contact-item">
                         <div class="contact-icon">

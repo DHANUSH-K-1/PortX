@@ -993,12 +993,12 @@
     <section class="hero" id="home">
         <div class="hero-container">
             <div class="hero-content">
-                <div class="hero-greeting">{{ role or 'Creative Developer' }}</div>
+                <div class="hero-greeting">{{ experience[0].title if experience else 'Creative Developer' }}</div>
                 <h1 class="hero-title">
-                    {{ hero_title or 'Hello, I\'m <span class="highlight">Creative</span>' }}
+                    {{ (name or 'Hello, I\'m <span class="highlight">Creative</span>') | safe }}
                 </h1>
                 <p class="hero-subtitle">
-                    {{ hero_description or 'Crafting beautiful digital experiences with modern technologies and creative design.' }}
+                    {{ portfolio_summary or 'Crafting beautiful digital experiences with modern technologies and creative design.'  }}
                 </p>
                 <div class="hero-cta">
                     <a href="#projects" class="btn btn-primary">
@@ -1112,8 +1112,9 @@
                         <p class="project-description">{{ project.description or '' }}</p>
                         {% if project.tech %}
                         <div class="project-tags">
-                            {% for tech in project.tech %}
-                            <span class="tag">{{ tech }}</span>
+                            {% set tech_list = project.tech.split(",") if project.tech is string else project.tech %}
+                            {% for tech in tech_list %}
+                            <span class="tag">{{ tech.strip() if tech is string else tech }}</span>
                             {% endfor %}
                         </div>
                         {% endif %}
@@ -1176,7 +1177,7 @@
                         </div>
                         <div class="contact-details">
                             <h3>Phone</h3>
-                            <a href="tel:{{ phone or '' }}">{{ phone or '+1 234 567 890' }}</a>
+                            <a href="tel:{{ mobile or ''  }}">{{ mobile or '+1 234 567 890'  }}</a>
                         </div>
                     </div>
                     <div class="contact-item">

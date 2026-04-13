@@ -1050,12 +1050,12 @@
     <section class="hero" id="home">
         <div class="hero-container">
             <div class="hero-content">
-                <div class="hero-badge">{{ role or 'Professional' }}</div>
+                <div class="hero-badge">{{ experience[0].title if experience else 'Professional' }}</div>
                 <h1 class="hero-title">
-                    {{ hero_title or 'Hello, I\'m <span class="gradient-text">Professional</span>' }}
+                    {{ (name or 'Hello, I\'m <span class="gradient-text">Professional</span>') | safe }}
                 </h1>
                 <p class="hero-subtitle">
-                    {{ hero_description or 'Creating exceptional experiences through innovation, creativity, and dedication to excellence.' }}
+                    {{ portfolio_summary or 'Creating exceptional experiences through innovation, creativity, and dedication to excellence.'  }}
                 </p>
                 <div class="hero-buttons">
                     <a href="#projects" class="btn btn-primary">
@@ -1089,7 +1089,7 @@
                 </div>
                 <div class="about-text">
                     <h3>{{ about_title or 'Passionate Professional' }}</h3>
-                    <p>{{ about or 'I am a dedicated professional with a passion for creating exceptional work and delivering outstanding results. My journey has been driven by curiosity, creativity, and a commitment to continuous improvement.' }}</p>
+                    <p>{{ portfolio_summary or 'I am a dedicated professional with a passion for creating exceptional work and delivering outstanding results. My journey has been driven by curiosity, creativity, and a commitment to continuous improvement.'  }}</p>
                     <div class="about-stats">
                         <div class="stat">
                             <div class="stat-number">5+</div>
@@ -1197,8 +1197,9 @@
                         <p class="project-description">{{ project.description or 'Project description' }}</p>
                         {% if project.tech %}
                         <div class="project-tags">
-                            {% for tech in project.tech %}
-                            <span class="tag">{{ tech }}</span>
+                            {% set tech_list = project.tech.split(",") if project.tech is string else project.tech %}
+                            {% for tech in tech_list %}
+                            <span class="tag">{{ tech.strip() if tech is string else tech }}</span>
                             {% endfor %}
                         </div>
                         {% endif %}
@@ -1305,7 +1306,7 @@
                         </div>
                         <div class="contact-details">
                             <h3>Phone</h3>
-                            <a href="tel:{{ phone or '' }}">{{ phone or '+1 234 567 890' }}</a>
+                            <a href="tel:{{ mobile or ''  }}">{{ mobile or '+1 234 567 890'  }}</a>
                         </div>
                     </div>
                     <div class="contact-item">

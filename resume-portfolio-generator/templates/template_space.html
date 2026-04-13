@@ -821,10 +821,10 @@
         <div class="floating-orb orb-2"></div>
         <div class="hero-container">
             <div class="hero-content">
-                <div class="hero-label">{{ role or 'Space Explorer' }}</div>
-                <h1 class="hero-title">{{ hero_title or 'Welcome to the Cosmos' }}</h1>
+                <div class="hero-label">{{ experience[0].title if experience else 'Space Expler' }}</div>
+                <h1 class="hero-title">{{ name or 'Welcome to the Cosmos'  }}</h1>
                 <p class="hero-subtitle">
-                    {{ hero_description or 'Exploring the infinite possibilities of the digital universe' }}
+                    {{ portfolio_summary or 'Exploring the infinite possibilities of the digital universe'  }}
                 </p>
                 <div class="hero-buttons">
                     <a href="#projects" class="btn btn-primary">Explore Projects</a>
@@ -882,8 +882,9 @@
                     <p class="project-description">{{ project.description or '' }}</p>
                     {% if project.tech %}
                     <div class="project-tags">
-                        {% for tech in project.tech %}
-                        <span class="tag">{{ tech }}</span>
+                        {% set tech_list = project.tech.split(",") if project.tech is string else project.tech %}
+                        {% for tech in tech_list %}
+                        <span class="tag">{{ tech.strip() if tech is string else tech }}</span>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -941,7 +942,7 @@
                     <div class="contact-icon">
                         <i class="fas fa-phone"></i>
                     </div>
-                    <a href="tel:{{ phone or '' }}">{{ phone or '+1 234 567 890' }}</a>
+                    <a href="tel:{{ mobile or ''  }}">{{ mobile or '+1 234 567 890'  }}</a>
                 </div>
             </div>
             <form class="contact-form" id="contactForm">

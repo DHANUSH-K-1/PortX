@@ -46,7 +46,9 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ data, layout }) => 
           <h2 className="text-2xl font-semibold border-b-2 border-purple-500/50 pb-2 mb-4">Skills</h2>
           <div className="flex flex-wrap gap-2">
             {data.skills.map((skill, i) => (
-              <span key={i} className="bg-purple-600/50 text-white px-3 py-1 rounded-full text-sm">{skill}</span>
+              <span key={i} className="bg-purple-600/50 text-white px-3 py-1 rounded-full text-sm">
+                {typeof skill === 'string' ? skill : skill.name || 'Skill'}
+              </span>
             ))}
           </div>
         </section>
@@ -81,8 +83,8 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ data, layout }) => 
               {proj.description && <p className="text-gray-300 mt-2">{proj.description}</p>}
               {proj.tech && (
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {proj.tech.split(',').map((t, ti) => (
-                    <span key={ti} className="text-xs bg-purple-900/40 text-purple-200 px-2 py-0.5 rounded border border-purple-500/20">{t.trim()}</span>
+                  {(Array.isArray(proj.tech) ? proj.tech : proj.tech.split(',')).map((t, ti) => (
+                    <span key={ti} className="text-xs bg-purple-900/40 text-purple-200 px-2 py-0.5 rounded border border-purple-500/20">{typeof t === 'string' ? t.trim() : t}</span>
                   ))}
                 </div>
               )}

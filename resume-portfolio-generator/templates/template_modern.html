@@ -884,9 +884,9 @@
     <section class="hero" id="home">
         <div class="hero-container">
             <div class="hero-content">
-                <div class="hero-label">{{ role or 'Creative Developer' }}</div>
-                <h1 class="hero-title">{{ hero_title or 'Crafting Digital <strong>Experiences</strong>' }}</h1>
-                <p class="hero-description">{{ hero_description or 'Portfolio description goes here' }}</p>
+                <div class="hero-label">{{ experience[0].title if experience else 'Creative Developer' }}</div>
+                <h1 class="hero-title">{{ (name or 'Crafting Digital <strong>Experiences</strong>') | safe }}</h1>
+                <p class="hero-description">{{ portfolio_summary or 'Portfolio description goes here'  }}</p>
                 <div class="hero-cta">
                     <a href="#contact" class="btn btn-primary">Get In Touch</a>
                     <a href="#projects" class="btn btn-secondary">View Work</a>
@@ -962,8 +962,9 @@
                         <p class="project-description">{{ project.description or '' }}</p>
                         {% if project.tech %}
                         <div class="project-tags">
-                            {% for tech in project.tech %}
-                            <span class="tag">{{ tech }}</span>
+                            {% set tech_list = project.tech.split(",") if project.tech is string else project.tech %}
+                            {% for tech in tech_list %}
+                            <span class="tag">{{ tech.strip() if tech is string else tech }}</span>
                             {% endfor %}
                         </div>
                         {% endif %}
@@ -1026,7 +1027,7 @@
                         </div>
                         <div class="contact-details">
                             <h3>Phone</h3>
-                            <a href="tel:{{ phone or '' }}">{{ phone or '+1 234 567 890' }}</a>
+                            <a href="tel:{{ mobile or ''  }}">{{ mobile or '+1 234 567 890'  }}</a>
                         </div>
                     </div>
                     <div class="contact-item">

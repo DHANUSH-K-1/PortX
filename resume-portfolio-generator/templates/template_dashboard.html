@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alex Chen — Portfolio OS</title>
+<title>{{ name }} — Portfolio OS</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -542,9 +542,9 @@ body{
   <!-- ═══ SIDEBAR ═══ -->
   <aside class="sidebar" id="sidebar">
     <div class="sb-logo">
-      <div class="sb-logo-mark">AC</div>
+      <div class="sb-logo-mark">{{ name[:2].upper() if name else 'P' }}</div>
       <div>
-        <div class="sb-logo-text">Alex Chen</div>
+        <div class="sb-logo-text">{{ name }}</div>
         <div class="sb-logo-sub">portfolio.dev</div>
       </div>
     </div>
@@ -580,11 +580,11 @@ body{
       </a>
 
       <div class="sb-group-label">Credentials</div>
-      <a class="sb-link" onclick="show('certifications',this)">
+      <a class="sb-link" onclick="show('education',this)">
         <span class="sb-icon">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M9.09 11a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
         </span>
-        Certifications
+        Education
       </a>
       <a class="sb-link" onclick="show('contact',this)">
         <span class="sb-icon">
@@ -629,22 +629,25 @@ body{
           <div class="profile-hero-bg"></div>
           <div class="profile-hero-inner">
             <div class="avatar-wrap">
-              <div class="avatar">AC</div>
+              {% if profile_photo %}
+              <div class="avatar" style="padding:0;overflow:hidden;background:none;">
+                <img src="{{ profile_photo }}" alt="{{ name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+              </div>
+              {% else %}
+              <div class="avatar">{{ name[:2].upper() if name else 'P' }}</div>
+              {% endif %}
               <div class="avatar-ring"></div>
             </div>
             <div class="profile-text">
-              <div class="profile-name">Alex Chen</div>
-              <div class="profile-role">Full-Stack Engineer · Product Builder · Open Source Contributor</div>
+              <div class="profile-name">{{ name }}</div>
+              <div class="profile-role">{{ experience[0].title if experience else '' }}</div>
               <div class="profile-meta">
-                <div class="meta-item"><span class="meta-icon">📍</span>San Francisco, CA</div>
-                <div class="meta-item"><span class="meta-icon">✉</span>alex@chendev.io</div>
-                <div class="meta-item"><span class="meta-icon">🔗</span>chendev.io</div>
+                <div class="meta-item"><span class="meta-icon">✉</span>{{ email if email else 'Contact Email' }}</div>
+                <div class="meta-item"><span class="meta-icon">📞</span>{{ mobile if mobile else '' }}</div>
               </div>
               <div class="profile-badges">
                 <span class="badge badge-green">✓ Available</span>
-                <span class="badge badge-blue">Full-Stack</span>
-                <span class="badge badge-amber">5 Yrs Exp</span>
-                <span class="badge badge-violet">Open Source</span>
+                <span class="badge badge-blue">Professional</span>
               </div>
             </div>
           </div>
@@ -653,20 +656,17 @@ body{
         <div class="grid-3">
           <div class="stat-card">
             <div class="stat-label">Projects Shipped</div>
-            <div class="stat-val">24</div>
-            <div class="stat-sub"><span class="stat-up">↑</span> 6 this year</div>
+            <div class="stat-val">{{ projects | length if projects else 0 }}</div>
             <div class="stat-bar"><div class="stat-fill" style="width:80%"></div></div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">GitHub Stars</div>
-            <div class="stat-val">3.2k</div>
-            <div class="stat-sub"><span class="stat-up">↑</span> 840 this year</div>
+            <div class="stat-label">Years Experience</div>
+            <div class="stat-val">{{ experience | length if experience else 0 }}+</div>
             <div class="stat-bar"><div class="stat-fill" style="width:65%"></div></div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Certifications</div>
-            <div class="stat-val">7</div>
-            <div class="stat-sub">Across 4 platforms</div>
+            <div class="stat-label">Skills Mastered</div>
+            <div class="stat-val">{{ skills | length if skills else 0 }}</div>
             <div class="stat-bar"><div class="stat-fill" style="width:70%"></div></div>
           </div>
         </div>
@@ -677,9 +677,7 @@ body{
               <div class="card-title"><span class="card-title-icon">📋</span> About</div>
             </div>
             <div class="card-body">
-              <p class="about-text">I'm a full-stack engineer obsessed with building fast, elegant products. I've shipped features used by millions at companies ranging from seed-stage startups to late-stage unicorns. My stack lives mostly in the TypeScript ecosystem — React, Next.js, Node — but I'm just as comfortable deep in cloud infra or designing system architecture.</p>
-              <div class="divider"></div>
-              <p class="about-text">Outside of code I contribute to open-source tooling (most notably <span style="color:var(--em);font-family:var(--font-mono)">@dx-kit</span>), write a weekly newsletter on developer experience, and occasionally speak at meetups. I believe great software is a craft, and I treat it as one.</p>
+              <p class="about-text">{{ portfolio_summary | safe }}</p>
             </div>
           </div>
           <div class="col">
@@ -742,66 +740,21 @@ body{
         <div class="section-title">Skills</div>
         <div class="section-sub">Technologies, tools and frameworks I work with regularly.</div>
         <div class="grid-2">
-          <div class="card">
-            <div class="card-head"><div class="card-title"><span class="card-title-icon">🎨</span> Frontend</div></div>
+          <div class="card" style="grid-column: 1 / -1;">
+            <div class="card-head"><div class="card-title"><span class="card-title-icon">⚙️</span> All Core Skills</div></div>
             <div class="card-body">
-              <div class="skill-category">
-                <div class="skill-cat-name">Core</div>
-                <div class="skill-row"><span class="skill-name">React / Next.js</span><div class="skill-track"><div class="skill-bar" data-w="95"></div></div><span class="skill-pct">95%</span></div>
-                <div class="skill-row"><span class="skill-name">TypeScript</span><div class="skill-track"><div class="skill-bar" data-w="92"></div></div><span class="skill-pct">92%</span></div>
-                <div class="skill-row"><span class="skill-name">CSS / Tailwind</span><div class="skill-track"><div class="skill-bar" data-w="90"></div></div><span class="skill-pct">90%</span></div>
-              </div>
-              <div class="skill-category">
-                <div class="skill-cat-name">Libraries</div>
-                <div class="skill-tags">
-                  <span class="skill-tag">Zustand</span><span class="skill-tag">React Query</span>
-                  <span class="skill-tag">Framer Motion</span><span class="skill-tag">Radix UI</span>
-                  <span class="skill-tag">Vite</span><span class="skill-tag">Storybook</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-head"><div class="card-title"><span class="card-title-icon">⚙️</span> Backend</div></div>
-            <div class="card-body">
-              <div class="skill-category">
-                <div class="skill-cat-name">Core</div>
-                <div class="skill-row"><span class="skill-name">Node.js</span><div class="skill-track"><div class="skill-bar" data-w="88"></div></div><span class="skill-pct">88%</span></div>
-                <div class="skill-row"><span class="skill-name">PostgreSQL</span><div class="skill-track"><div class="skill-bar" data-w="82"></div></div><span class="skill-pct">82%</span></div>
-                <div class="skill-row"><span class="skill-name">Redis</span><div class="skill-track"><div class="skill-bar" data-w="75"></div></div><span class="skill-pct">75%</span></div>
-              </div>
-              <div class="skill-category">
-                <div class="skill-cat-name">Frameworks</div>
-                <div class="skill-tags">
-                  <span class="skill-tag">Express</span><span class="skill-tag">Fastify</span>
-                  <span class="skill-tag">tRPC</span><span class="skill-tag">GraphQL</span>
-                  <span class="skill-tag">Prisma</span><span class="skill-tag">Drizzle</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-head"><div class="card-title"><span class="card-title-icon">☁️</span> Cloud & DevOps</div></div>
-            <div class="card-body">
-              <div class="skill-category">
-                <div class="skill-cat-name">Platforms</div>
-                <div class="skill-row"><span class="skill-name">AWS</span><div class="skill-track"><div class="skill-bar" data-w="78"></div></div><span class="skill-pct">78%</span></div>
-                <div class="skill-row"><span class="skill-name">Docker / K8s</span><div class="skill-track"><div class="skill-bar" data-w="70"></div></div><span class="skill-pct">70%</span></div>
-                <div class="skill-row"><span class="skill-name">GitHub Actions</span><div class="skill-track"><div class="skill-bar" data-w="85"></div></div><span class="skill-pct">85%</span></div>
-              </div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-head"><div class="card-title"><span class="card-title-icon">🔧</span> Tooling</div></div>
-            <div class="card-body">
-              <div class="skill-cat-name" style="margin-bottom:0.8rem">Daily drivers</div>
-              <div class="skill-tags">
-                <span class="skill-tag">Git</span><span class="skill-tag">VS Code</span>
-                <span class="skill-tag">Figma</span><span class="skill-tag">Linear</span>
-                <span class="skill-tag">Notion</span><span class="skill-tag">Postman</span>
-                <span class="skill-tag">Jest</span><span class="skill-tag">Playwright</span>
-                <span class="skill-tag">Datadog</span><span class="skill-tag">Sentry</span>
-                <span class="skill-tag">Vercel</span><span class="skill-tag">Fly.io</span>
+              <div class="skill-category" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
+                {% if skills %}
+                  {% for skill in skills %}
+                    {% set s_name = skill.name if skill is mapping else skill %}
+                    {% set s_level = skill.level if skill is mapping and skill.level else 85 %}
+                    <div class="skill-row" style="margin-bottom: 0;">
+                      <span class="skill-name" style="width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ s_name }}</span>
+                      <div class="skill-track"><div class="skill-bar" data-w="{{ s_level }}"></div></div>
+                      <span class="skill-pct">{{ s_level }}%</span>
+                    </div>
+                  {% endfor %}
+                {% endif %}
               </div>
             </div>
           </div>
@@ -813,112 +766,36 @@ body{
         <div class="section-title">Projects</div>
         <div class="section-sub">A selection of work I'm proud of.</div>
         <div class="grid-3">
-          <div class="proj-card">
-            <div class="proj-thumb" style="background:linear-gradient(135deg,#0d1f2d,#1a3a4a)">
-              <div class="proj-thumb-pattern"></div>🤖
-            </div>
-            <div class="proj-body">
-              <div class="proj-status-row"><span class="badge badge-green">Live</span><span class="proj-arrow">↗</span></div>
-              <div class="proj-name">DX Kit</div>
-              <div class="proj-tech">TypeScript · Vite · Vitest</div>
-              <p class="proj-desc">Open-source developer experience toolkit used by 2k+ projects. Linting, formatting, and CI setup in one command.</p>
-            </div>
-            <div class="proj-footer">
-              <div class="proj-links">
-                <a class="proj-link" href="#">↗ Demo</a>
-                <a class="proj-link" href="#">⌥ GitHub</a>
+          {% if projects %}
+            {% for proj in projects %}
+            <div class="proj-card">
+              <div class="proj-thumb" style="background:linear-gradient(135deg,#0d1f2d,#1a3a4a)">
+                <div class="proj-thumb-pattern"></div>🚀
               </div>
-              <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--em)">★ 1.4k</div>
-            </div>
-          </div>
-          <div class="proj-card">
-            <div class="proj-thumb" style="background:linear-gradient(135deg,#1a0d2d,#2d1a4a)">
-              <div class="proj-thumb-pattern"></div>📊
-            </div>
-            <div class="proj-body">
-              <div class="proj-status-row"><span class="badge badge-blue">Beta</span><span class="proj-arrow">↗</span></div>
-              <div class="proj-name">QueryFlow</div>
-              <div class="proj-tech">React · tRPC · PostgreSQL</div>
-              <p class="proj-desc">Visual query builder for PostgreSQL databases with real-time collaboration, AI suggestions, and one-click exports.</p>
-            </div>
-            <div class="proj-footer">
-              <div class="proj-links">
-                <a class="proj-link" href="#">↗ Demo</a>
-                <a class="proj-link" href="#">⌥ GitHub</a>
+              <div class="proj-body">
+                <div class="proj-status-row"><span class="badge badge-green">Project</span><span class="proj-arrow">↗</span></div>
+                <div class="proj-name">{{ proj.name | safe }}</div>
+                <div class="proj-tech">
+                  {% if proj.tech %}
+                    {% if proj.tech is string %}
+                      {{ proj.tech | safe }}
+                    {% else %}
+                      {{ proj.tech | join(', ') | safe }}
+                    {% endif %}
+                  {% endif %}
+                </div>
+                <p class="proj-desc">{{ proj.description | safe }}</p>
               </div>
-              <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--blue)">★ 890</div>
-            </div>
-          </div>
-          <div class="proj-card">
-            <div class="proj-thumb" style="background:linear-gradient(135deg,#1f1a0d,#3a2d0d)">
-              <div class="proj-thumb-pattern"></div>⚡
-            </div>
-            <div class="proj-body">
-              <div class="proj-status-row"><span class="badge badge-amber">Archived</span><span class="proj-arrow">↗</span></div>
-              <div class="proj-name">Snapdeploy</div>
-              <div class="proj-tech">Node.js · Docker · AWS ECS</div>
-              <p class="proj-desc">Zero-config deploy tool that packages any Node app into a production-ready container and ships it to AWS in under 60s.</p>
-            </div>
-            <div class="proj-footer">
-              <div class="proj-links">
-                <a class="proj-link" href="#">⌥ GitHub</a>
+              <div class="proj-footer">
+                <div class="proj-links">
+                  {% if proj.link %}
+                    <a class="proj-link" href="{{ proj.link }}">↗ Link</a>
+                  {% endif %}
+                </div>
               </div>
-              <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--amber)">★ 540</div>
             </div>
-          </div>
-          <div class="proj-card">
-            <div class="proj-thumb" style="background:linear-gradient(135deg,#1a0d1f,#2d0d3a)">
-              <div class="proj-thumb-pattern"></div>🎨
-            </div>
-            <div class="proj-body">
-              <div class="proj-status-row"><span class="badge badge-green">Live</span><span class="proj-arrow">↗</span></div>
-              <div class="proj-name">PaletteOS</div>
-              <div class="proj-tech">Next.js · Canvas API · Zustand</div>
-              <p class="proj-desc">Browser-based design tool for building and exporting color systems. Generates accessible palettes with WCAG contrast scores.</p>
-            </div>
-            <div class="proj-footer">
-              <div class="proj-links">
-                <a class="proj-link" href="#">↗ Demo</a>
-                <a class="proj-link" href="#">⌥ GitHub</a>
-              </div>
-              <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--violet)">★ 720</div>
-            </div>
-          </div>
-          <div class="proj-card">
-            <div class="proj-thumb" style="background:linear-gradient(135deg,#0d1a1a,#0d2d2d)">
-              <div class="proj-thumb-pattern"></div>🔐
-            </div>
-            <div class="proj-body">
-              <div class="proj-status-row"><span class="badge badge-green">Live</span><span class="proj-arrow">↗</span></div>
-              <div class="proj-name">VaultKey</div>
-              <div class="proj-tech">React · Web Crypto API · IndexedDB</div>
-              <p class="proj-desc">Client-side password manager with zero-knowledge encryption. No server, no breach risk. Syncs via encrypted export/import.</p>
-            </div>
-            <div class="proj-footer">
-              <div class="proj-links">
-                <a class="proj-link" href="#">↗ Demo</a>
-                <a class="proj-link" href="#">⌥ GitHub</a>
-              </div>
-              <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--em)">★ 310</div>
-            </div>
-          </div>
-          <div class="proj-card">
-            <div class="proj-thumb" style="background:linear-gradient(135deg,#1f0d0d,#3a1212)">
-              <div class="proj-thumb-pattern"></div>📝
-            </div>
-            <div class="proj-body">
-              <div class="proj-status-row"><span class="badge badge-blue">WIP</span><span class="proj-arrow">↗</span></div>
-              <div class="proj-name">Scribe AI</div>
-              <div class="proj-tech">Next.js · OpenAI · Supabase</div>
-              <p class="proj-desc">AI-powered documentation generator. Point it at a codebase and get structured, accurate docs with examples in minutes.</p>
-            </div>
-            <div class="proj-footer">
-              <div class="proj-links">
-                <a class="proj-link" href="#">⌥ GitHub</a>
-              </div>
-              <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--rose)">Private</div>
-            </div>
-          </div>
+            {% endfor %}
+          {% endif %}
         </div>
       </div>
 
@@ -926,170 +803,50 @@ body{
       <div class="pane" id="pane-experience">
         <div class="section-title">Experience</div>
         <div class="section-sub">My career timeline — roles, companies, and what I built.</div>
-        <div class="grid-12">
-          <div class="col">
-            <div class="stat-card">
-              <div class="stat-label">Total Experience</div>
-              <div class="stat-val">5yr</div>
-              <div class="stat-sub">3 companies</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Current Role</div>
-              <div class="stat-val" style="font-size:1.1rem;letter-spacing:-0.01em;">Senior SWE</div>
-              <div class="stat-sub">@ Vercel</div>
-            </div>
-            <div class="card">
-              <div class="card-head"><div class="card-title">🎓 Education</div></div>
-              <div class="card-body" style="padding:1rem 1.2rem;">
-                <div style="margin-bottom:0.8rem;">
-                  <div style="font-size:0.85rem;font-weight:600;color:var(--text)">MIT</div>
-                  <div style="font-size:0.75rem;color:var(--text3);font-family:var(--font-mono)">2017–2021</div>
-                  <div style="font-size:0.78rem;color:var(--text2);margin-top:0.2rem">B.S. Computer Science</div>
-                </div>
-                <div style="height:1px;background:var(--border);margin:0.7rem 0;"></div>
-                <div>
-                  <div style="font-size:0.85rem;font-weight:600;color:var(--text)">Harvard Extension</div>
-                  <div style="font-size:0.75rem;color:var(--text3);font-family:var(--font-mono)">2022–2023</div>
-                  <div style="font-size:0.78rem;color:var(--text2);margin-top:0.2rem">Advanced Systems Design</div>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="grid-1">
           <div class="card">
             <div class="card-head"><div class="card-title"><span class="card-title-icon">📅</span> Career Timeline</div></div>
             <div class="card-body">
               <div class="timeline">
-                <div class="tl-item">
-                  <div class="tl-dot"></div>
-                  <div class="tl-date">Jan 2023 — Present</div>
-                  <div class="tl-title">Senior Software Engineer</div>
-                  <div class="tl-company">Vercel <div class="tl-company-dot"></div> San Francisco, CA</div>
-                  <div class="tl-desc">Leading frontend infrastructure on the dashboard team. Built the new deployment logs viewer (used by 400k+ teams), improved bundle analysis tooling, and contributed to the Edge Runtime developer experience.</div>
-                  <div class="tl-tags">
-                    <span class="tl-tag">Next.js</span><span class="tl-tag">Edge Runtime</span><span class="tl-tag">Rust</span><span class="tl-tag">TypeScript</span>
+                {% if experience %}
+                  {% for exp in experience %}
+                  <div class="tl-item">
+                    <div class="tl-dot {{ 'past' if not loop.first else '' }}"></div>
+                    <div class="tl-date {{ 'past' if not loop.first else '' }}">{{ exp.dates | safe }}</div>
+                    <div class="tl-title">{{ exp.title | safe }}</div>
+                    <div class="tl-company">{{ exp.company | safe }} <div class="tl-company-dot"></div></div>
+                    <div class="tl-desc">{{ exp.description | safe }}</div>
                   </div>
-                </div>
-                <div class="tl-item">
-                  <div class="tl-dot past"></div>
-                  <div class="tl-date past">Jun 2021 — Dec 2022</div>
-                  <div class="tl-title">Full-Stack Engineer</div>
-                  <div class="tl-company">Linear <div class="tl-company-dot"></div> Remote</div>
-                  <div class="tl-desc">Joined as a founding engineer. Built the search infrastructure from scratch, designed the notification system, and owned the mobile web experience. Helped grow from 10k to 200k active teams.</div>
-                  <div class="tl-tags">
-                    <span class="tl-tag">React</span><span class="tl-tag">GraphQL</span><span class="tl-tag">Elasticsearch</span><span class="tl-tag">Node.js</span>
-                  </div>
-                </div>
-                <div class="tl-item">
-                  <div class="tl-dot past"></div>
-                  <div class="tl-date past">Jan 2020 — May 2021</div>
-                  <div class="tl-title">Software Engineer Intern → FT</div>
-                  <div class="tl-company">Stripe <div class="tl-company-dot"></div> San Francisco, CA</div>
-                  <div class="tl-desc">Interned on the Dashboard team, converted full-time. Rebuilt the payout timeline UI and shipped the first version of the revenue recognition module used by enterprise customers.</div>
-                  <div class="tl-tags">
-                    <span class="tl-tag">React</span><span class="tl-tag">Ruby</span><span class="tl-tag">MySQL</span>
-                  </div>
-                </div>
+                  {% endfor %}
+                {% endif %}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ══ CERTIFICATIONS ══ -->
-      <div class="pane" id="pane-certifications">
-        <div class="section-title">Certifications</div>
-        <div class="section-sub">Verified credentials from leading platforms and providers.</div>
+      <!-- ══ EDUCATION ══ -->
+      <div class="pane" id="pane-education">
+        <div class="section-title">Education</div>
+        <div class="section-sub">Academic background.</div>
         <div class="grid-2">
-          <div class="card">
-            <div class="card-head"><div class="card-title"><span class="card-title-icon">☁️</span> Cloud</div></div>
+          <div class="card" style="grid-column: 1 / -1">
+            <div class="card-head"><div class="card-title"><span class="card-title-icon">🎓</span> Degrees & Courses</div></div>
             <div class="card-body">
-              <div class="cert-item">
-                <div class="cert-icon" style="background:rgba(255,153,0,0.12);">☁️</div>
-                <div class="cert-body">
-                  <div class="cert-name">AWS Solutions Architect — Professional</div>
-                  <div class="cert-issuer">Amazon Web Services</div>
-                  <div class="cert-footer">
-                    <div class="cert-date">Issued Nov 2023</div>
-                    <a class="cert-verify" href="#">Verify ↗</a>
+              {% if education %}
+                {% for edu in education %}
+                <div class="cert-item">
+                  <div class="cert-icon" style="background:rgba(0,120,212,0.12);">🎓</div>
+                  <div class="cert-body">
+                    <div class="cert-name">{{ edu.name | safe }}</div>
+                    <div class="cert-issuer">{{ edu.institution | safe }}</div>
+                    <div class="cert-footer">
+                      <div class="cert-date">{{ edu.dates | safe }}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="cert-item">
-                <div class="cert-icon" style="background:rgba(0,120,212,0.12);">💙</div>
-                <div class="cert-body">
-                  <div class="cert-name">Azure Developer Associate (AZ-204)</div>
-                  <div class="cert-issuer">Microsoft</div>
-                  <div class="cert-footer">
-                    <div class="cert-date">Issued Mar 2023</div>
-                    <a class="cert-verify" href="#">Verify ↗</a>
-                  </div>
-                </div>
-              </div>
-              <div class="cert-item">
-                <div class="cert-icon" style="background:rgba(52,168,83,0.12);">🟢</div>
-                <div class="cert-body">
-                  <div class="cert-name">Google Cloud Professional Developer</div>
-                  <div class="cert-issuer">Google Cloud</div>
-                  <div class="cert-footer">
-                    <div class="cert-date">Issued Jan 2024</div>
-                    <a class="cert-verify" href="#">Verify ↗</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-head"><div class="card-title"><span class="card-title-icon">🛠</span> Engineering</div></div>
-            <div class="card-body">
-              <div class="cert-item">
-                <div class="cert-icon" style="background:rgba(0,232,122,0.1);">⚡</div>
-                <div class="cert-body">
-                  <div class="cert-name">Kubernetes Application Developer (CKAD)</div>
-                  <div class="cert-issuer">CNCF / Linux Foundation</div>
-                  <div class="cert-footer">
-                    <div class="cert-date">Issued Aug 2023</div>
-                    <a class="cert-verify" href="#">Verify ↗</a>
-                  </div>
-                </div>
-              </div>
-              <div class="cert-item">
-                <div class="cert-icon" style="background:rgba(139,92,246,0.12);">◈</div>
-                <div class="cert-body">
-                  <div class="cert-name">GraphQL Associate</div>
-                  <div class="cert-issuer">Apollo GraphQL</div>
-                  <div class="cert-footer">
-                    <div class="cert-date">Issued Feb 2022</div>
-                    <a class="cert-verify" href="#">Verify ↗</a>
-                  </div>
-                </div>
-              </div>
-              <div class="cert-item">
-                <div class="cert-icon" style="background:rgba(59,130,246,0.12);">🐳</div>
-                <div class="cert-body">
-                  <div class="cert-name">Docker Foundations Professional</div>
-                  <div class="cert-issuer">Docker Inc.</div>
-                  <div class="cert-footer">
-                    <div class="cert-date">Issued Apr 2022</div>
-                    <a class="cert-verify" href="#">Verify ↗</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="card" style="grid-column:1/-1">
-            <div class="card-head"><div class="card-title"><span class="card-title-icon">🎓</span> Courses & Specializations</div></div>
-            <div class="card-body">
-              <div class="cert-item">
-                <div class="cert-icon" style="background:rgba(245,158,11,0.12);">🧠</div>
-                <div class="cert-body">
-                  <div class="cert-name">Deep Learning Specialization</div>
-                  <div class="cert-issuer">Coursera · deeplearning.ai · Andrew Ng</div>
-                  <div class="cert-footer">
-                    <div class="cert-date">Issued Jun 2023 · 5 courses</div>
-                    <a class="cert-verify" href="#">Verify ↗</a>
-                  </div>
-                </div>
-              </div>
+                {% endfor %}
+              {% endif %}
             </div>
           </div>
         </div>
@@ -1104,9 +861,9 @@ body{
             <div class="card">
               <div class="card-head"><div class="card-title">📡 Reach Out</div></div>
               <div class="card-body">
-                <a class="channel-item" href="mailto:alex@chendev.io">
+                <a class="channel-item" href="mailto:{{ email if email else 'hello@example.com' }}">
                   <div class="ch-icon">✉</div>
-                  <div class="ch-text"><div class="ch-label">Email</div><div class="ch-value">alex@chendev.io</div></div>
+                  <div class="ch-text"><div class="ch-label">Email</div><div class="ch-value">{{ email if email else 'hello@example.com' }}</div></div>
                 </a>
                 <a class="channel-item" href="#">
                   <div class="ch-icon">💼</div>
@@ -1159,7 +916,7 @@ body{
 // ── Navigation ──
 const labels = {
   profile:'Profile',skills:'Skills',projects:'Projects',
-  experience:'Experience',certifications:'Certifications',contact:'Contact'
+  experience:'Experience',education:'Education',contact:'Contact'
 };
 
 function show(id, el) {

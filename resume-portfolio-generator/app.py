@@ -23,6 +23,52 @@ app = Flask(__name__,
             template_folder='.') # Point template folder to root to access resume-portfolio-generator/templates
 app.secret_key = os.getenv("SECRET_KEY", "dev_secret_key_change_in_production")
 
+# Register custom Jinja filters required by templates
+import datetime
+@app.template_filter('strftime')
+def format_datetime(value, format='%B %Y'):
+    if not value: return ''
+    try:
+        # Very basic strftime parser fallback
+        if isinstance(value, str):
+            # Attempt to parse YYYY-MM
+            try:
+                date_obj = datetime.datetime.strptime(value.split('T')[0], '%Y-%m-%d')
+            except ValueError:
+                date_obj = datetime.datetime.strptime(value[:7], '%Y-%m')
+            return date_obj.strftime(format)
+    except:
+        return value
+    return value
+
+@app.template_filter('zfill')
+def zfill_filter(value, width):
+    return str(value).zfill(width)
+
+class SkillObj(dict):
+    def __init__(self, name, level=80, icon='🌱'):
+        super().__init__(name=name, level=level, icon=icon)
+    def __str__(self):
+        return str(self.get('name', 'Skill'))
+
+def normalize_portfolio_data(data):
+    if 'social' not in data: data['social'] = {}
+    if 'projects' not in data: data['projects'] = []
+    if 'skills' not in data: data['skills'] = []
+    if 'experience' not in data: data['experience'] = []
+    if 'education' not in data: data['education'] = []
+    # Ensure profile_photo is always a string so templates don't error on undefined
+    data['profile_photo'] = data.get('profile_photo') or ''
+    
+    normalized_skills = []
+    for s in data.get('skills', []):
+        if isinstance(s, dict):
+            normalized_skills.append(SkillObj(s.get('name', 'Skill'), s.get('level', 80), s.get('icon', '🌱')))
+        else:
+            normalized_skills.append(SkillObj(str(s)))
+    data['skills'] = normalized_skills
+    return data
+
 # MongoDB Configuration
 app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 if not app.config["MONGO_URI"]:
@@ -48,11 +94,14 @@ def load_user(user_id):
 UPLOAD_FOLDER = 'uploads'
 DATA_FOLDER = 'data'
 GENERATED_FOLDER = 'generated'
+PHOTOS_FOLDER = 'photos'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['DATA_FOLDER'] = DATA_FOLDER
 app.config['GENERATED_FOLDER'] = GENERATED_FOLDER
+app.config['PHOTOS_FOLDER'] = PHOTOS_FOLDER
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
-for folder in [UPLOAD_FOLDER, DATA_FOLDER, GENERATED_FOLDER, 'templates']:
+for folder in [UPLOAD_FOLDER, DATA_FOLDER, GENERATED_FOLDER, 'templates', PHOTOS_FOLDER]:
     if not os.path.exists(folder):
         os.makedirs(folder)
 
@@ -253,6 +302,28 @@ def get_user_portfolios():
 def serve_generated_portfolio(filename):
     return send_from_directory(app.config['GENERATED_FOLDER'], filename)
 
+@app.route('/photos/<path:filename>')
+def serve_photo(filename):
+    return send_from_directory(app.config['PHOTOS_FOLDER'], filename)
+
+@app.route('/api/upload-photo', methods=['POST'])
+def upload_photo():
+    if 'photo' not in request.files:
+        return jsonify({'error': 'No photo file provided'}), 400
+    file = request.files['photo']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        return jsonify({'error': f'File type .{ext} not allowed. Use PNG, JPG, JPEG, GIF, or WEBP.'}), 400
+    import uuid
+    unique_name = f"{uuid.uuid4().hex}.{ext}"
+    save_path = os.path.join(app.config['PHOTOS_FOLDER'], unique_name)
+    file.save(save_path)
+    # Return a URL the frontend + templates can use directly
+    photo_url = f'/photos/{unique_name}'
+    return jsonify({'url': photo_url})
+
 @app.route('/api/render-preview', methods=['POST'])
 def render_preview():
     try:
@@ -270,6 +341,8 @@ def render_preview():
             return jsonify(error=f"Template '{safe_layout}' not found."), 404
         
         # Render string only, don't save
+        data = normalize_portfolio_data(data)
+            
         rendered_html = render_template(template_name, **data)
         return rendered_html
 
@@ -305,6 +378,8 @@ def generate_html(filename):
 
         html_filename = f"{os.path.splitext(filename)[0]}.html"
         
+        data = normalize_portfolio_data(data)
+            
         rendered_html = render_template(template_name, **data)
         
         generated_html_filepath = os.path.join(app.config['GENERATED_FOLDER'], html_filename)

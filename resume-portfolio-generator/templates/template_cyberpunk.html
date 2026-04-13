@@ -702,10 +702,10 @@
     <!-- Hero Section -->
     <section class="hero" id="home">
         <div class="hero-container">
-            <div class="hero-glitch">{{ role or 'DIGITAL ARCHITECT' }}</div>
-            <h1 class="hero-title">{{ hero_title or 'CYBER PORTFOLIO' }}</h1>
+            <div class="hero-glitch">{{ experience[0].title if experience else 'DIGITAL ARCHITECT' }}</div>
+            <h1 class="hero-title">{{ name or 'CYBER PORTFOLIO' }}</h1>
             <p class="hero-subtitle">
-                {{ hero_description or 'Welcome to the neon grid. Experience the future of digital design.' }}
+                {{ portfolio_summary or 'Welcome to the neon grid. Experience the future of digital design.' }}
             </p>
             <a href="#projects" class="hero-cta">ENTER GRID</a>
         </div>
@@ -757,10 +757,14 @@
                 <div class="project-content">
                     <h3 class="project-title">{{ project.name or 'PROJECT' }}</h3>
                     <p class="project-description">{{ project.description or '' }}</p>
+                    {% if project.link %}
+                    <a href="{{ project.link if project.link.startswith('http') else 'https://' + project.link }}" target="_blank" style="color: var(--neon-cyan); text-decoration: none; font-family: var(--font-mono); display: block; margin-bottom: 1rem;">>> VIEW PROJECT</a>
+                    {% endif %}
                     {% if project.tech %}
                     <div class="project-tags">
-                        {% for tech in project.tech %}
-                        <span class="tag">{{ tech }}</span>
+                        {% set tech_list = project.tech.split(',') if project.tech is string else project.tech %}
+                        {% for tech in tech_list %}
+                        <span class="tag">{{ tech.strip() if tech is string else tech }}</span>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -814,7 +818,7 @@
                 </div>
                 <div class="contact-item">
                     <div class="contact-icon"><i class="fas fa-phone"></i></div>
-                    <a href="tel:{{ phone or '' }}">{{ phone or '+1 234 567 890' }}</a>
+                    <a href="tel:{{ mobile or '' }}">{{ mobile or '+1 234 567 890' }}</a>
                 </div>
             </div>
             <form class="contact-form" id="contactForm">

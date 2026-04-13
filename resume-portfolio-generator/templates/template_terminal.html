@@ -627,8 +627,8 @@ Loading user data...
     </div>
 </div>
 
-Hello! I'm {{ name or 'Developer' }} - {{ role or 'Full Stack Developer' }}
-{{ bio or 'A passionate developer specializing in building exceptional digital experiences.' }}
+Hello! I'm {{ name or 'Developer' }} - {{ experience[0].title if experience else 'Full Stack Developer' }}
+{{ portfolio_summary or 'A passionate developer specializing in building exceptional digital experiences.'  }}
 
 Type 'help' to see available commands or navigate using the menu below.
                 </div>
@@ -673,21 +673,17 @@ Parsing skills data...
 
                 <div class="skills-grid">
                     {% if skills %}
-                    {% for skill_category in skills %}
-                    <div class="skill-category">
-                        <div class="skill-title">{{ skill_category.category or 'Skills' }}</div>
-                        <ul class="skill-list">
-                            {% for skill in skill_category.items %}
-                            <li>
+                        <div class="skill-title">Expertise</div>
+                        <div class="skills-grid">
+                        {% for skill in skills %}
+                            <div class="skill-category">
                                 {{ skill.name or 'Skill' }}
                                 <div class="skill-bar">
                                     <div class="skill-progress" style="width: {{ skill.level or 80 }}%"></div>
                                 </div>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endfor %}
+                            </div>
+                        {% endfor %}
+                        </div>
                     {% else %}
                     <div class="skill-category">
                         <div class="skill-title">Frontend</div>
@@ -746,8 +742,9 @@ Fetching project repositories...
                         <div class="project-description">{{ project.description or 'Project description' }}</div>
                         {% if project.tech %}
                         <div class="project-tech">
-                            {% for tech in project.tech %}
-                            <span class="tech-tag">{{ tech }}</span>
+                            {% set tech_list = project.tech.split(",") if project.tech is string else project.tech %}
+                            {% for tech in tech_list %}
+                            <span class="tech-tag">{{ tech.strip() if tech is string else tech }}</span>
                             {% endfor %}
                         </div>
                         {% endif %}

@@ -671,10 +671,10 @@
     <!-- Hero Section -->
     <section class="hero" id="home">
         <div class="hero-content">
-            <div class="hero-issue">{{ role or 'Creative Professional' }}</div>
-            <h1 class="hero-title">{{ hero_title or 'Portfolio 2024' }}</h1>
+            <div class="hero-issue">{{ experience[0].title if experience else 'Creative Professional' }}</div>
+            <h1 class="hero-title">{{ name or 'Portfolio 2024' }}</h1>
             <p class="hero-subtitle">
-                {{ hero_description or 'An editorial showcase of creative work and professional achievements' }}
+                {{ portfolio_summary or 'An editorial showcase of creative work and professional achievements' }}
             </p>
             <div class="hero-meta">
                 <div class="meta-item">
@@ -705,7 +705,7 @@
         <div class="skills-grid">
             {% for skill in skills %}
             <div class="skill-card">
-                <div class="skill-number">{{ loop.index | string.zfill(2) if loop else '01' }}</div>
+                <div class="skill-number">{{ "%02d" | format(loop.index) if loop else '01' }}</div>
                 <h3 class="skill-name">{{ skill.name or 'Skill' }}</h3>
                 <p class="skill-description">{{ skill.description or 'Professional expertise and proficiency' }}</p>
             </div>
@@ -728,10 +728,16 @@
             {% for project in projects %}
             <article class="project-article">
                 <div class="project-image">
+                    {% if project.link %}
+                    <a href="{{ project.link if project.link.startswith('http') else 'https://' + project.link }}" target="_blank" style="text-decoration: none;">
+                    {% endif %}
                     {% if project.image %}
                     <img src="{{ project.image }}" alt="{{ project.name }}">
                     {% endif %}
-                    <div class="project-number">{{ loop.index | string.zfill(2) if loop else '01' }}</div>
+                    <div class="project-number">{{ "%02d" | format(loop.index) if loop else '01' }}</div>
+                    {% if project.link %}
+                    </a>
+                    {% endif %}
                 </div>
                 <div class="project-content">
                     <div class="project-category">{{ project.category or 'Project' }}</div>
@@ -739,8 +745,9 @@
                     <p class="project-description">{{ project.description or 'Project description and details' }}</p>
                     {% if project.tech %}
                     <div class="project-tags">
-                        {% for tech in project.tech %}
-                        <span class="tag">{{ tech }}</span>
+                        {% set tech_list = project.tech.split(',') if project.tech is string else project.tech %}
+                        {% for tech in tech_list %}
+                        <span class="tag">{{ tech.strip() if tech is string else tech }}</span>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -793,7 +800,7 @@
                 <div class="contact-item">
                     <div class="contact-label">Phone</div>
                     <div class="contact-value">
-                        <a href="tel:{{ phone or '' }}">{{ phone or '+1 234 567 890' }}</a>
+                        <a href="tel:{{ mobile or '' }}">{{ mobile or '+1 234 567 890' }}</a>
                     </div>
                 </div>
                 <div class="contact-item">

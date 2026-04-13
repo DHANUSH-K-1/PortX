@@ -1071,13 +1071,13 @@
         <div class="hero-container">
             <div class="hero-content">
                 <div class="hero-tag">
-                    <span>{{ role or 'Full Stack Developer' }}</span>
+                    <span>{{ experience[0].title if experience else 'Full Stack Developer' }}</span>
                 </div>
                 <h1 class="hero-title">
-                    {{ hero_title or 'Building Digital <span class="gradient-text">Experiences</span>' }}
+                    {{ (name or 'Building Digital <span class="gradient-text">Experiences</span>') | safe }}
                 </h1>
                 <p class="hero-subtitle">
-                    {{ hero_description or 'Crafting elegant solutions to complex problems through clean code and innovative design.' }}
+                    {{ portfolio_summary or 'Crafting elegant solutions to complex problems through clean code and innovative design.'  }}
                 </p>
                 <div class="hero-buttons">
                     <a href="#contact" class="btn btn-primary">
@@ -1217,8 +1217,9 @@
                         <p class="project-description">{{ project.description or '' }}</p>
                         {% if project.tech %}
                         <div class="project-tech">
-                            {% for tech in project.tech %}
-                            <span class="tech-tag">{{ tech }}</span>
+                            {% set tech_list = project.tech.split(",") if project.tech is string else project.tech %}
+                            {% for tech in tech_list %}
+                            <span class="tech-tag">{{ tech.strip() if tech is string else tech }}</span>
                             {% endfor %}
                         </div>
                         {% endif %}
@@ -1286,7 +1287,7 @@
                         </div>
                         <div class="contact-details">
                             <h3>Phone</h3>
-                            <a href="tel:{{ phone or '' }}">{{ phone or '+1 234 567 890' }}</a>
+                            <a href="tel:{{ mobile or ''  }}">{{ mobile or '+1 234 567 890'  }}</a>
                         </div>
                     </div>
                     <div class="contact-item">

@@ -106,7 +106,7 @@
             <h2>Skills</h2>
             <ul class="skills-list">
                 {% for skill in skills %}
-                    <li>{{ skill }}</li>
+                    <li>{{ skill.name if skill is mapping else skill }}</li>
                 {% endfor %}
             </ul>
         </div>

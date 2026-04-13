@@ -914,10 +914,10 @@
         {% endif %}
         <div class="hero-overlay">
             <div class="hero-content">
-                <div class="hero-subtitle">{{ role or 'Visual Storyteller' }}</div>
-                <h1 class="hero-title">{{ hero_title or 'Capturing Moments' }}</h1>
+                <div class="hero-subtitle">{{ experience[0].title if experience else 'Visual Styteller' }}</div>
+                <h1 class="hero-title">{{ name or 'Capturing Moments'  }}</h1>
                 <p class="hero-description">
-                    {{ hero_description or 'Creating timeless visual stories through the art of photography' }}
+                    {{ portfolio_summary or 'Creating timeless visual stories through the art of photography'  }}
                 </p>
                 <a href="#portfolio" class="hero-cta">View Portfolio</a>
             </div>
@@ -1036,7 +1036,7 @@
             </div>
             <div class="about-text">
                 <h3>{{ about_title or 'Passionate Visual Artist' }}</h3>
-                <p>{{ about or 'With over a decade of experience in photography, I specialize in capturing authentic moments and creating timeless visual stories. My work is driven by a passion for light, composition, and the beauty of genuine human connection.' }}</p>
+                <p>{{ portfolio_summary or 'With over a decade of experience in photography, I specialize in capturing authentic moments and creating timeless visual stories. My work is driven by a passion for light, composition, and the beauty of genuine human connection.'  }}</p>
                 <p>{{ about_2 or 'Each project is approached with creativity, professionalism, and attention to detail, ensuring that every image tells a unique and compelling story.' }}</p>
                 <div class="about-signature">{{ name or 'Photographer' }}</div>
             </div>
@@ -1162,7 +1162,7 @@
                         <i class="fas fa-phone"></i>
                     </div>
                     <h3>Phone</h3>
-                    <a href="tel:{{ phone or '' }}">{{ phone or '+1 234 567 890' }}</a>
+                    <a href="tel:{{ mobile or ''  }}">{{ mobile or '+1 234 567 890'  }}</a>
                 </div>
             </div>
 

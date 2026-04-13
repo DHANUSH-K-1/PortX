@@ -965,7 +965,7 @@
     <!-- Navigation -->
     <nav id="navbar">
         <div class="nav-container">
-            <a href="#home" class="logo">YourName</a>
+            <a href="#home" class="logo">{{ name or 'YourName' }}</a>
             <div class="menu-toggle" id="menuToggle">
                 <span></span>
                 <span></span>
@@ -991,11 +991,10 @@
     <section class="hero" id="home">
         <div class="hero-container">
             <div class="hero-content">
-                <div class="hero-label">Creative Developer & Designer</div>
-                <h1 class="hero-title">Crafting Digital <strong>Experiences</strong></h1>
+                <div class="hero-label">{{ experience[0].title if experience else 'Creative Developer & Designer' }}</div>
+                <h1 class="hero-title">Welcome to <strong>{{ name }}'s</strong> Portfolio</h1>
                 <p class="hero-description">
-                    I design and develop elegant, high-performance web applications 
-                    that solve real problems and delight users.
+                    {{ portfolio_summary | safe if portfolio_summary else "I design and develop elegant, high-performance web applications that solve real problems and delight users." }}
                 </p>
                 <div class="hero-cta">
                     <a href="#contact" class="btn btn-primary">Get In Touch</a>
@@ -1004,14 +1003,14 @@
             </div>
             <div class="hero-image">
                 <div class="image-wrapper">
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=800&fit=crop" alt="Profile">
+                    <img src="{{ profile_photo if profile_photo else 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=800&fit=crop' }}" alt="Profile">
                 </div>
                 <div class="floating-badge badge-1">
-                    <h4>5+</h4>
-                    <p>Years Experience</p>
+                    <h4>{{ experience|length if experience else '5' }}+</h4>
+                    <p>Roles Experience</p>
                 </div>
                 <div class="floating-badge badge-2">
-                    <h4>50+</h4>
+                    <h4>{{ projects|length if projects else '10' }}+</h4>
                     <p>Projects Completed</p>
                 </div>
             </div>
@@ -1028,19 +1027,7 @@
             <div class="about-grid">
                 <div class="about-content">
                     <p>
-                        Hi, I'm a passionate full-stack developer with a keen eye for design. 
-                        I specialize in building modern, responsive web applications that 
-                        prioritize user experience and performance.
-                    </p>
-                    <p>
-                        With expertise spanning front-end frameworks, back-end systems, and 
-                        cloud infrastructure, I bring ideas to life through clean code and 
-                        thoughtful design. I'm always learning and exploring new technologies 
-                        to stay at the cutting edge.
-                    </p>
-                    <p>
-                        When I'm not coding, you'll find me exploring nature photography, 
-                        reading about design systems, or contributing to open-source projects.
+                        {{ portfolio_summary | safe if portfolio_summary else "Hi, I'm a passionate developer with a keen eye for design. I specialize in building modern, responsive web applications." }}
                     </p>
                 </div>
                 <div class="stats-grid">
@@ -1077,54 +1064,18 @@
                 </p>
             </div>
             <div class="skills-grid">
-                <div class="skill-card">
-                    <div class="skill-icon"><i class="fab fa-react"></i></div>
-                    <h3 class="skill-name">React & Next.js</h3>
-                    <div class="skill-level">
-                        <div class="skill-progress" style="width: 90%"></div>
+                {% if skills %}
+                    {% for skill in skills %}
+                    <div class="skill-card">
+                        <div class="skill-icon">✨</div>
+                        <h3 class="skill-name">{{ skill.name if skill is mapping else skill }}</h3>
+                        <div class="skill-level">
+                            <div class="skill-progress" style="width: 85%"></div>
+                        </div>
+                        <p class="skill-percentage">85%</p>
                     </div>
-                    <p class="skill-percentage">90%</p>
-                </div>
-                <div class="skill-card">
-                    <div class="skill-icon"><i class="fab fa-node"></i></div>
-                    <h3 class="skill-name">Node.js & Express</h3>
-                    <div class="skill-level">
-                        <div class="skill-progress" style="width: 85%"></div>
-                    </div>
-                    <p class="skill-percentage">85%</p>
-                </div>
-                <div class="skill-card">
-                    <div class="skill-icon"><i class="fas fa-database"></i></div>
-                    <h3 class="skill-name">Database Design</h3>
-                    <div class="skill-level">
-                        <div class="skill-progress" style="width: 80%"></div>
-                    </div>
-                    <p class="skill-percentage">80%</p>
-                </div>
-                <div class="skill-card">
-                    <div class="skill-icon"><i class="fas fa-mobile-alt"></i></div>
-                    <h3 class="skill-name">Responsive Design</h3>
-                    <div class="skill-level">
-                        <div class="skill-progress" style="width: 95%"></div>
-                    </div>
-                    <p class="skill-percentage">95%</p>
-                </div>
-                <div class="skill-card">
-                    <div class="skill-icon"><i class="fab fa-aws"></i></div>
-                    <h3 class="skill-name">Cloud & DevOps</h3>
-                    <div class="skill-level">
-                        <div class="skill-progress" style="width: 75%"></div>
-                    </div>
-                    <p class="skill-percentage">75%</p>
-                </div>
-                <div class="skill-card">
-                    <div class="skill-icon"><i class="fas fa-palette"></i></div>
-                    <h3 class="skill-name">UI/UX Design</h3>
-                    <div class="skill-level">
-                        <div class="skill-progress" style="width: 88%"></div>
-                    </div>
-                    <p class="skill-percentage">88%</p>
-                </div>
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
     </section>
@@ -1141,87 +1092,34 @@
                 </p>
             </div>
             <div class="projects-grid">
-                <div class="project-card">
-                    <div class="project-image">
-                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop" alt="E-commerce Platform">
-                    </div>
-                    <div class="project-content">
-                        <h3 class="project-title">E-commerce Platform</h3>
-                        <p class="project-description">
-                            A fully responsive e-commerce solution with real-time inventory 
-                            management, payment processing, and analytics dashboard.
-                        </p>
-                        <div class="project-tags">
-                            <span class="tag">React</span>
-                            <span class="tag">Node.js</span>
-                            <span class="tag">MongoDB</span>
-                            <span class="tag">Stripe</span>
+                {% if projects %}
+                    {% for proj in projects %}
+                    <div class="project-card">
+                        <div class="project-image">
+                            <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop" alt="Project Image">
                         </div>
-                        <a href="#" class="project-link">
-                            View Project <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="project-card">
-                    <div class="project-image">
-                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop" alt="Analytics Dashboard">
-                    </div>
-                    <div class="project-content">
-                        <h3 class="project-title">Analytics Dashboard</h3>
-                        <p class="project-description">
-                            Interactive data visualization dashboard with real-time updates, 
-                            custom reports, and team collaboration features.
-                        </p>
-                        <div class="project-tags">
-                            <span class="tag">Vue.js</span>
-                            <span class="tag">D3.js</span>
-                            <span class="tag">Firebase</span>
+                        <div class="project-content">
+                            <h3 class="project-title">{{ proj.name | safe }}</h3>
+                            <p class="project-description">
+                                {{ proj.description | safe }}
+                            </p>
+                            <div class="project-tags">
+                                {% if proj.tech %}
+                                    {% set tech_list = proj.tech if proj.tech is not string else proj.tech.split(',') %}
+                                    {% for tech in tech_list %}
+                                        <span class="tag">{{ tech | trim | safe }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            {% if proj.link %}
+                            <a href="{{ proj.link }}" class="project-link">
+                                View Project <i class="fas fa-arrow-right"></i>
+                            </a>
+                            {% endif %}
                         </div>
-                        <a href="#" class="project-link">
-                            View Project <i class="fas fa-arrow-right"></i>
-                        </a>
                     </div>
-                </div>
-                <div class="project-card">
-                    <div class="project-image">
-                        <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=600&fit=crop" alt="Mobile App">
-                    </div>
-                    <div class="project-content">
-                        <h3 class="project-title">Fitness Tracking App</h3>
-                        <p class="project-description">
-                            Cross-platform mobile application for tracking workouts, 
-                            nutrition, and progress with social sharing capabilities.
-                        </p>
-                        <div class="project-tags">
-                            <span class="tag">React Native</span>
-                            <span class="tag">Redux</span>
-                            <span class="tag">GraphQL</span>
-                        </div>
-                        <a href="#" class="project-link">
-                            View Project <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="project-card">
-                    <div class="project-image">
-                        <img src="https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=800&h=600&fit=crop" alt="AI Chatbot">
-                    </div>
-                    <div class="project-content">
-                        <h3 class="project-title">AI Customer Service Bot</h3>
-                        <p class="project-description">
-                            Intelligent chatbot powered by machine learning for automated 
-                            customer support with natural language processing.
-                        </p>
-                        <div class="project-tags">
-                            <span class="tag">Python</span>
-                            <span class="tag">TensorFlow</span>
-                            <span class="tag">NLP</span>
-                        </div>
-                        <a href="#" class="project-link">
-                            View Project <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
     </section>
@@ -1237,36 +1135,18 @@
                 </p>
             </div>
             <div class="timeline">
-                <div class="timeline-item">
-                    <div class="timeline-date">2021 - Present</div>
-                    <h3 class="timeline-title">Senior Full-Stack Developer</h3>
-                    <p class="timeline-company">Tech Innovations Inc.</p>
-                    <p class="timeline-description">
-                        Leading development of enterprise-scale web applications, mentoring 
-                        junior developers, and architecting scalable cloud solutions. 
-                        Responsible for technical decisions and code quality standards.
-                    </p>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-date">2019 - 2021</div>
-                    <h3 class="timeline-title">Full-Stack Developer</h3>
-                    <p class="timeline-company">Digital Solutions Co.</p>
-                    <p class="timeline-description">
-                        Developed and maintained multiple client projects using modern web 
-                        technologies. Collaborated with design teams to implement pixel-perfect 
-                        interfaces and optimize application performance.
-                    </p>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-date">2017 - 2019</div>
-                    <h3 class="timeline-title">Junior Developer</h3>
-                    <p class="timeline-company">StartUp Studio</p>
-                    <p class="timeline-description">
-                        Started my professional journey building responsive websites and web 
-                        applications. Gained experience in various technologies and contributed 
-                        to multiple successful product launches.
-                    </p>
-                </div>
+                {% if experience %}
+                    {% for exp in experience %}
+                    <div class="timeline-item">
+                        <div class="timeline-date">{{ exp.dates | safe }}</div>
+                        <h3 class="timeline-title">{{ exp.title | safe }}</h3>
+                        <p class="timeline-company">{{ exp.company | safe }}</p>
+                        <p class="timeline-description">
+                            {{ exp.description | safe }}
+                        </p>
+                    </div>
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
     </section>
@@ -1289,7 +1169,7 @@
                         </div>
                         <div class="contact-details">
                             <h3>Email</h3>
-                            <a href="mailto:hello@yourname.com">hello@yourname.com</a>
+                            <a href="mailto:{{ email }}">{{ email or 'hello@yourname.com' }}</a>
                         </div>
                     </div>
                     <div class="contact-item">
@@ -1298,7 +1178,7 @@
                         </div>
                         <div class="contact-details">
                             <h3>Phone</h3>
-                            <a href="tel:+1234567890">+1 (234) 567-890</a>
+                            <a href="tel:{{ mobile }}">{{ mobile or '+1 (234) 567-890' }}</a>
                         </div>
                     </div>
                     <div class="contact-item">
@@ -1307,7 +1187,7 @@
                         </div>
                         <div class="contact-details">
                             <h3>Location</h3>
-                            <p>San Francisco, CA</p>
+                            <p>{{ location or 'San Francisco, CA' }}</p>
                         </div>
                     </div>
                     <div class="social-links">
