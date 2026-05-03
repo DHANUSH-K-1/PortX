@@ -6,7 +6,7 @@ interface ResumeData {
   mobile?: string;
   profile_photo?: string;
   portfolio_summary?: string;
-  skills: string[];
+  skills: (string | { name?: string; level?: number })[];
   education: { name?: string; institution?: string; dates?: string }[];
   experience: { title?: string; company?: string; dates?: string; description?: string }[];
   projects?: { name?: string; description?: string; tech?: string; link?: string }[];
@@ -21,7 +21,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ data, layout }) => 
   // Using a single, polished layout for all selections for now.
   // The 'layout' prop is kept for future expansion.
   return (
-    <div className="p-8 bg-gray-800/50 text-white rounded-lg shadow-lg backdrop-blur-sm border border-purple-500/30">
+    <div data-layout={layout} className="p-8 bg-gray-800/50 text-white rounded-lg shadow-lg backdrop-blur-sm border border-purple-500/30">
       <header className="flex flex-col items-center mb-8">
         {data.profile_photo && (
           <img 

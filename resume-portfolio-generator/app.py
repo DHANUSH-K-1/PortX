@@ -109,6 +109,7 @@ app.config['GENERATED_FOLDER'] = GENERATED_FOLDER
 app.config['PHOTOS_FOLDER'] = PHOTOS_FOLDER
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
+# Create required directories if they do not exist
 for folder in [UPLOAD_FOLDER, DATA_FOLDER, GENERATED_FOLDER, TEMPLATES_FOLDER, PHOTOS_FOLDER]:
     if not os.path.exists(folder):
         os.makedirs(folder)
@@ -831,5 +832,4 @@ def ai_enhance():
 
 if __name__ == '__main__':
    
-       # '0.0.0.0' tells Flask to accept connections from any device on your Wi-Fi   
-        app.run(host='0.0.0.0', port=5000, debug=True)
+        app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)

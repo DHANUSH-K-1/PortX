@@ -1,7 +1,47 @@
 
 import React, { useState } from 'react';
-import { Upload, CheckCircle, Layout, FileText, User, Briefcase, Code, Loader2, Plus, Trash2, Camera, ImageIcon } from 'lucide-react';
+import { Upload, CheckCircle, Layout, FileText, User, Briefcase, Code, Loader2, Plus, Trash2, Camera, ImageIcon, Sparkles, Palette, Monitor } from 'lucide-react';
+import toast from 'react-hot-toast';
 import PortfolioPreview from './PortfolioPreview';
+
+const SkeletonCard = () => (
+  <div className="bg-purple-900/10 backdrop-blur-sm border border-purple-500/20 rounded-2xl overflow-hidden animate-pulse">
+    <div className="h-40 bg-gradient-to-br from-purple-900/30 to-black/50 p-6 flex flex-col justify-end">
+      <div className="h-5 w-24 bg-purple-500/20 rounded-full mb-3"></div>
+      <div className="h-6 w-48 bg-white/10 rounded-md"></div>
+    </div>
+    <div className="p-6">
+      <div className="space-y-2 mb-6">
+        <div className="h-4 w-full bg-white/5 rounded-md"></div>
+        <div className="h-4 w-5/6 bg-white/5 rounded-md"></div>
+        <div className="h-4 w-4/6 bg-white/5 rounded-md"></div>
+      </div>
+      <div className="flex gap-3">
+        <div className="flex-1 h-9 bg-purple-600/10 rounded-lg"></div>
+        <div className="w-16 h-9 bg-white/5 rounded-lg"></div>
+        <div className="w-9 h-9 bg-red-500/10 rounded-lg"></div>
+      </div>
+    </div>
+  </div>
+);
+
+const getLayoutIcon = (layout: string) => {
+  switch (layout) {
+    case 'developer':
+    case 'terminal':
+    case 'cyberpunk':
+      return <Code className="w-10 h-10 text-purple-400 opacity-20 absolute top-4 right-4" />;
+    case 'creative':
+    case 'designer':
+    case 'glass':
+      return <Palette className="w-10 h-10 text-pink-400 opacity-20 absolute top-4 right-4" />;
+    case 'photographer':
+    case 'nature':
+      return <Camera className="w-10 h-10 text-purple-300 opacity-20 absolute top-4 right-4" />;
+    default:
+      return <Monitor className="w-10 h-10 text-purple-400 opacity-20 absolute top-4 right-4" />;
+  }
+};
 
 export default function PortfolioBuilder() {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -67,11 +107,12 @@ export default function PortfolioBuilder() {
       });
       if (response.ok) {
         setPortfolios(prev => prev.filter(p => p.id !== id));
+        toast.success("Portfolio deleted successfully");
       } else {
-        alert("Failed to delete portfolio");
+        toast.error("Failed to delete portfolio");
       }
     } catch (e) {
-      alert("Error deleting portfolio");
+      toast.error("Error deleting portfolio");
     } finally {
       setIsDeleting(null);
     }
@@ -111,10 +152,10 @@ export default function PortfolioBuilder() {
         setResumeData(data);
         setCurrentPage('edit');
       } else {
-        alert("Failed to load portfolio data");
+        toast.error("Failed to load portfolio data");
       }
     } catch (e) {
-      alert("Error loading portfolio");
+      toast.error("Error loading portfolio");
     }
   };
 
@@ -201,13 +242,13 @@ export default function PortfolioBuilder() {
       const response = await fetch('/api/upload-photo', { method: 'POST', body: formData });
       if (!response.ok) {
         const err = await response.json();
-        alert(err.error || 'Photo upload failed');
+        toast.error(err.error || 'Photo upload failed');
         return;
       }
       const result = await response.json();
       handleUpdateField('profile_photo', result.url);
     } catch (err) {
-      alert('Photo upload error. Please try again.');
+      toast.error('Photo upload error. Please try again.');
     } finally {
       setIsUploadingPhoto(false);
       // Reset input so same file can be re-picked
@@ -246,13 +287,13 @@ export default function PortfolioBuilder() {
 
     } catch (error: any) {
       console.error('Error uploading file:', error);
-      alert(error.message);
+      toast.error(error.message);
     } finally {
       setIsProcessingResume(false);
     }
   };
 
-  const handleUpdateField = (field: keyof typeof resumeData, value: string | string[]) => {
+  const handleUpdateField = (field: keyof typeof resumeData, value: any) => {
     setResumeData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -285,11 +326,11 @@ export default function PortfolioBuilder() {
 
   const handleSaveAndPreview = async () => {
     if (!selectedLayout) {
-      alert('Please select a layout');
+      toast.error('Please select a layout');
       return;
     }
     if (!jsonFilename) {
-      alert('Something went wrong, no filename to save to.');
+      toast.error('Something went wrong, no filename to save to.');
       return;
     }
 
@@ -328,7 +369,7 @@ export default function PortfolioBuilder() {
       setCurrentPage('preview');
     } catch (error: any) {
       console.error('Error in final step:', error);
-      alert(error.message);
+      toast.error(error.message);
     }
   };
 
@@ -355,8 +396,8 @@ export default function PortfolioBuilder() {
           </div>
 
           {isLoadingPortfolios ? (
-            <div className="flex justify-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -373,19 +414,20 @@ export default function PortfolioBuilder() {
               </div>
 
               {portfolios.map((portfolio) => (
-                <div key={portfolio.id} className={`bg-purple-900/10 backdrop-blur-sm border border-purple-500/20 rounded-2xl overflow-hidden hover:border-purple-500/40 transition-all hover:-translate-y-1 ${isDeleting === portfolio.id ? 'sand-wash-out' : ''}`}>
+                <div key={portfolio.id} className={`group bg-purple-900/10 backdrop-blur-sm border border-purple-500/20 rounded-2xl overflow-hidden hover:border-purple-500/40 transition-all hover:shadow-[0_0_25px_rgba(168,85,247,0.4)] ${isDeleting === portfolio.id ? 'sand-wash-out' : ''}`}>
 
-                  <div className="h-40 bg-gradient-to-br from-purple-900/50 to-black p-6 flex flex-col justify-end">
-                    <span className="inline-block px-3 py-1 bg-black/40 rounded-full text-xs text-purple-300 w-fit mb-2">
+                  <div className="relative h-40 bg-gradient-to-br from-purple-900/50 to-black p-6 flex flex-col justify-end overflow-hidden">
+                    {getLayoutIcon(portfolio.preview_data.layout)}
+                    <span className="inline-block px-3 py-1 bg-black/40 rounded-full text-xs text-purple-300 w-fit mb-2 z-10 relative">
                       {new Date(portfolio.created_at).toLocaleDateString()}
                     </span>
-                    <h3 className="text-xl font-bold text-white truncate">{portfolio.name}</h3>
+                    <h3 className="text-xl font-bold text-white truncate z-10 relative">{portfolio.name}</h3>
                   </div>
                   <div className="p-6">
-                    <p className="text-gray-400 text-sm line-clamp-3 mb-6">
+                    <p className="text-gray-400 text-sm line-clamp-3 mb-6 transition-all duration-300">
                       {portfolio.preview_data.title || "No summary available."}
                     </p>
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
                       <button
                         onClick={() => handleEditPortfolio(portfolio.id, "")}
                         className="flex-1 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 rounded-lg text-sm font-medium transition-colors border border-purple-500/30"
@@ -393,9 +435,7 @@ export default function PortfolioBuilder() {
                         Edit
                       </button>
                       <a
-                        href={`/p/${portfolio.id}.html`} // Assumption: generate-html uses ID logic or we need to regen. 
-                        // Actually backend generate-html route takes filename. For simplicity, we might force regen or just Edit. 
-                        // Let's stick to Edit for now as Primary action.
+                        href={`/p/${portfolio.id}.html`} 
                         target="_blank"
                         rel="noreferrer"
                         className="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 rounded-lg text-sm font-medium transition-colors border border-white/10"
@@ -404,7 +444,7 @@ export default function PortfolioBuilder() {
                       </a>
                       <button
                         onClick={(e) => { e.stopPropagation(); setPortfolioToDelete({ id: portfolio.id, name: portfolio.name }); }}
-                        className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-lg transition-colors border border-red-500/30 group-hover:border-red-500/50"
+                        className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-lg transition-colors border border-red-500/30"
                         title="Delete Portfolio"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -417,8 +457,22 @@ export default function PortfolioBuilder() {
           )}
 
           {!isLoadingPortfolios && portfolios.length === 0 && (
-            <div className="text-center py-20 text-gray-500">
-              <p>You haven't created any portfolios yet.</p>
+            <div className="text-center py-24 px-4 bg-purple-900/5 border border-purple-500/10 rounded-2xl flex flex-col items-center animate-fade-in-up">
+              <div className="relative w-24 h-24 mb-6">
+                <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-xl animate-pulse"></div>
+                <div className="relative bg-gradient-to-br from-purple-800 to-black w-full h-full rounded-full flex items-center justify-center border border-purple-500/30">
+                  <Sparkles className="w-10 h-10 text-purple-300" />
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2">No Portfolios Yet</h3>
+              <p className="text-gray-400 mb-8 max-w-md">You haven't created any portfolios yet. Upload your resume and let AI generate a stunning professional website in seconds.</p>
+              <button
+                onClick={() => setCurrentPage('upload')}
+                className="px-8 py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] hover:-translate-y-1 flex items-center gap-2"
+              >
+                <Plus className="w-5 h-5" />
+                Create First Portfolio
+              </button>
             </div>
           )}
 
