@@ -96,17 +96,20 @@ def load_user(user_id):
         print(f"Error loading user {user_id}: {e}")
         return None
 
-UPLOAD_FOLDER = 'uploads'
-DATA_FOLDER = 'data'
-GENERATED_FOLDER = 'generated'
-PHOTOS_FOLDER = 'photos'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+DATA_FOLDER = os.path.join(BASE_DIR, 'data')
+GENERATED_FOLDER = os.path.join(BASE_DIR, 'generated')
+PHOTOS_FOLDER = os.path.join(BASE_DIR, 'photos')
+TEMPLATES_FOLDER = os.path.join(BASE_DIR, 'templates')
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['DATA_FOLDER'] = DATA_FOLDER
 app.config['GENERATED_FOLDER'] = GENERATED_FOLDER
 app.config['PHOTOS_FOLDER'] = PHOTOS_FOLDER
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
-for folder in [UPLOAD_FOLDER, DATA_FOLDER, GENERATED_FOLDER, 'templates', PHOTOS_FOLDER]:
+for folder in [UPLOAD_FOLDER, DATA_FOLDER, GENERATED_FOLDER, TEMPLATES_FOLDER, PHOTOS_FOLDER]:
     if not os.path.exists(folder):
         os.makedirs(folder)
 
