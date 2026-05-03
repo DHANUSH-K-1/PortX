@@ -57,6 +57,7 @@
     --chart-5: 340 75% 55%
   }
 }
+
 .gradient-blinds-container {
   position: relative;
   width: 100%;
@@ -71,4 +72,29 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes sandWashOut {
+  0% {
+    opacity: 1;
+    filter: blur(0px) contrast(1);
+    transform: translateY(0) scale(1);
+  }
+  30% {
+    opacity: 0.9;
+    filter: blur(2px) contrast(1.2);
+    transform: translateY(-5px) scale(1.02);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(15px) contrast(0.5);
+    transform: translateY(40px) scale(0.9);
+    mask-image: radial-gradient(circle, black 0%, transparent 100%);
+    -webkit-mask-image: radial-gradient(circle, black 0%, transparent 100%);
+  }
+}
+
+.sand-wash-out {
+  animation: sandWashOut 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  pointer-events: none;
 }

@@ -13,6 +13,69 @@ export default function PortfolioBuilder() {
 
   const [portfolios, setPortfolios] = useState<any[]>([]);
   const [isLoadingPortfolios, setIsLoadingPortfolios] = useState(false);
+  const [portfolioToDelete, setPortfolioToDelete] = useState<{id: string, name: string} | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const playDeleteSound = () => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Create 200ms of noise for the "crumple/swoosh"
+      const bufferSize = audioCtx.sampleRate * 0.2; 
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      
+      const noiseSource = audioCtx.createBufferSource();
+      noiseSource.buffer = buffer;
+      
+      // Highpass filter for that crisp iOS 'paper' sound
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.value = 1200;
+      
+      // Sharp, quick envelope
+      const gainNode = audioCtx.createGain();
+      gainNode.gain.setValueAtTime(0.6, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      
+      noiseSource.connect(filter);
+      filter.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      noiseSource.start();
+    } catch (e) {
+      console.warn("AudioContext not supported", e);
+    }
+  };
+
+  const confirmDeletePortfolio = async () => {
+    if (!portfolioToDelete) return;
+    const { id } = portfolioToDelete;
+    
+    setIsDeleting(id);
+    setPortfolioToDelete(null);
+    playDeleteSound();
+
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    try {
+      const response = await fetch(`/api/portfolio/${id}.json/delete`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setPortfolios(prev => prev.filter(p => p.id !== id));
+      } else {
+        alert("Failed to delete portfolio");
+      }
+    } catch (e) {
+      alert("Error deleting portfolio");
+    } finally {
+      setIsDeleting(null);
+    }
+  };
 
   // Fetch portfolios on load or when switching to dashboard
   React.useEffect(() => {
@@ -310,7 +373,7 @@ export default function PortfolioBuilder() {
               </div>
 
               {portfolios.map((portfolio) => (
-                <div key={portfolio.id} className="bg-purple-900/10 backdrop-blur-sm border border-purple-500/20 rounded-2xl overflow-hidden hover:border-purple-500/40 transition-all hover:-translate-y-1">
+                <div key={portfolio.id} className={`bg-purple-900/10 backdrop-blur-sm border border-purple-500/20 rounded-2xl overflow-hidden hover:border-purple-500/40 transition-all hover:-translate-y-1 ${isDeleting === portfolio.id ? 'sand-wash-out' : ''}`}>
 
                   <div className="h-40 bg-gradient-to-br from-purple-900/50 to-black p-6 flex flex-col justify-end">
                     <span className="inline-block px-3 py-1 bg-black/40 rounded-full text-xs text-purple-300 w-fit mb-2">
@@ -339,6 +402,13 @@ export default function PortfolioBuilder() {
                       >
                         View
                       </a>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setPortfolioToDelete({ id: portfolio.id, name: portfolio.name }); }}
+                        className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-lg transition-colors border border-red-500/30 group-hover:border-red-500/50"
+                        title="Delete Portfolio"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -349,6 +419,35 @@ export default function PortfolioBuilder() {
           {!isLoadingPortfolios && portfolios.length === 0 && (
             <div className="text-center py-20 text-gray-500">
               <p>You haven't created any portfolios yet.</p>
+            </div>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {portfolioToDelete && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+              <div className="bg-purple-950/80 border border-purple-500/40 rounded-2xl p-8 max-w-md w-full shadow-2xl shadow-red-900/20 animate-fade-in-up">
+                <h3 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                  <Trash2 className="w-6 h-6 text-red-500" />
+                  Delete Portfolio?
+                </h3>
+                <p className="text-gray-300 mb-6">
+                  Are you sure you want to delete <span className="font-semibold text-purple-300">{portfolioToDelete.name}</span>? This action cannot be undone and the portfolio will be permanently removed.
+                </p>
+                <div className="flex gap-4 justify-end">
+                  <button
+                    onClick={() => setPortfolioToDelete(null)}
+                    className="px-5 py-2.5 rounded-xl font-medium bg-white/5 hover:bg-white/10 text-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDeletePortfolio}
+                    className="px-5 py-2.5 rounded-xl font-medium bg-red-600 hover:bg-red-700 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)] transition-all flex items-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" /> Delete
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
