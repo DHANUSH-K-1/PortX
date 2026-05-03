@@ -7,6 +7,11 @@ from werkzeug.utils import secure_filename
 from werkzeug.exceptions import HTTPException
 import PyPDF2
 import docx
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import random
+import threading
 from dotenv import load_dotenv
 import zipfile
 import io
@@ -211,6 +216,37 @@ def extract_resume_data_with_openrouter(text):
         print(f"Received content: {content_for_log}")
         return None
 
+def send_email(receiver_email, subject, body):
+    sender_email = os.getenv("EMAIL_ADDRESS")
+    app_password = os.getenv("EMAIL_APP_PASSWORD")
+
+    if not sender_email or not app_password:
+        print("Email credentials not configured in .env")
+        return False
+
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(body, 'html'))
+
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender_email, app_password)
+        server.send_message(msg)
+        print(f"Email sent successfully to {receiver_email}!")
+        return True
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        return False
+    finally:
+        try:
+            server.quit()
+        except:
+            pass
+
 # --- Auth Routes ---
 @app.route('/api/auth/register', methods=['POST'])
 def register():
@@ -232,6 +268,86 @@ def register():
         user = User.create_user(mongo, name, email, password)
         login_user(user)
         print(f"User registered and logged in: {user.id}")
+        
+        # --- Send Welcome Email in background ---
+        welcome_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"></head>
+        <body style="margin:0; padding:0; background-color:#000000; font-family: Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000; padding: 40px 0;">
+        <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background:#111117; border-radius:10px; overflow:hidden; color:#ffffff;">
+              <!-- Header -->
+              <tr>
+                <td style="padding:20px; text-align:center; border-bottom:1px solid #1f1f2e;">
+                  <h1 style="margin:0; font-size:22px; letter-spacing:1px; color:#ffffff;">PortX</h1>
+                  <p style="margin:5px 0 0; font-size:12px; color:#9aa0a6;">AI-Powered Portfolio Builder</p>
+                </td>
+              </tr>
+              <!-- Hero -->
+              <tr>
+                <td style="padding:30px; text-align:center;">
+                  <h2 style="margin:0; font-size:26px; color:#d16bff;">Build Your Legacy</h2>
+                  <h2 style="margin:5px 0 20px; font-size:26px; color:#ffffff;">In Minutes</h2>
+                  <p style="font-size:14px; color:#c9c9d1; line-height:1.6;">
+                    Hi {name},<br><br>
+                    Your account is ready. Transform your resume into a stunning, professional portfolio website — 
+                    no coding required. Just upload and shine.
+                  </p>
+                  <!-- The button uses a dark fallback background in case gradients aren't supported -->
+                  <a href="http://localhost:5000" style="display:inline-block; margin-top:20px; padding:12px 24px; background:#a855f7; background:linear-gradient(90deg,#a855f7,#ec4899); color:#ffffff; text-decoration:none; border-radius:6px; font-size:14px; font-weight:bold;">
+                    Get Started Free &rarr;
+                  </a>
+                </td>
+              </tr>
+              <!-- Features -->
+              <tr>
+                <td style="padding:20px 30px;">
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding:10px;">
+                        <strong style="color:#ffffff;">&#128228; Upload Resume</strong>
+                        <p style="font-size:13px; color:#9aa0a6; margin:5px 0;">
+                          Upload your PDF or DOCX and let AI extract your details instantly.
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:10px;">
+                        <strong style="color:#ffffff;">&#10024; AI Enhancement</strong>
+                        <p style="font-size:13px; color:#9aa0a6; margin:5px 0;">
+                          Automatically refine and structure your content for maximum impact.
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:10px;">
+                        <strong style="color:#ffffff;">&#127912; Premium Layouts</strong>
+                        <p style="font-size:13px; color:#9aa0a6; margin:5px 0;">
+                          Choose from modern, responsive designs tailored for professionals.
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <!-- Footer -->
+              <tr>
+                <td style="padding:20px; text-align:center; font-size:12px; color:#6b7280; border-top:1px solid #1f1f2e;">
+                  &copy; 2026 PortX. All rights reserved.<br>
+                  You're receiving this email because you created an account on PortX.
+                </td>
+              </tr>
+            </table>
+        </td></tr>
+        </table>
+        </body>
+        </html>
+        """
+        import threading
+        threading.Thread(target=send_email, args=(user.email, "Welcome to PortX - Build Your Legacy", welcome_html)).start()
+
         return jsonify(message="Registered successfully", user={'id': user.id, 'name': user.name, 'email': user.email})
     except Exception as e:
         print(f"Error creating user: {e}")
@@ -268,6 +384,71 @@ def get_current_user():
     if current_user.is_authenticated:
         return jsonify(user={'id': current_user.id, 'name': current_user.name, 'email': current_user.email})
     return jsonify(user=None)
+
+@app.route('/api/auth/forgot-password', methods=['POST'])
+def forgot_password():
+    data = request.json
+    email = data.get('email')
+    
+    if not email:
+        return jsonify(error="Email is required"), 400
+        
+    user = User.get_by_email(mongo, email)
+    if not user:
+        return jsonify(message="If an account with that email exists, an OTP has been sent.")
+        
+    otp = str(random.randint(100000, 999999))
+    expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+    
+    User.set_otp(mongo, email, otp, expires_at)
+    
+    otp_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="UTF-8"></head>
+    <body style="margin:0; padding:0; background-color:#000000; font-family: Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000; padding: 40px 0;">
+    <tr><td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#111117; border-radius:10px; overflow:hidden; color:#ffffff;">
+          <tr>
+            <td style="padding:30px; text-align:center;">
+              <h2 style="margin:0; font-size:26px; color:#d16bff;">Password Reset</h2>
+              <p style="font-size:14px; color:#c9c9d1; line-height:1.6; margin-top:20px;">
+                We received a request to reset your PortX password. Enter the following OTP to proceed:
+              </p>
+              <div style="margin: 30px 0; padding: 15px; background: #1f1f2e; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ffffff;">
+                {otp}
+              </div>
+              <p style="font-size:12px; color:#6b7280;">
+                This code will expire in 10 minutes. If you didn't request this, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+    </td></tr>
+    </table>
+    </body>
+    </html>
+    """
+    threading.Thread(target=send_email, args=(email, "PortX - Password Reset OTP", otp_html)).start()
+    
+    return jsonify(message="If an account with that email exists, an OTP has been sent.")
+
+@app.route('/api/auth/reset-password', methods=['POST'])
+def reset_password():
+    data = request.json
+    email = data.get('email')
+    otp = data.get('otp')
+    new_password = data.get('new_password')
+    
+    if not all([email, otp, new_password]):
+        return jsonify(error="Email, OTP, and new password are required"), 400
+        
+    if User.verify_otp(mongo, email, otp):
+        User.update_password(mongo, email, new_password)
+        return jsonify(message="Password reset successfully")
+    else:
+        return jsonify(error="Invalid or expired OTP"), 400
 
 @app.route('/api/portfolios', methods=['GET'])
 @login_required

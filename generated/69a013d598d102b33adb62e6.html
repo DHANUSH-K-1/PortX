@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIYA NILEEN KAIS's Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #111111;
+    --ink:    #111111;
+    --ink2:   #555555;
+    --ink3:   #999999;
+    --line:   #e8e8e8;
+    --bg:     #fafaf8;
+    --white:  #ffffff;
+    --serif:  'Lora', Georgia, serif;
+    --sans:   'DM Sans', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 1.2rem 2.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(250,250,248,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-name {
+    font-family: var(--serif);
+    font-size: 1rem; font-weight: 400; font-style: italic;
+    color: var(--ink); text-decoration: none;
+    letter-spacing: 0.01em;
+  }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    font-size: 0.78rem; font-weight: 400; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink2);
+    text-decoration: none; transition: color 0.18s;
+  }
+  .nav-links a:hover { color: var(--ink); }
+
+  /* ── WRAPPER ── */
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 2rem; }
+
+  /* ── SECTIONS ── */
+  section { padding: 100px 0; }
+  section + section { border-top: 1px solid var(--line); }
+
+  /* ── HERO ── */
+  #home {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding-top: 120px;
+  }
+  .hero-inner { width: 100%; }
+  .hero-label {
+    font-size: 0.72rem; font-weight: 400; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink3);
+    margin-bottom: 2rem;
+    display: flex; align-items: center; gap: 0.8rem;
+    opacity: 0; animation: rise 0.8s 0.1s ease forwards;
+  }
+  .hero-label::before { content: ''; width: 28px; height: 1px; background: var(--ink3); }
+
+  h1.hero-name {
+    font-family: var(--serif);
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 400; line-height: 1.0;
+    letter-spacing: -0.02em; color: var(--ink);
+    margin-bottom: 2.5rem;
+    opacity: 0; animation: rise 0.9s 0.25s ease forwards;
+  }
+  h1.hero-name em { font-style: italic; color: var(--ink2); }
+
+  .hero-meta {
+    display: flex; gap: 2.5rem; flex-wrap: wrap;
+    font-size: 0.82rem; color: var(--ink3);
+    margin-bottom: 2.5rem;
+    opacity: 0; animation: rise 0.8s 0.4s ease forwards;
+  }
+  .hero-meta a { color: var(--ink3); text-decoration: none; transition: color 0.18s; }
+  .hero-meta a:hover { color: var(--ink); }
+
+  
+  .hero-bio {
+    font-size: 1.05rem; font-weight: 300; color: var(--ink2);
+    line-height: 1.85; max-width: 520px;
+    border-left: 2px solid var(--line);
+    padding-left: 1.2rem;
+    opacity: 0; animation: rise 0.8s 0.55s ease forwards;
+  }
+  
+
+  .hero-scroll {
+    margin-top: 4rem;
+    font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink3);
+    display: flex; align-items: center; gap: 0.7rem;
+    opacity: 0; animation: rise 0.8s 0.8s ease forwards;
+    text-decoration: none; transition: color 0.2s;
+  }
+  .hero-scroll:hover { color: var(--ink); }
+  .scroll-line {
+    width: 32px; height: 1px; background: var(--ink3);
+    animation: grow 2s ease-in-out infinite;
+  }
+  @keyframes grow { 0%,100%{width:20px;opacity:.4} 50%{width:40px;opacity:1} }
+  @keyframes rise { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
+
+  /* ── SECTION HEADERS ── */
+  .s-head { margin-bottom: 3rem; }
+  .s-label {
+    font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink3); margin-bottom: 0.6rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .s-label::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  h2.s-title {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    font-weight: 400; letter-spacing: -0.02em;
+    color: var(--ink); line-height: 1.15;
+  }
+  h2.s-title em { font-style: italic; color: var(--ink2); }
+
+  /* reveal */
+  .rv { opacity: 0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .rv.on { opacity: 1; transform: none; }
+  .d1 { transition-delay: 0.08s; } .d2 { transition-delay: 0.16s; } .d3 { transition-delay: 0.24s; }
+
+  /* ── ABOUT ── */
+  #about {}
+  .about-text {
+    font-size: 1.05rem; font-weight: 300; color: var(--ink2);
+    line-height: 1.9; margin-bottom: 1.5rem;
+  }
+  .about-text:last-child { margin-bottom: 0; }
+  .about-facts {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 0; margin-top: 3rem;
+    border-top: 1px solid var(--line); border-left: 1px solid var(--line);
+  }
+  .fact {
+    padding: 1.5rem 1.2rem;
+    border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  }
+  .fact-val {
+    font-family: var(--serif); font-size: 2rem;
+    font-weight: 400; color: var(--ink); line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+  .fact-lbl { font-size: 0.75rem; color: var(--ink3); letter-spacing: 0.04em; }
+
+  /* ── SKILLS ── */
+  #skills {}
+  .skill-list { display: flex; flex-direction: column; gap: 0; }
+  .skill-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--line);
+    transition: background 0.15s;
+  }
+  .skill-row:first-child { border-top: 1px solid var(--line); }
+  .skill-row:hover { padding-left: 0.5rem; }
+  .skill-name { font-size: 0.9rem; font-weight: 400; color: var(--ink); }
+  .skill-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--line); flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .skill-row:hover .skill-dot { background: var(--ink); }
+
+  /* ── PROJECTS ── */
+  #projects {}
+  .project-list { display: flex; flex-direction: column; gap: 0; }
+  .project-item {
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--line);
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 1.5rem; align-items: start;
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .project-item:first-child { border-top: 1px solid var(--line); }
+  .project-item:hover .project-arrow { opacity: 1; transform: translate(3px, -3px); }
+  .proj-num {
+    font-size: 0.68rem; letter-spacing: 0.1em; color: var(--ink3);
+    margin-bottom: 0.5rem; font-weight: 400;
+  }
+  .proj-name {
+    font-family: var(--serif); font-size: 1.25rem; font-weight: 400;
+    color: var(--ink); letter-spacing: -0.01em; margin-bottom: 0.4rem;
+  }
+  .proj-tech {
+    font-size: 0.75rem; color: var(--ink3); letter-spacing: 0.04em;
+    margin-bottom: 0.7rem;
+  }
+  .proj-desc { font-size: 0.88rem; color: var(--ink2); line-height: 1.7; font-weight: 300; }
+  .project-arrow {
+    font-size: 1rem; color: var(--ink3);
+    opacity: 0; transition: all 0.25s;
+    padding-top: 0.25rem; flex-shrink: 0;
+  }
+
+  /* ── EXPERIENCE ── */
+  #experience {}
+  .exp-list { display: flex; flex-direction: column; gap: 0; }
+  .exp-item {
+    display: grid; grid-template-columns: 160px 1fr;
+    gap: 2rem; padding: 2rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .exp-item:first-child { border-top: 1px solid var(--line); }
+  .exp-dates { font-size: 0.75rem; color: var(--ink3); letter-spacing: 0.04em; padding-top: 0.2rem; }
+  .exp-co { font-size: 0.78rem; color: var(--ink2); margin-top: 0.2rem; }
+  .exp-role {
+    font-family: var(--serif); font-size: 1.1rem; font-weight: 400;
+    color: var(--ink); letter-spacing: -0.01em; margin-bottom: 0.5rem;
+  }
+  .exp-desc { font-size: 0.86rem; color: var(--ink2); line-height: 1.75; font-weight: 300; }
+
+  /* ── EDUCATION ── */
+  #education {}
+  .edu-list { display: flex; flex-direction: column; gap: 0; }
+  .edu-item {
+    display: grid; grid-template-columns: 160px 1fr;
+    gap: 2rem; padding: 1.6rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .edu-item:first-child { border-top: 1px solid var(--line); }
+  .edu-dates { font-size: 0.75rem; color: var(--ink3); letter-spacing: 0.04em; padding-top: 0.2rem; }
+  .edu-degree {
+    font-family: var(--serif); font-size: 1.05rem; font-weight: 400;
+    color: var(--ink); letter-spacing: -0.01em; margin-bottom: 0.2rem;
+  }
+  .edu-inst { font-size: 0.82rem; color: var(--ink2); }
+
+  /* ── CONTACT ── */
+  #contact { padding-bottom: 120px; }
+  .contact-intro {
+    font-size: 1rem; color: var(--ink2); line-height: 1.8;
+    font-weight: 300; max-width: 480px; margin-bottom: 3rem;
+  }
+  .contact-links { display: flex; flex-direction: column; gap: 0; margin-bottom: 4rem; }
+  .contact-link {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none; color: var(--ink);
+    transition: padding-left 0.2s;
+  }
+  .contact-link:first-child { border-top: 1px solid var(--line); }
+  .contact-link:hover { padding-left: 0.5rem; }
+  .cl-left { display: flex; flex-direction: column; gap: 0.15rem; }
+  .cl-type { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); }
+  .cl-val { font-size: 0.9rem; color: var(--ink); }
+  .cl-arrow { font-size: 0.85rem; color: var(--ink3); transition: transform 0.2s; }
+  .contact-link:hover .cl-arrow { transform: translate(3px, -3px); color: var(--ink); }
+
+  /* form */
+  .contact-form { display: flex; flex-direction: column; gap: 0; }
+  .cf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .cf-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.5rem; }
+  .cf-group label {
+    font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink3);
+  }
+  .cf-group input, .cf-group textarea {
+    background: transparent;
+    border: none; border-bottom: 1px solid var(--line);
+    color: var(--ink); padding: 0.6rem 0;
+    font-family: var(--sans); font-size: 0.9rem;
+    outline: none; transition: border-color 0.2s;
+    resize: none;
+  }
+  .cf-group input:focus, .cf-group textarea:focus { border-color: var(--ink); }
+  .cf-group input::placeholder, .cf-group textarea::placeholder { color: var(--ink3); }
+  .cf-submit {
+    align-self: flex-start;
+    background: var(--ink); color: var(--bg);
+    border: none; padding: 0.75rem 2rem;
+    font-family: var(--sans); font-size: 0.8rem;
+    font-weight: 500; letter-spacing: 0.06em;
+    text-transform: uppercase; cursor: pointer;
+    transition: all 0.2s; margin-top: 0.5rem;
+  }
+  .cf-submit:hover { background: #333; transform: translateY(-1px); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 1.8rem 0;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.72rem; color: var(--ink3); letter-spacing: 0.04em;
+  }
+  footer a { color: var(--ink3); text-decoration: none; transition: color 0.18s; }
+  footer a:hover { color: var(--ink); }
+
+  @media (max-width: 640px) {
+    nav { padding: 1rem 1.2rem; }
+    .nav-links { display: none; }
+    section { padding: 72px 0; }
+    .wrap { padding: 0 1.2rem; }
+    .exp-item, .edu-item { grid-template-columns: 1fr; gap: 0.3rem; }
+    .project-item { grid-template-columns: 1fr; }
+    .about-facts { grid-template-columns: 1fr 1fr; }
+    .cf-row { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 0.5rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-name" href="#home">FIYA NILEEN KAIS</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#education">Education</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ── -->
+<section id="home">
+  <div class="wrap">
+    <div class="hero-inner">
+      <div class="hero-label">Portfolio</div>
+      <h1 class="hero-name">
+        FIYA NILEEN KAIS<br><em>KAIS</em>
+      </h1>
+      <div class="hero-meta">
+        <a href="mailto:fiyanileenkais11@gmail.com">fiyanileenkais11@gmail.com</a>
+        <span>+91 95392 34433</span>
+      </div>
+      
+      <p class="hero-bio">Motivated and diligent B.Tech student in Information Technology with a foundational understanding of full-stack development (MERN Stack) and data analysis...</p>
+      
+      <a href="#about" class="hero-scroll">
+        <span class="scroll-line"></span> Scroll down
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── ABOUT ── -->
+
+<section id="about">
+  <div class="wrap">
+    <div class="s-head rv">
+      <div class="s-label">About</div>
+      <h2 class="s-title">A little about <em>me.</em></h2>
+    </div>
+    <p class="about-text rv d1">Motivated and diligent B.Tech student in Information Technology with a foundational understanding of full-stack development (MERN Stack) and data analysis principles. Proven quick-learner with certifications in Data Science for Engineers (NPTEL/IIT Madras) and hands-on experience in Machine Learning (Python). Eager to leverage strong technical skills and a diligent work ethic to contribute to innovative projects in the IT or software industry.</p>
+    <div class="about-facts rv d2">
+      
+      <div class="fact">
+        <div class="fact-val">3+</div>
+        <div class="fact-lbl">Roles held</div>
+      </div>
+      
+      
+      <div class="fact">
+        <div class="fact-val">2</div>
+        <div class="fact-lbl">Projects built</div>
+      </div>
+      
+      
+      <div class="fact">
+        <div class="fact-val">14</div>
+        <div class="fact-lbl">Skills</div>
+      </div>
+      
+    </div>
+  </div>
+</section>
+
+
+<!-- ── SKILLS ── -->
+
+<section id="skills">
+  <div class="wrap">
+    <div class="s-head rv">
+      <div class="s-label">Skills</div>
+      <h2 class="s-title">What I <em>work with.</em></h2>
+    </div>
+    <div class="skill-list">
+      
+      <div class="skill-row rv" style="transition-delay: 0.0s">
+        <span class="skill-name">Python</span>
+        <span class="skill-dot"></span>
+      </div>
+      
+      <div class="skill-row rv" style="transition-delay: 0.04s">
+        <span class="skill-name">JavaScript</span>
+        <span class="skill-dot"></span>
+      </div>
+      
+      <div class="skill-row rv" style="transition-delay: 0.08s">
+        <span class="skill-name">SQL</span>
+        <span class="skill-dot"></span>
+      </div>
+      
+      <div class="skill-row rv" style="transition-delay: 0.12s">
+        <span class="skill-name">C</span>
+        <span class="skill-dot"></span>
+      </div>
+      
+      <div class="skill-row rv" style="transition-delay: 0.16s">
+        <span class="skill-name">C++</span>
+        <span class="skill-dot"></span>
+      </div>
+      
+      <div class="skill-row rv" style="transition-delay: 0.2s">
+        <span class="skill-name">MERN Stack (MongoDB, Express.js, React.js, Node.js)</span>
+        <span class="skill-dot"></span>
+      </div>
+      
+      <div class="skill-row rv" style="transition-delay: 0.24s">
+        <span class="skill-name">HTML</span>
+        <span class="skill-dot"></span>
+      </div>
+      
+      <div class="skill-row rv" style="transition-delay: 0.28s">
+        <span class="skill-name">CSS</span>
+        <span class="skill-dot"></span>
+      </div>
+      
+      <div class="skill-row rv" style="transition-delay: 0.32s">
+        <span class="skill-name">Machine Learning</span>
+        <span class="skill-dot"></span>
+      </div>
+      
+      <div class="skill-row rv" style="transition-delay: 0.36s">
+        <span class="skill-name">Pandas</span>
+        <span class="skill-dot"></span>
+      </div>
+      
+      <div class="skill-row rv" style="transition-delay: 0.4s">
+        <span class="skill-name">NumPy</span>
+        <span class="skill-dot"></span>
+      </div>
+      
+      <div class="skill-row rv" style="transition-delay: 0.44s">
+        <span class="skill-name">Data Visualization</span>
+        <span class="skill-dot"></span>
+      </div>
+      
+      <div class="skill-row rv" style="transition-delay: 0.48s">
+        <span class="skill-name">Git/GitHub</span>
+        <span class="skill-dot"></span>
+      </div>
+      
+      <div class="skill-row rv" style="transition-delay: 0.52s">
+        <span class="skill-name">Visual Studio Code</span>
+        <span class="skill-dot"></span>
+      </div>
+      
+    </div>
+  </div>
+</section>
+
+
+<!-- ── PROJECTS ── -->
+
+<section id="projects">
+  <div class="wrap">
+    <div class="s-head rv">
+      <div class="s-label">Projects</div>
+      <h2 class="s-title">Things I've <em>built.</em></h2>
+    </div>
+    <div class="project-list">
+      
+      <div class="project-item rv" style="transition-delay: 0.0s">
+        <div>
+          <div class="proj-num">01</div>
+          <div class="proj-name">RISE UP: Personal Finance Management App</div>
+          
+          
+          <p class="proj-desc">Designed and developed a mobile app to help users track expenses, income, and savings goals. Implemented features like budget planning, category-wise spending analysis, and daily transaction tracking. Integrated secure login and real-time data sync with cloud storage. Improved user experience with interactive dashboards and charts for financial insights.</p>
+          
+        </div>
+        <div class="project-arrow">↗</div>
+      </div>
+      
+      <div class="project-item rv" style="transition-delay: 0.06s">
+        <div>
+          <div class="proj-num">02</div>
+          <div class="proj-name">One-Click Personal Portfolio Builder</div>
+          
+          
+          <p class="proj-desc">Developed a web-based tool that generates a professional personal portfolio website instantly from user input. Automated customization of sections like About, Skills, Projects, and Contact using pre-built templates. Integrated responsive design for mobile and desktop compatibility.</p>
+          
+        </div>
+        <div class="project-arrow">↗</div>
+      </div>
+      
+    </div>
+  </div>
+</section>
+
+
+<!-- ── EXPERIENCE ── -->
+
+<section id="experience">
+  <div class="wrap">
+    <div class="s-head rv">
+      <div class="s-label">Experience</div>
+      <h2 class="s-title">Where I've <em>worked.</em></h2>
+    </div>
+    <div class="exp-list">
+      
+      <div class="exp-item rv" style="transition-delay: 0.0s">
+        <div>
+          <div class="exp-dates">9 June 2025-20 June 2025</div>
+          <div class="exp-co">Luminar Tech Lab</div>
+        </div>
+        <div>
+          <div class="exp-role">MERN Stack Intern</div>
+          
+        </div>
+      </div>
+      
+      <div class="exp-item rv" style="transition-delay: 0.07s">
+        <div>
+          <div class="exp-dates">Jan 2024-Mar 2024</div>
+          <div class="exp-co"></div>
+        </div>
+        <div>
+          <div class="exp-role">Data Science for Engineers Certification</div>
+          
+          <p class="exp-desc">Completed an intensive certification on foundational Data Science topics, achieving a consolidated score of 60%.</p>
+          
+        </div>
+      </div>
+      
+      <div class="exp-item rv" style="transition-delay: 0.14s">
+        <div>
+          <div class="exp-dates">22 February 2024-24 February 2024</div>
+          <div class="exp-co"></div>
+        </div>
+        <div>
+          <div class="exp-role">Machine Learning Through Python Workshop</div>
+          
+          <p class="exp-desc">Participated in a hands-on workshop focused on developing practical ML skills using Python.</p>
+          
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</section>
+
+
+<!-- ── EDUCATION ── -->
+
+<section id="education">
+  <div class="wrap">
+    <div class="s-head rv">
+      <div class="s-label">Education</div>
+      <h2 class="s-title">Where I <em>learned.</em></h2>
+    </div>
+    <div class="edu-list">
+      
+      <div class="edu-item rv" style="transition-delay: 0.0s">
+        <div class="edu-dates">25/10/2022-30/04/2026</div>
+        <div>
+          <div class="edu-degree">Bachelor of Technology (B.Tech)</div>
+          <div class="edu-inst">College of Engineering, Thalassery</div>
+        </div>
+      </div>
+      
+      <div class="edu-item rv" style="transition-delay: 0.06s">
+        <div class="edu-dates">2019-2021</div>
+        <div>
+          <div class="edu-degree">Higher Secondary</div>
+          <div class="edu-inst">MMHSS Thalassery</div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</section>
+
+
+<!-- ── CONTACT ── -->
+<section id="contact">
+  <div class="wrap">
+    <div class="s-head rv">
+      <div class="s-label">Contact</div>
+      <h2 class="s-title">Let's <em>talk.</em></h2>
+    </div>
+    <p class="contact-intro rv d1">Open to new opportunities, collaborations, and conversations. Reach out — I reply to everything.</p>
+    <div class="contact-links rv d2">
+      
+      <a class="contact-link" href="mailto:fiyanileenkais11@gmail.com">
+        <div class="cl-left">
+          <span class="cl-type">Email</span>
+          <span class="cl-val">fiyanileenkais11@gmail.com</span>
+        </div>
+        <span class="cl-arrow">↗</span>
+      </a>
+      
+      
+      <a class="contact-link" href="tel:+91 95392 34433">
+        <div class="cl-left">
+          <span class="cl-type">Phone</span>
+          <span class="cl-val">+91 95392 34433</span>
+        </div>
+        <span class="cl-arrow">↗</span>
+      </a>
+      
+      <a class="contact-link" href="#">
+        <div class="cl-left">
+          <span class="cl-type">LinkedIn</span>
+          <span class="cl-val">Connect on LinkedIn</span>
+        </div>
+        <span class="cl-arrow">↗</span>
+      </a>
+      <a class="contact-link" href="#">
+        <div class="cl-left">
+          <span class="cl-type">GitHub</span>
+          <span class="cl-val">View my repositories</span>
+        </div>
+        <span class="cl-arrow">↗</span>
+      </a>
+    </div>
+
+    <div class="contact-form rv d3">
+      <div class="cf-row">
+        <div class="cf-group">
+          <label>Name</label>
+          <input type="text" placeholder="Your name">
+        </div>
+        <div class="cf-group">
+          <label>Email</label>
+          <input type="email" placeholder="fiyanileenkais11@gmail.com">
+        </div>
+      </div>
+      <div class="cf-group">
+        <label>Message</label>
+        <textarea rows="4" placeholder="What's on your mind?"></textarea>
+      </div>
+      <button class="cf-submit" onclick="this.textContent='Sent ✓';this.style.background='#333';setTimeout(()=>{this.textContent='Send Message';this.style.background=''},2500)">
+        Send Message
+      </button>
+    </div>
+
+    <footer>
+      <span>FIYA NILEEN KAIS</span>
+      <span><a href="mailto:fiyanileenkais11@gmail.com">fiyanileenkais11@gmail.com</a></span>
+      <span>© now</span>
+    </footer>
+  </div>
+</section>
+
+<script>
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.rv').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

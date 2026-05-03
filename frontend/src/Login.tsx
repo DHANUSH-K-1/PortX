@@ -4,9 +4,10 @@ import { User, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 interface LoginProps {
     onLoginSuccess: (user: any) => void;
     onSwitchToRegister: () => void;
+    onForgotPassword: () => void;
 }
 
-export default function Login({ onLoginSuccess, onSwitchToRegister }: LoginProps) {
+export default function Login({ onLoginSuccess, onSwitchToRegister, onForgotPassword }: LoginProps) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -90,6 +91,16 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }: LoginProps
                                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                             </button>
                         </div>
+                    </div>
+
+                    <div className="flex items-center justify-end">
+                        <button 
+                            type="button"
+                            onClick={() => onForgotPassword()} 
+                            className="text-sm text-purple-400 hover:text-purple-300"
+                        >
+                            Forgot Password?
+                        </button>
                     </div>
 
                     <button
