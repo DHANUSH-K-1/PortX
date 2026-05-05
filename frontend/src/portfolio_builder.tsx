@@ -1,8 +1,15 @@
-
 import React, { useState } from 'react';
 import { Upload, CheckCircle, Layout, FileText, User, Briefcase, Code, Loader2, Plus, Trash2, Camera, ImageIcon, Sparkles, Palette, Monitor } from 'lucide-react';
+import { motion } from 'framer-motion';
+import LoadingParticleScreen from './components/LoadingParticleScreen';
 import toast from 'react-hot-toast';
 import PortfolioPreview from './PortfolioPreview';
+
+const pageVariants = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -10 }
+};
 
 const SkeletonCard = () => (
   <div className="bg-purple-900/10 backdrop-blur-sm border border-purple-500/20 rounded-2xl overflow-hidden animate-pulse">
@@ -379,7 +386,12 @@ export default function PortfolioBuilder() {
   // Dashboard Page
   if (currentPage === 'dashboard') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-purple-950 to-black text-white p-8">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="min-h-screen bg-gradient-to-br from-black via-purple-950 to-black text-white p-8"
+      >
         <div className="container mx-auto max-w-6xl">
           <div className="flex justify-between items-center mb-12">
             <div>
@@ -505,14 +517,19 @@ export default function PortfolioBuilder() {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   // Upload Page
   if (currentPage === 'upload') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-purple-950 to-black text-white">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="min-h-screen bg-gradient-to-br from-black via-purple-950 to-black text-white"
+      >
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-2xl mx-auto">
 
@@ -573,16 +590,22 @@ export default function PortfolioBuilder() {
                 'Process Resume'
               )}
             </button>
+            {isProcessingResume && <LoadingParticleScreen />}
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   // Edit & Layout Selection Page
   if (currentPage === 'edit') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-purple-950 to-black text-white">
+      <motion.div 
+        initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        className="min-h-screen bg-gradient-to-br from-black via-purple-950 to-black text-white"
+      >
         <div className="container mx-auto px-4 py-8">
           <button
             onClick={() => setCurrentPage('upload')}
@@ -994,16 +1017,21 @@ export default function PortfolioBuilder() {
                 </div>
               </div>
             )}
-          </div>
         </div>
       </div>
+      </motion.div>
     );
   }
 
   // Preview/Success Page
   if (currentPage === 'preview') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-purple-950 to-black text-white">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="min-h-screen bg-gradient-to-br from-black via-purple-950 to-black text-white"
+      >
         <div className="container mx-auto px-4 py-16">
           <button
             onClick={() => setCurrentPage('dashboard')}
@@ -1063,7 +1091,7 @@ export default function PortfolioBuilder() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 }
