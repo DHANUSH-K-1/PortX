@@ -3,6 +3,7 @@ import json
 import re
 import requests
 from flask import Flask, request, jsonify, send_from_directory, render_template, send_file
+from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import HTTPException
 import PyPDF2
@@ -27,6 +28,23 @@ app = Flask(__name__,
             static_folder='../frontend/dist',
             template_folder='.') # Point template folder to root to access resume-portfolio-generator/templates
 app.secret_key = os.getenv("SECRET_KEY", "dev_secret_key_change_in_production")
+
+# --- CORS Configuration ---
+# Allow cross-domain requests from the React frontend
+_frontend_origins = [
+    os.getenv("FRONTEND_URL", "http://localhost:5173"),  # Vercel URL set as env var
+    "http://localhost:5173",                              # Local Vite dev server
+    "http://localhost:5000",                              # Local Flask serve
+]
+CORS(app, supports_credentials=True, origins=_frontend_origins)
+
+# --- Session Cookie Settings (required for cross-domain flask-login) ---
+if os.getenv("FLASK_ENV") == "production":
+    app.config.update(
+        SESSION_COOKIE_SECURE=True,
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="None",  # Must be None for cross-origin cookies
+    )
 
 # Register custom Jinja filters required by templates
 import datetime
@@ -831,5 +849,5 @@ def ai_enhance():
         return jsonify(error=str(e)), 500
 
 if __name__ == '__main__':
-   
-        app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
+    debug_mode = os.getenv("FLASK_ENV") != "production"
+    app.run(host='0.0.0.0', port=5000, debug=debug_mode, use_reloader=False)
