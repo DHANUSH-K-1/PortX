@@ -7,11 +7,17 @@ from werkzeug.utils import secure_filename
 from werkzeug.exceptions import HTTPException
 import PyPDF2
 import docx
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import random
+import threading
 from dotenv import load_dotenv
 import zipfile
 import io
 import datetime
 from flask_pymongo import PyMongo
+import gridfs
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from user_model import User, bcrypt
 from bson import ObjectId
@@ -57,8 +63,10 @@ def normalize_portfolio_data(data):
     if 'skills' not in data: data['skills'] = []
     if 'experience' not in data: data['experience'] = []
     if 'education' not in data: data['education'] = []
-    # Ensure profile_photo is always a string so templates don't error on undefined
-    data['profile_photo'] = data.get('profile_photo') or ''
+    # Ensure profile_photo and profile_image are always synced and present
+    photo = data.get('profile_photo') or data.get('profile_image') or ''
+    data['profile_photo'] = photo
+    data['profile_image'] = photo
     
     normalized_skills = []
     for s in data.get('skills', []):
@@ -75,6 +83,7 @@ if not app.config["MONGO_URI"]:
     print("WARNING: MONGO_URI not found in .env. Database features will fail.")
 
 mongo = PyMongo(app)
+fs = gridfs.GridFS(mongo.db)
 bcrypt.init_app(app)
 
 login_manager = LoginManager()
@@ -91,19 +100,32 @@ def load_user(user_id):
         print(f"Error loading user {user_id}: {e}")
         return None
 
-UPLOAD_FOLDER = 'uploads'
-DATA_FOLDER = 'data'
-GENERATED_FOLDER = 'generated'
-PHOTOS_FOLDER = 'photos'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Vercel compatibility: Use /tmp for writable folders
+if os.environ.get('VERCEL'):
+    UPLOAD_FOLDER = '/tmp/uploads'
+    DATA_FOLDER = '/tmp/data'
+    GENERATED_FOLDER = '/tmp/generated'
+    PHOTOS_FOLDER = '/tmp/photos'
+else:
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+    DATA_FOLDER = os.path.join(BASE_DIR, 'data')
+    GENERATED_FOLDER = os.path.join(BASE_DIR, 'generated')
+    PHOTOS_FOLDER = os.path.join(BASE_DIR, 'photos')
+
+TEMPLATES_FOLDER = os.path.join(BASE_DIR, 'templates')
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['DATA_FOLDER'] = DATA_FOLDER
 app.config['GENERATED_FOLDER'] = GENERATED_FOLDER
 app.config['PHOTOS_FOLDER'] = PHOTOS_FOLDER
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
-for folder in [UPLOAD_FOLDER, DATA_FOLDER, GENERATED_FOLDER, 'templates', PHOTOS_FOLDER]:
+# Create required directories if they do not exist
+for folder in [UPLOAD_FOLDER, DATA_FOLDER, GENERATED_FOLDER, TEMPLATES_FOLDER, PHOTOS_FOLDER]:
     if not os.path.exists(folder):
-        os.makedirs(folder)
+        os.makedirs(folder, exist_ok=True)
 
 def read_pdf(file_path):
     with open(file_path, 'rb') as file:
@@ -211,6 +233,37 @@ def extract_resume_data_with_openrouter(text):
         print(f"Received content: {content_for_log}")
         return None
 
+def send_email(receiver_email, subject, body):
+    sender_email = os.getenv("EMAIL_ADDRESS")
+    app_password = os.getenv("EMAIL_APP_PASSWORD")
+
+    if not sender_email or not app_password:
+        print("Email credentials not configured in .env")
+        return False
+
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(body, 'html'))
+
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender_email, app_password)
+        server.send_message(msg)
+        print(f"Email sent successfully to {receiver_email}!")
+        return True
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        return False
+    finally:
+        try:
+            server.quit()
+        except:
+            pass
+
 # --- Auth Routes ---
 @app.route('/api/auth/register', methods=['POST'])
 def register():
@@ -232,6 +285,86 @@ def register():
         user = User.create_user(mongo, name, email, password)
         login_user(user)
         print(f"User registered and logged in: {user.id}")
+        
+        # --- Send Welcome Email in background ---
+        welcome_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"></head>
+        <body style="margin:0; padding:0; background-color:#000000; font-family: Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000; padding: 40px 0;">
+        <tr><td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background:#111117; border-radius:10px; overflow:hidden; color:#ffffff;">
+              <!-- Header -->
+              <tr>
+                <td style="padding:20px; text-align:center; border-bottom:1px solid #1f1f2e;">
+                  <h1 style="margin:0; font-size:22px; letter-spacing:1px; color:#ffffff;">PortX</h1>
+                  <p style="margin:5px 0 0; font-size:12px; color:#9aa0a6;">AI-Powered Portfolio Builder</p>
+                </td>
+              </tr>
+              <!-- Hero -->
+              <tr>
+                <td style="padding:30px; text-align:center;">
+                  <h2 style="margin:0; font-size:26px; color:#d16bff;">Build Your Legacy</h2>
+                  <h2 style="margin:5px 0 20px; font-size:26px; color:#ffffff;">In Minutes</h2>
+                  <p style="font-size:14px; color:#c9c9d1; line-height:1.6;">
+                    Hi {name},<br><br>
+                    Your account is ready. Transform your resume into a stunning, professional portfolio website — 
+                    no coding required. Just upload and shine.
+                  </p>
+                  <!-- The button uses a dark fallback background in case gradients aren't supported -->
+                  <a href="http://localhost:5000" style="display:inline-block; margin-top:20px; padding:12px 24px; background:#a855f7; background:linear-gradient(90deg,#a855f7,#ec4899); color:#ffffff; text-decoration:none; border-radius:6px; font-size:14px; font-weight:bold;">
+                    Get Started Free &rarr;
+                  </a>
+                </td>
+              </tr>
+              <!-- Features -->
+              <tr>
+                <td style="padding:20px 30px;">
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding:10px;">
+                        <strong style="color:#ffffff;">&#128228; Upload Resume</strong>
+                        <p style="font-size:13px; color:#9aa0a6; margin:5px 0;">
+                          Upload your PDF or DOCX and let AI extract your details instantly.
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:10px;">
+                        <strong style="color:#ffffff;">&#10024; AI Enhancement</strong>
+                        <p style="font-size:13px; color:#9aa0a6; margin:5px 0;">
+                          Automatically refine and structure your content for maximum impact.
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:10px;">
+                        <strong style="color:#ffffff;">&#127912; Premium Layouts</strong>
+                        <p style="font-size:13px; color:#9aa0a6; margin:5px 0;">
+                          Choose from modern, responsive designs tailored for professionals.
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <!-- Footer -->
+              <tr>
+                <td style="padding:20px; text-align:center; font-size:12px; color:#6b7280; border-top:1px solid #1f1f2e;">
+                  &copy; 2026 PortX. All rights reserved.<br>
+                  You're receiving this email because you created an account on PortX.
+                </td>
+              </tr>
+            </table>
+        </td></tr>
+        </table>
+        </body>
+        </html>
+        """
+        import threading
+        threading.Thread(target=send_email, args=(user.email, "Welcome to PortX - Build Your Legacy", welcome_html)).start()
+
         return jsonify(message="Registered successfully", user={'id': user.id, 'name': user.name, 'email': user.email})
     except Exception as e:
         print(f"Error creating user: {e}")
@@ -269,6 +402,71 @@ def get_current_user():
         return jsonify(user={'id': current_user.id, 'name': current_user.name, 'email': current_user.email})
     return jsonify(user=None)
 
+@app.route('/api/auth/forgot-password', methods=['POST'])
+def forgot_password():
+    data = request.json
+    email = data.get('email')
+    
+    if not email:
+        return jsonify(error="Email is required"), 400
+        
+    user = User.get_by_email(mongo, email)
+    if not user:
+        return jsonify(message="If an account with that email exists, an OTP has been sent.")
+        
+    otp = str(random.randint(100000, 999999))
+    expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+    
+    User.set_otp(mongo, email, otp, expires_at)
+    
+    otp_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="UTF-8"></head>
+    <body style="margin:0; padding:0; background-color:#000000; font-family: Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000; padding: 40px 0;">
+    <tr><td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#111117; border-radius:10px; overflow:hidden; color:#ffffff;">
+          <tr>
+            <td style="padding:30px; text-align:center;">
+              <h2 style="margin:0; font-size:26px; color:#d16bff;">Password Reset</h2>
+              <p style="font-size:14px; color:#c9c9d1; line-height:1.6; margin-top:20px;">
+                We received a request to reset your PortX password. Enter the following OTP to proceed:
+              </p>
+              <div style="margin: 30px 0; padding: 15px; background: #1f1f2e; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ffffff;">
+                {otp}
+              </div>
+              <p style="font-size:12px; color:#6b7280;">
+                This code will expire in 10 minutes. If you didn't request this, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+    </td></tr>
+    </table>
+    </body>
+    </html>
+    """
+    threading.Thread(target=send_email, args=(email, "PortX - Password Reset OTP", otp_html)).start()
+    
+    return jsonify(message="If an account with that email exists, an OTP has been sent.")
+
+@app.route('/api/auth/reset-password', methods=['POST'])
+def reset_password():
+    data = request.json
+    email = data.get('email')
+    otp = data.get('otp')
+    new_password = data.get('new_password')
+    
+    if not all([email, otp, new_password]):
+        return jsonify(error="Email, OTP, and new password are required"), 400
+        
+    if User.verify_otp(mongo, email, otp):
+        User.update_password(mongo, email, new_password)
+        return jsonify(message="Password reset successfully")
+    else:
+        return jsonify(error="Invalid or expired OTP"), 400
+
 @app.route('/api/portfolios', methods=['GET'])
 @login_required
 def get_user_portfolios():
@@ -304,7 +502,17 @@ def serve_generated_portfolio(filename):
 
 @app.route('/photos/<path:filename>')
 def serve_photo(filename):
-    return send_from_directory(app.config['PHOTOS_FOLDER'], filename)
+    try:
+        # Check if the filename exists in GridFS
+        file_obj = fs.find_one({'filename': filename})
+        if file_obj:
+            return send_file(io.BytesIO(file_obj.read()), mimetype='image/jpeg')
+        
+        # Fallback to local file system if not in DB (for backward compatibility)
+        return send_from_directory(app.config['PHOTOS_FOLDER'], filename)
+    except Exception as e:
+        app.logger.error(f"Error serving photo: {e}")
+        return jsonify({'error': 'Photo not found'}), 404
 
 @app.route('/api/upload-photo', methods=['POST'])
 def upload_photo():
@@ -316,13 +524,20 @@ def upload_photo():
     ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
     if ext not in ALLOWED_IMAGE_EXTENSIONS:
         return jsonify({'error': f'File type .{ext} not allowed. Use PNG, JPG, JPEG, GIF, or WEBP.'}), 400
+    
     import uuid
     unique_name = f"{uuid.uuid4().hex}.{ext}"
-    save_path = os.path.join(app.config['PHOTOS_FOLDER'], unique_name)
-    file.save(save_path)
-    # Return a URL the frontend + templates can use directly
-    photo_url = f'/photos/{unique_name}'
-    return jsonify({'url': photo_url})
+    
+    try:
+        # Store file in MongoDB GridFS
+        fs.put(file, filename=unique_name, content_type=f'image/{ext}')
+        
+        # Return a URL the frontend + templates can use directly
+        photo_url = f'/photos/{unique_name}'
+        return jsonify({'url': photo_url})
+    except Exception as e:
+        app.logger.error(f"Error uploading to GridFS: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/render-preview', methods=['POST'])
 def render_preview():
@@ -412,39 +627,50 @@ def upload_api():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
 
-        if filename.lower().endswith('.pdf'):
-            text = read_pdf(filepath)
-        elif filename.lower().endswith('.docx'):
-            text = read_docx(filepath)
-        else:
-            return jsonify({'error': 'Unsupported file type. Please upload a PDF or DOCX.'}), 400
+        try:
+            if filename.lower().endswith('.pdf'):
+                text = read_pdf(filepath)
+            elif filename.lower().endswith('.docx'):
+                text = read_docx(filepath)
+            else:
+                return jsonify({'error': 'Unsupported file type. Please upload a PDF or DOCX.'}), 400
 
-        if not text or not text.strip():
-            return jsonify({'error': 'Could not extract any text from the uploaded file.'}), 400
+            if not text or not text.strip():
+                return jsonify({'error': 'Could not extract any text from the uploaded file.'}), 400
 
-        resume_data = extract_resume_data_with_openrouter(text)
-        if not resume_data:
-            return jsonify({'error': 'Could not parse resume data from the model response.'}), 500
+            resume_data = extract_resume_data_with_openrouter(text)
+            if not resume_data:
+                return jsonify({'error': 'Could not parse resume data from the model response.'}), 500
 
-        name = resume_data.get('name', 'No_Name_Found')
-        
-        # Save to MongoDB if user logged in
-        if current_user.is_authenticated:
-            portfolio_id = mongo.db.portfolios.insert_one({
-                'user_id': ObjectId(current_user.id),
-                'name': name,
-                'data': resume_data,
-                'created_at': datetime.datetime.utcnow() # Note: Need to import datetime
-            }).inserted_id
-            json_filename = f"{str(portfolio_id)}.json" # Virtual filename for frontend compat
-        else:
-            # Fallback to local file for guest
-            json_filename = f"{secure_filename(name.replace(' ', '_'))}.json"
-            json_filepath = os.path.join(app.config['DATA_FOLDER'], json_filename)
-            with open(json_filepath, 'w') as json_file:
-                json.dump(resume_data, json_file, indent=4)
+            name = resume_data.get('name', 'No_Name_Found')
+            
+            # Save to MongoDB if user logged in
+            if current_user.is_authenticated:
+                portfolio_id = mongo.db.portfolios.insert_one({
+                    'user_id': ObjectId(current_user.id),
+                    'name': name,
+                    'data': resume_data,
+                    'created_at': datetime.datetime.utcnow() 
+                }).inserted_id
+                json_filename = f"{str(portfolio_id)}.json" # Virtual filename for frontend compat
+            else:
+                # Fallback to local file for guest
+                json_filename = f"{secure_filename(name.replace(' ', '_'))}.json"
+                json_filepath = os.path.join(app.config['DATA_FOLDER'], json_filename)
+                with open(json_filepath, 'w') as json_file:
+                    json.dump(resume_data, json_file, indent=4)
 
-        return jsonify({'filename': json_filename, 'data': resume_data})
+            return jsonify({'filename': json_filename, 'data': resume_data})
+        except Exception as e:
+            app.logger.error(f"Error processing resume: {e}")
+            return jsonify({'error': str(e)}), 500
+        finally:
+            # Clean up the uploaded file after processing (success or failure)
+            if os.path.exists(filepath):
+                try:
+                    os.remove(filepath)
+                except Exception as cleanup_error:
+                    app.logger.warning(f"Failed to delete temporary file {filepath}: {cleanup_error}")
 
     return jsonify({'error': 'An unknown error occurred'}), 500
 
@@ -647,5 +873,4 @@ def ai_enhance():
 
 if __name__ == '__main__':
    
-       # '0.0.0.0' tells Flask to accept connections from any device on your Wi-Fi   
-        app.run(host='0.0.0.0', port=5000, debug=True)
+        app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)

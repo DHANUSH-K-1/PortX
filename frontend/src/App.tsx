@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import Landing from './Landing';
 import Login from './Login';
 import Register from './Register';
+import ForgotPassword from './ForgotPassword';
 import PortfolioBuilder from './portfolio_builder';
 import { Loader2, LogOut } from 'lucide-react';
 
 export default function App() {
     const [loading, setLoading] = useState(true);
-    const [view, setView] = useState<'landing' | 'login' | 'register' | 'app'>('landing');
+    const [view, setView] = useState<'landing' | 'login' | 'register' | 'forgot-password' | 'app'>('landing');
 
     useEffect(() => {
         checkUser();
@@ -74,11 +75,20 @@ export default function App() {
         );
     }
 
+    if (view === 'forgot-password') {
+        return (
+            <ForgotPassword
+                onBackToLogin={() => setView('login')}
+            />
+        );
+    }
+
     if (view === 'login') {
         return (
             <Login
                 onLoginSuccess={handleLoginSuccess}
                 onSwitchToRegister={() => setView('register')}
+                onForgotPassword={() => setView('forgot-password')}
             />
         );
     }

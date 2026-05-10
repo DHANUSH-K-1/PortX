@@ -34,6 +34,7 @@ interface PortfolioData {
   email: string;
   mobile: string;
   profile_photo?: string;
+  profile_image?: string;
   portfolio_summary: string;
   skills: any[];
   education: any[];
@@ -294,6 +295,13 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
       const response = await fetch(API_ENDPOINTS.getPortfolio(id));
       const data = await response.json();
       if (response.ok) {
+        // Fix relative photo URLs for mobile
+        if (data.profile_photo && data.profile_photo.startsWith('/')) {
+            data.profile_photo = BASE_URL + data.profile_photo;
+        }
+        if (data.profile_image && data.profile_image.startsWith('/')) {
+            data.profile_image = BASE_URL + data.profile_image;
+        }
         setEditData(data);
         setCurrentFilename(id);
         setStep(4);

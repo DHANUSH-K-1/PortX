@@ -1,6 +1,6 @@
 // If using a physical device, replace 'localhost' with your machine's IP address
 // For Android Emulator, use '10.0.2.2'
-const BASE_URL = 'http://192.168.1.7:5000';
+const BASE_URL = 'https://resume-portfolio-generator.onrender.com';
 
 export const API_ENDPOINTS = {
   login: `${BASE_URL}/api/auth/login`,
