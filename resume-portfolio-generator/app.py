@@ -255,35 +255,10 @@ def extract_resume_data_with_openrouter(text):
         return None
 
 def send_email(receiver_email, subject, body):
-    sender_email = os.getenv("EMAIL_ADDRESS")
-    app_password = os.getenv("EMAIL_APP_PASSWORD", "").replace('"', '').replace("'", "")
-
-    if not sender_email or not app_password:
-        print("Email credentials not configured in .env")
-        return False
-
-    msg = MIMEMultipart()
-    msg['From'] = sender_email
-    msg['To'] = receiver_email
-    msg['Subject'] = subject
-
-    msg.attach(MIMEText(body, 'html'))
-
-    try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(sender_email, app_password)
-        server.send_message(msg)
-        print(f"Email sent successfully to {receiver_email}!")
-        return True
-    except Exception as e:
-        print(f"Failed to send email: {e}")
-        return False
-    finally:
-        try:
-            server.quit()
-        except:
-            pass
+    # Render's free tier blocks outbound SMTP ports (25, 465, 587) to prevent spam.
+    # We must mock this function or use an HTTP API like SendGrid/Resend instead.
+    print(f"[MOCK EMAIL] To: {receiver_email} | Subject: {subject}")
+    return True
 
 # --- Auth Routes ---
 @app.route('/api/auth/register', methods=['POST'])
