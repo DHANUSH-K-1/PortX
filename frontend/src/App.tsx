@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { API_BASE } from './lib/api';
 import Landing from './Landing';
 import Login from './Login';
 import Register from './Register';
@@ -17,7 +16,7 @@ export default function App() {
 
     const checkUser = async () => {
         try {
-            const response = await fetch(`${API_BASE}/api/auth/me`);
+            const response = await fetch('/api/auth/me');
             if (response.ok) {
                 const data = await response.json();
                 if (data.user) {
@@ -37,7 +36,7 @@ export default function App() {
 
     const handleLogout = async () => {
         try {
-            await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST' });
+            await fetch('/api/auth/logout', { method: 'POST' });
             setView('landing');
         } catch (error) {
             console.error('Logout failed', error);

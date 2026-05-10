@@ -29,11 +29,21 @@ app = Flask(__name__,
             template_folder='.') # Point template folder to root to access resume-portfolio-generator/templates
 app.secret_key = os.getenv("SECRET_KEY", "dev_secret_key_change_in_production")
 
+# --- Production URL Configuration ---
+# Use the Render URL if available, otherwise fallback to localhost
+BACKEND_URL = os.getenv("BACKEND_URL", "https://resume-portfolio-generator.onrender.com")
+if os.getenv("FLASK_ENV") != "production":
+    BACKEND_URL = "http://localhost:5000"
+
+# FRONTEND_URL is where the user interacts with the app (could be same as backend if served by Flask)
+FRONTEND_URL = os.getenv("FRONTEND_URL", BACKEND_URL)
+
 # --- CORS Configuration ---
 # Allow cross-domain requests from the React frontend
 _frontend_origins = [
-    os.getenv("FRONTEND_URL", "http://localhost:5173"),  # Vercel URL set as env var
+    FRONTEND_URL,
     "http://localhost:5173",                              # Local Vite dev server
+    "http://127.0.0.1:5173",                              # Local Vite dev server (IP)
     "http://localhost:5000",                              # Local Flask serve
 ]
 CORS(app, supports_credentials=True, origins=_frontend_origins)
@@ -75,13 +85,17 @@ class SkillObj(dict):
         return str(self.get('name', 'Skill'))
 
 def normalize_portfolio_data(data):
-    if 'social' not in data: data['social'] = {}
-    if 'projects' not in data: data['projects'] = []
-    if 'skills' not in data: data['skills'] = []
-    if 'experience' not in data: data['experience'] = []
-    if 'education' not in data: data['education'] = []
-    # Ensure profile_photo is always a string so templates don't error on undefined
-    data['profile_photo'] = data.get('profile_photo') or ''
+    if data is None:
+        data = {}
+    
+    if not isinstance(data.get('social'), dict): data['social'] = {}
+    if not isinstance(data.get('projects'), list): data['projects'] = []
+    if not isinstance(data.get('skills'), list): data['skills'] = []
+    if not isinstance(data.get('experience'), list): data['experience'] = []
+    if not isinstance(data.get('education'), list): data['education'] = []
+    
+    # Ensure profile_photo is always a string
+    data['profile_photo'] = data.get('profile_photo', '') or ''
     
     normalized_skills = []
     for s in data.get('skills', []):
@@ -318,7 +332,7 @@ def register():
                     no coding required. Just upload and shine.
                   </p>
                   <!-- The button uses a dark fallback background in case gradients aren't supported -->
-                  <a href="http://localhost:5000" style="display:inline-block; margin-top:20px; padding:12px 24px; background:#a855f7; background:linear-gradient(90deg,#a855f7,#ec4899); color:#ffffff; text-decoration:none; border-radius:6px; font-size:14px; font-weight:bold;">
+                  <a href="{FRONTEND_URL}" style="display:inline-block; margin-top:20px; padding:12px 24px; background:#a855f7; background:linear-gradient(90deg,#a855f7,#ec4899); color:#ffffff; text-decoration:none; border-radius:6px; font-size:14px; font-weight:bold;">
                     Get Started Free &rarr;
                   </a>
                 </td>
@@ -628,7 +642,8 @@ def upload_api():
         resume_data = extract_resume_data_with_openrouter(text)
         if not resume_data:
             return jsonify({'error': 'Could not parse resume data from the model response.'}), 500
-
+        
+        resume_data = normalize_portfolio_data(resume_data)
         name = resume_data.get('name', 'No_Name_Found')
         
         # Save to MongoDB if user logged in
@@ -657,13 +672,13 @@ def get_portfolio_data(filename):
     if ObjectId.is_valid(filename.replace('.json', '')):
         portfolio = mongo.db.portfolios.find_one({'_id': ObjectId(filename.replace('.json', ''))})
         if portfolio:
-            return jsonify(portfolio.get('data'))
+            return jsonify(normalize_portfolio_data(portfolio.get('data')))
     
     json_filepath = os.path.join(app.config['DATA_FOLDER'], filename)
     try:
         with open(json_filepath, 'r') as json_file:
             data = json.load(json_file)
-        return jsonify(data)
+        return jsonify(normalize_portfolio_data(data))
     except FileNotFoundError:
         return jsonify({'error': 'Portfolio data not found.'}), 404
 

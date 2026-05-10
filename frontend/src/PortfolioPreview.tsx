@@ -41,7 +41,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ data, layout }) => 
         </section>
       )}
 
-      {data.skills && data.skills.length > 0 && (
+      {Array.isArray(data.skills) && data.skills.length > 0 && (
         <section className="mb-8">
           <h2 className="text-2xl font-semibold border-b-2 border-purple-500/50 pb-2 mb-4">Skills</h2>
           <div className="flex flex-wrap gap-2">
@@ -54,7 +54,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ data, layout }) => 
         </section>
       )}
 
-      {data.experience && data.experience.length > 0 && (
+      {Array.isArray(data.experience) && data.experience.length > 0 && (
         <section className="mb-8">
           <h2 className="text-2xl font-semibold border-b-2 border-purple-500/50 pb-2 mb-4">Experience</h2>
           {data.experience.map((exp, i) => (
@@ -67,7 +67,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ data, layout }) => 
         </section>
       )}
 
-      {data.projects && data.projects.length > 0 && (
+      {Array.isArray(data.projects) && data.projects.length > 0 && (
         <section className="mb-8">
           <h2 className="text-2xl font-semibold border-b-2 border-purple-500/50 pb-2 mb-4">Projects</h2>
           {data.projects.map((proj, i) => (
@@ -93,7 +93,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ data, layout }) => 
         </section>
       )}
 
-      {data.education && data.education.length > 0 && (
+      {Array.isArray(data.education) && data.education.length > 0 && (
         <section>
           <h2 className="text-2xl font-semibold border-b-2 border-purple-500/50 pb-2 mb-4">Education</h2>
           {data.education.map((edu, i) => (

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { API_BASE } from './lib/api';
 import { Upload, CheckCircle, Layout, FileText, User, Briefcase, Code, Loader2, Plus, Trash2, Camera, ImageIcon, Sparkles, Palette, Monitor } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LoadingParticleScreen from './components/LoadingParticleScreen';
@@ -110,7 +109,7 @@ export default function PortfolioBuilder() {
     await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
-      const response = await fetch(`${API_BASE}/api/portfolio/${id}.json/delete`, {
+      const response = await fetch(`/api/portfolio/${id}.json/delete`, {
         method: 'DELETE',
       });
       if (response.ok) {
@@ -136,7 +135,7 @@ export default function PortfolioBuilder() {
   const fetchPortfolios = async () => {
     setIsLoadingPortfolios(true);
     try {
-      const response = await fetch(`${API_BASE}/api/portfolios`);
+      const response = await fetch('/api/portfolios');
       if (response.ok) {
         const data = await response.json();
         setPortfolios(data.portfolios || []);
@@ -154,7 +153,7 @@ export default function PortfolioBuilder() {
     setJsonFilename(`${id}.json`);
 
     try {
-      const response = await fetch(`${API_BASE}/api/portfolio/${id}.json`);
+      const response = await fetch(`/api/portfolio/${id}.json`);
       if (response.ok) {
         const data = await response.json();
         setResumeData(data);
@@ -247,7 +246,7 @@ export default function PortfolioBuilder() {
     try {
       const formData = new FormData();
       formData.append('photo', file);
-      const response = await fetch(`${API_BASE}/api/upload-photo`, { method: 'POST', body: formData });
+      const response = await fetch('/api/upload-photo', { method: 'POST', body: formData });
       if (!response.ok) {
         const err = await response.json();
         toast.error(err.error || 'Photo upload failed');
@@ -272,7 +271,7 @@ export default function PortfolioBuilder() {
     formData.append('resume', uploadedFile);
 
     try {
-      const response = await fetch(`${API_BASE}/api/process-resume`, {
+      const response = await fetch('/api/process-resume', {
         method: 'POST',
         body: formData,
       });
@@ -344,7 +343,7 @@ export default function PortfolioBuilder() {
 
     try {
       // Step 1: Save the JSON data
-      const saveResponse = await fetch(`${API_BASE}/api/portfolio/${jsonFilename}`, {
+      const saveResponse = await fetch(`/api/portfolio/${jsonFilename}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -358,7 +357,7 @@ export default function PortfolioBuilder() {
       }
 
       // Step 2: Trigger HTML generation
-      const generateResponse = await fetch(`${API_BASE}/api/generate-html/${jsonFilename}`, {
+      const generateResponse = await fetch(`/api/generate-html/${jsonFilename}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -717,7 +716,7 @@ export default function PortfolioBuilder() {
                       <Plus className="w-4 h-4" /> Add
                     </button>
                   </div>
-                  {resumeData.experience.map((exp, i) => (
+                  {Array.isArray(resumeData.experience) && resumeData.experience.map((exp, i) => (
                     <div key={i} className="space-y-3 mb-4 p-4 bg-black/30 rounded-lg relative group">
                       <button
                         onClick={() => removeArrayItem('experience', i)}
@@ -756,7 +755,7 @@ export default function PortfolioBuilder() {
                       <Plus className="w-4 h-4" /> Add
                     </button>
                   </div>
-                  {resumeData.education.map((edu, i) => (
+                  {Array.isArray(resumeData.education) && resumeData.education.map((edu, i) => (
                     <div key={i} className="space-y-3 mb-4 p-4 bg-black/30 rounded-lg relative group">
                       <button
                         onClick={() => removeArrayItem('education', i)}
@@ -795,7 +794,7 @@ export default function PortfolioBuilder() {
                       <Plus className="w-4 h-4" /> Add
                     </button>
                   </div>
-                  {resumeData.projects.map((proj, i) => (
+                  {Array.isArray(resumeData.projects) && resumeData.projects.map((proj, i) => (
                     <div key={i} className="space-y-3 mb-4 p-4 bg-black/30 rounded-lg relative group">
                       <button
                         onClick={() => removeArrayItem('projects', i)}
