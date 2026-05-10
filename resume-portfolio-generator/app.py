@@ -168,43 +168,42 @@ def extract_resume_data_with_openrouter(text):
     if not openrouter_api_key:
         raise ValueError("OPENROUTER_API_KEY environment variable not set.")
 
-    # Limit text size to avoid exceeding token limits (approx 15k characters is usually safe for free models)
-    if len(text) > 20000:
-        text = text[:20000] + "\n[Text truncated due to length...]"
+    # Truncate text more aggressively to ensure fast processing
+    if len(text) > 15000:
+        text = text[:15000] + "\n[Text truncated...]"
 
-    # List of reliable free models.
+    # Use only the fastest/most reliable models for quick response
     FREE_MODELS = [
         "google/gemini-2.0-flash-exp:free",
         "meta-llama/llama-3.3-70b-instruct:free",
-        "mistralai/mistral-small-24b-instruct-2501:free",
         "openrouter/free"
     ]
     
     import time
-    max_retries = len(FREE_MODELS) * 2
-    last_response = None
+    # Limit total time to approx 25 seconds (to stay under Render's 30s limit)
+    max_retries = len(FREE_MODELS)
     
     for attempt in range(max_retries):
-        model_index = (attempt // 2) % len(FREE_MODELS)
-        current_model = FREE_MODELS[model_index]
+        current_model = FREE_MODELS[attempt]
         
         try:
             print(f"Attempt {attempt + 1}: Using model {current_model}")
+            # Low timeout per attempt to allow failover
             response = requests.post(
                 url="https://openrouter.ai/api/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {openrouter_api_key}",
-                    "HTTP-Referer": "https://portx.live", # Optional but good practice for OpenRouter
-                    "X-Title": "PortX Portfolio Builder"
+                    "HTTP-Referer": "https://portx.live",
+                    "X-Title": "PortX"
                 },
                 json={
                     "model": current_model,
                     "messages": [
-                        {"role": "system", "content": "You are an expert resume parser. Extract information from the resume text and return it as a single, valid JSON object. Do not include any explanatory text before or after the JSON object. The JSON object should have the following keys: 'name', 'email', 'mobile', 'skills', 'education', 'experience', 'portfolio_summary', 'projects'. 'projects' should be a list of objects with (name, description, tech, link). 'skills' should be a list of strings. 'education' and 'experience' should be a list of objects with relevant details (name, title, company, dates, description). 'portfolio_summary' should be a professional summary of 2-3 sentences. If a value is not found, use a sensible default like 'Not found' or an empty list."},
-                        {"role": "user", "content": f"Here is the resume text:\n\n{text}"}
+                        {"role": "system", "content": "Extract resume data as JSON. Keys: name, email, mobile, skills (list), education (list of objects), experience (list of objects), portfolio_summary, projects (list of objects). No extra text."},
+                        {"role": "user", "content": f"Resume text:\n\n{text}"}
                     ]
                 },
-                timeout=90 # Slightly shorter timeout to allow for retries within worker limits
+                timeout=20 # Total budget is small
             )
             
             if response.status_code == 200:
@@ -213,32 +212,17 @@ def extract_resume_data_with_openrouter(text):
                     content = result['choices'][0]['message']['content']
                     match = re.search(r'\{.*\}', content, re.DOTALL)
                     if match:
-                        json_str = match.group(0)
-                        return json.loads(json_str)
-                print(f"Model {current_model} returned successful status but malformed structure.")
+                        return json.loads(match.group(0))
             
-            last_response = response
-            response.raise_for_status()
+            print(f"Model {current_model} failed with status {response.status_code}")
 
         except Exception as e:
-            print(f"Error on attempt {attempt + 1} with {current_model}: {e}")
-            if hasattr(e, 'response') and e.response is not None:
-                 print(f"Response: {e.response.text}")
-            
-            # If it's a 429 or 5xx, wait and retry. If it's a 4xx (client error), maybe try next model immediately.
-            status_code = getattr(e.response, 'status_code', 0) if hasattr(e, 'response') else 0
-            
-            if status_code == 429:
-                time.sleep(5 * (attempt + 1))
-            elif status_code >= 500:
-                time.sleep(2)
-            elif 400 <= status_code < 500:
-                # Client error, skip to next model
-                continue
-            else:
-                time.sleep(2)
+            print(f"Error with {current_model} on attempt {attempt + 1}: {e}")
+            # On last attempt, don't sleep
+            if attempt < max_retries - 1:
+                time.sleep(1)
                 
-    print("All retries failed for resume parsing.")
+    print("All models failed or timed out.")
     return None
 
 def send_email(receiver_email, subject, body):
