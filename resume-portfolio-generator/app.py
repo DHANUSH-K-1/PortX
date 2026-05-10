@@ -168,18 +168,21 @@ def extract_resume_data_with_openrouter(text):
     if not openrouter_api_key:
         raise ValueError("OPENROUTER_API_KEY environment variable not set.")
 
-    # List of reliable free models. OpenRouter frequently updates these.
+    # Limit text size to avoid exceeding token limits (approx 15k characters is usually safe for free models)
+    if len(text) > 20000:
+        text = text[:20000] + "\n[Text truncated due to length...]"
+
+    # List of reliable free models.
     FREE_MODELS = [
-        "openrouter/free", # Let OpenRouter pick the best free one
-        "meta-llama/llama-3.3-70b-instruct:free",
         "google/gemini-2.0-flash-exp:free",
+        "meta-llama/llama-3.3-70b-instruct:free",
         "mistralai/mistral-small-24b-instruct-2501:free",
-        "mistralai/mistral-7b-instruct:free"
+        "openrouter/free"
     ]
     
     import time
-    max_retries = len(FREE_MODELS) * 2 # 2 attempts per model
-    response = None
+    max_retries = len(FREE_MODELS) * 2
+    last_response = None
     
     for attempt in range(max_retries):
         model_index = (attempt // 2) % len(FREE_MODELS)
@@ -191,68 +194,52 @@ def extract_resume_data_with_openrouter(text):
                 url="https://openrouter.ai/api/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {openrouter_api_key}",
+                    "HTTP-Referer": "https://portx.live", # Optional but good practice for OpenRouter
+                    "X-Title": "PortX Portfolio Builder"
                 },
                 json={
                     "model": current_model,
                     "messages": [
-                        {"role": "system", "content": "You are an expert resume parser. Extract information from the resume text and return it as a single, valid JSON object. Do not include any explanatory text before or after the JSON object. The JSON object should have the following keys: 'name', 'email', 'mobile', 'skills', 'education', 'experience', 'portfolio_summary'. 'projects'should be list of objects with relevant details(). 'skills' should be a list of strings. 'education' and 'experience' should be a list of objects with relevant details (like name, title, company, dates). 'portfolio_summary' should be a professional summary of 2-3 sentences. If a value is not found, use a sensible default like 'Not found' or an empty list."},
+                        {"role": "system", "content": "You are an expert resume parser. Extract information from the resume text and return it as a single, valid JSON object. Do not include any explanatory text before or after the JSON object. The JSON object should have the following keys: 'name', 'email', 'mobile', 'skills', 'education', 'experience', 'portfolio_summary', 'projects'. 'projects' should be a list of objects with (name, description, tech, link). 'skills' should be a list of strings. 'education' and 'experience' should be a list of objects with relevant details (name, title, company, dates, description). 'portfolio_summary' should be a professional summary of 2-3 sentences. If a value is not found, use a sensible default like 'Not found' or an empty list."},
                         {"role": "user", "content": f"Here is the resume text:\n\n{text}"}
                     ]
                 },
-                timeout=120
+                timeout=90 # Slightly shorter timeout to allow for retries within worker limits
             )
-            response.raise_for_status()
-            break  # Success
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
-            print(f"Connection error on attempt {attempt + 1}: {e}")
-            if attempt == max_retries - 1:
-                raise e
-            time.sleep(5)
-        except requests.exceptions.HTTPError as e:
-            status_code = e.response.status_code
-            print(f"HTTP Error {status_code}: {e.response.text}") # Log full response for debugging
-            if status_code == 429:
-                wait_time = 10 * (attempt + 1)
-                print(f"Rate limit (429) hit for {current_model}. Retrying in {wait_time}s...")
-                if attempt == max_retries - 1:
-                    raise e
-                time.sleep(wait_time)
-            elif 400 <= status_code < 500 and status_code not in [401, 403]:
-                # Skip to next model for any client error (400, 402, 404, etc.)
-                print(f"Client Error {status_code} for {current_model}. Skipping to next model...")
-                if attempt == max_retries - 1:
-                    raise e
-                continue 
-            else:
-                if attempt == max_retries - 1:
-                    raise e
-                time.sleep(5)
             
-    try:
-        
-        content = response.json()['choices'][0]['message']['content']
-        
-        match = re.search(r'\{.*\}', content, re.DOTALL)
-        if match:
-            json_str = match.group(0)
-            return json.loads(json_str)
-        else:
-            print("No JSON object found in the model's response.")
-            print(f"Received content: {content}")
-            return None
+            if response.status_code == 200:
+                result = response.json()
+                if 'choices' in result and len(result['choices']) > 0:
+                    content = result['choices'][0]['message']['content']
+                    match = re.search(r'\{.*\}', content, re.DOTALL)
+                    if match:
+                        json_str = match.group(0)
+                        return json.loads(json_str)
+                print(f"Model {current_model} returned successful status but malformed structure.")
+            
+            last_response = response
+            response.raise_for_status()
 
-    except requests.exceptions.HTTPError as e:
-        print(f"HTTP Error from OpenRouter: {e}")
-        print(f"Response body: {e.response.text}")
-        raise e
-    except (json.JSONDecodeError, KeyError, IndexError) as e:
-        print(f"Error processing response from OpenRouter: {e}")
-        try:
-            content_for_log = response.json().get('choices', [{}])[0].get('message', {}).get('content', 'N/A')
-        except:
-            content_for_log = "Could not extract content from response."
-        print(f"Received content: {content_for_log}")
-        return None
+        except Exception as e:
+            print(f"Error on attempt {attempt + 1} with {current_model}: {e}")
+            if hasattr(e, 'response') and e.response is not None:
+                 print(f"Response: {e.response.text}")
+            
+            # If it's a 429 or 5xx, wait and retry. If it's a 4xx (client error), maybe try next model immediately.
+            status_code = getattr(e.response, 'status_code', 0) if hasattr(e, 'response') else 0
+            
+            if status_code == 429:
+                time.sleep(5 * (attempt + 1))
+            elif status_code >= 500:
+                time.sleep(2)
+            elif 400 <= status_code < 500:
+                # Client error, skip to next model
+                continue
+            else:
+                time.sleep(2)
+                
+    print("All retries failed for resume parsing.")
+    return None
 
 def send_email(receiver_email, subject, body):
     # Fetch Brevo API key from environment variables
@@ -623,31 +610,41 @@ def health_check():
 
 @app.route('/api/process-resume', methods=['POST'], strict_slashes=False)
 def upload_api():
-    if 'resume' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
-    file = request.files['resume']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
-    if file:
+    temp_filepath = None
+    try:
+        if 'resume' not in request.files:
+            return jsonify({'error': 'No file part in request'}), 400
+        
+        file = request.files['resume']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+            
         import tempfile
-        fd, temp_filepath = tempfile.mkstemp(suffix=os.path.splitext(file.filename)[1])
+        # Safe filename extraction
+        ext = os.path.splitext(file.filename)[1] if file.filename else '.pdf'
+        fd, temp_filepath = tempfile.mkstemp(suffix=ext)
+        
         try:
             with os.fdopen(fd, 'wb') as f:
                 file.save(f)
 
+            app.logger.info(f"Processing resume: {file.filename}")
+            
             if temp_filepath.lower().endswith('.pdf'):
                 text = read_pdf(temp_filepath)
-            elif temp_filepath.lower().endswith('.docx'):
+            elif temp_filepath.lower().endswith(('.docx', '.doc')):
                 text = read_docx(temp_filepath)
             else:
                 return jsonify({'error': 'Unsupported file type. Please upload a PDF or DOCX.'}), 400
 
             if not text or not text.strip():
-                return jsonify({'error': 'Could not extract any text from the uploaded file.'}), 400
+                return jsonify({'error': 'Could not extract any text from the uploaded file. The file might be empty or scanned/protected.'}), 400
 
+            app.logger.info(f"Extracted {len(text)} characters. Sending to AI...")
+            
             resume_data = extract_resume_data_with_openrouter(text)
             if not resume_data:
-                return jsonify({'error': 'Could not parse resume data from the model response.'}), 500
+                return jsonify({'error': 'AI failed to parse the resume. Please try again or use a different file.'}), 500
             
             resume_data = normalize_portfolio_data(resume_data)
             name = resume_data.get('name', 'No_Name_Found')
@@ -658,9 +655,9 @@ def upload_api():
                     'user_id': ObjectId(current_user.id),
                     'name': name,
                     'data': resume_data,
-                    'created_at': datetime.datetime.utcnow() # Note: Need to import datetime
+                    'created_at': datetime.datetime.utcnow()
                 }).inserted_id
-                json_filename = f"{str(portfolio_id)}.json" # Virtual filename for frontend compat
+                json_filename = f"{str(portfolio_id)}.json"
             else:
                 # Fallback to local file for guest
                 json_filename = f"{secure_filename(name.replace(' ', '_'))}.json"
@@ -669,11 +666,19 @@ def upload_api():
                     json.dump(resume_data, json_file, indent=4)
 
             return jsonify({'filename': json_filename, 'data': resume_data})
-        finally:
-            if os.path.exists(temp_filepath):
-                os.remove(temp_filepath)
 
-    return jsonify({'error': 'An unknown error occurred'}), 500
+        except Exception as e:
+            app.logger.error(f"Error during resume processing: {e}", exc_info=True)
+            return jsonify({'error': f'Processing error: {str(e)}'}), 500
+            
+    finally:
+        if temp_filepath and os.path.exists(temp_filepath):
+            try:
+                os.remove(temp_filepath)
+            except Exception as e:
+                app.logger.error(f"Failed to remove temp file {temp_filepath}: {e}")
+
+    return jsonify({'error': 'An unknown error occurred during upload'}), 500
 
 @app.route('/api/portfolio/<filename>', methods=['GET'])
 def get_portfolio_data(filename):
@@ -759,20 +764,26 @@ def catch_all(path):
 
 @app.errorhandler(Exception)
 def handle_exception(e):
+    # Log the full error for debugging
+    app.logger.error(f"Unhandled exception: {e}", exc_info=True)
+    
     if request.path.startswith('/api/'):
         if isinstance(e, HTTPException):
             response = e.get_response()
             response.data = json.dumps({
-                "code": e.code,
-                "name": e.name,
-                "description": e.description,
+                "error": e.name,
+                "message": e.description,
+                "code": e.code
             })
             response.content_type = "application/json"
             return response
         
-        app.logger.error(f"Unhandled API exception: {e}", exc_info=True)
         return jsonify(error="Internal Server Error", message=str(e)), 500
-    return e
+    
+    # For non-API requests, return a more user-friendly HTML error or just the default behavior
+    if isinstance(e, HTTPException):
+        return e
+    return "Internal Server Error", 500
 
 
 # --- AI Enhancement Route ---
