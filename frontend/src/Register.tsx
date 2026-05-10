@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE } from './lib/api';
 import { User, Lock, Mail, Loader2, Eye, EyeOff } from 'lucide-react';
 
 interface RegisterProps {
@@ -28,7 +29,7 @@ export default function Register({ onLoginSuccess, onSwitchToLogin }: RegisterPr
         }
 
         try {
-            const response = await fetch('/api/auth/register', {
+            const response = await fetch(`${API_BASE}/api/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

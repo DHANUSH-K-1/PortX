@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE } from './lib/api';
 import { Upload, CheckCircle, Layout, FileText, User, Briefcase, Code, Loader2, Plus, Trash2, Camera, ImageIcon, Sparkles, Palette, Monitor } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LoadingParticleScreen from './components/LoadingParticleScreen';
@@ -109,7 +110,7 @@ export default function PortfolioBuilder() {
     await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
-      const response = await fetch(`/api/portfolio/${id}.json/delete`, {
+      const response = await fetch(`${API_BASE}/api/portfolio/${id}.json/delete`, {
         method: 'DELETE',
       });
       if (response.ok) {
@@ -135,7 +136,7 @@ export default function PortfolioBuilder() {
   const fetchPortfolios = async () => {
     setIsLoadingPortfolios(true);
     try {
-      const response = await fetch('/api/portfolios');
+      const response = await fetch(`${API_BASE}/api/portfolios`);
       if (response.ok) {
         const data = await response.json();
         setPortfolios(data.portfolios || []);
@@ -153,7 +154,7 @@ export default function PortfolioBuilder() {
     setJsonFilename(`${id}.json`);
 
     try {
-      const response = await fetch(`/api/portfolio/${id}.json`);
+      const response = await fetch(`${API_BASE}/api/portfolio/${id}.json`);
       if (response.ok) {
         const data = await response.json();
         setResumeData(data);
@@ -246,7 +247,7 @@ export default function PortfolioBuilder() {
     try {
       const formData = new FormData();
       formData.append('photo', file);
-      const response = await fetch('/api/upload-photo', { method: 'POST', body: formData });
+      const response = await fetch(`${API_BASE}/api/upload-photo`, { method: 'POST', body: formData });
       if (!response.ok) {
         const err = await response.json();
         toast.error(err.error || 'Photo upload failed');
@@ -271,7 +272,7 @@ export default function PortfolioBuilder() {
     formData.append('resume', uploadedFile);
 
     try {
-      const response = await fetch('/api/process-resume', {
+      const response = await fetch(`${API_BASE}/api/process-resume`, {
         method: 'POST',
         body: formData,
       });
@@ -343,7 +344,7 @@ export default function PortfolioBuilder() {
 
     try {
       // Step 1: Save the JSON data
-      const saveResponse = await fetch(`/api/portfolio/${jsonFilename}`, {
+      const saveResponse = await fetch(`${API_BASE}/api/portfolio/${jsonFilename}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -357,7 +358,7 @@ export default function PortfolioBuilder() {
       }
 
       // Step 2: Trigger HTML generation
-      const generateResponse = await fetch(`/api/generate-html/${jsonFilename}`, {
+      const generateResponse = await fetch(`${API_BASE}/api/generate-html/${jsonFilename}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

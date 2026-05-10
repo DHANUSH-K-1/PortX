@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE } from './lib/api';
 import { User, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 
 interface LoginProps {
@@ -20,7 +21,7 @@ export default function Login({ onLoginSuccess, onSwitchToRegister, onForgotPass
         setError(null);
 
         try {
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch(`${API_BASE}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
