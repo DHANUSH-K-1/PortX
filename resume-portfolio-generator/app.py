@@ -532,15 +532,14 @@ def upload_photo():
     file = request.files['photo']
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
-    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
-    if ext not in ALLOWED_IMAGE_EXTENSIONS:
-        return jsonify({'error': f'File type .{ext} not allowed. Use PNG, JPG, JPEG, GIF, or WEBP.'}), 400
-    import uuid
-    unique_name = f"{uuid.uuid4().hex}.{ext}"
-    save_path = os.path.join(app.config['PHOTOS_FOLDER'], unique_name)
-    file.save(save_path)
-    # Return a URL the frontend + templates can use directly
-    photo_url = f'/photos/{unique_name}'
+    
+    import base64
+    image_bytes = file.read()
+    base64_encoded = base64.b64encode(image_bytes).decode('utf-8')
+    mime_type = file.content_type or 'image/png'
+    
+    # Return a Data URI that the frontend can use directly
+    photo_url = f"data:{mime_type};base64,{base64_encoded}"
     return jsonify({'url': photo_url})
 
 @app.route('/api/render-preview', methods=['POST'])
@@ -627,44 +626,49 @@ def upload_api():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
     if file:
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+        import tempfile
+        fd, temp_filepath = tempfile.mkstemp(suffix=os.path.splitext(file.filename)[1])
+        try:
+            with os.fdopen(fd, 'wb') as f:
+                file.save(f)
 
-        if filename.lower().endswith('.pdf'):
-            text = read_pdf(filepath)
-        elif filename.lower().endswith('.docx'):
-            text = read_docx(filepath)
-        else:
-            return jsonify({'error': 'Unsupported file type. Please upload a PDF or DOCX.'}), 400
+            if temp_filepath.lower().endswith('.pdf'):
+                text = read_pdf(temp_filepath)
+            elif temp_filepath.lower().endswith('.docx'):
+                text = read_docx(temp_filepath)
+            else:
+                return jsonify({'error': 'Unsupported file type. Please upload a PDF or DOCX.'}), 400
 
-        if not text or not text.strip():
-            return jsonify({'error': 'Could not extract any text from the uploaded file.'}), 400
+            if not text or not text.strip():
+                return jsonify({'error': 'Could not extract any text from the uploaded file.'}), 400
 
-        resume_data = extract_resume_data_with_openrouter(text)
-        if not resume_data:
-            return jsonify({'error': 'Could not parse resume data from the model response.'}), 500
-        
-        resume_data = normalize_portfolio_data(resume_data)
-        name = resume_data.get('name', 'No_Name_Found')
-        
-        # Save to MongoDB if user logged in
-        if current_user.is_authenticated:
-            portfolio_id = mongo.db.portfolios.insert_one({
-                'user_id': ObjectId(current_user.id),
-                'name': name,
-                'data': resume_data,
-                'created_at': datetime.datetime.utcnow() # Note: Need to import datetime
-            }).inserted_id
-            json_filename = f"{str(portfolio_id)}.json" # Virtual filename for frontend compat
-        else:
-            # Fallback to local file for guest
-            json_filename = f"{secure_filename(name.replace(' ', '_'))}.json"
-            json_filepath = os.path.join(app.config['DATA_FOLDER'], json_filename)
-            with open(json_filepath, 'w') as json_file:
-                json.dump(resume_data, json_file, indent=4)
+            resume_data = extract_resume_data_with_openrouter(text)
+            if not resume_data:
+                return jsonify({'error': 'Could not parse resume data from the model response.'}), 500
+            
+            resume_data = normalize_portfolio_data(resume_data)
+            name = resume_data.get('name', 'No_Name_Found')
+            
+            # Save to MongoDB if user logged in
+            if current_user.is_authenticated:
+                portfolio_id = mongo.db.portfolios.insert_one({
+                    'user_id': ObjectId(current_user.id),
+                    'name': name,
+                    'data': resume_data,
+                    'created_at': datetime.datetime.utcnow() # Note: Need to import datetime
+                }).inserted_id
+                json_filename = f"{str(portfolio_id)}.json" # Virtual filename for frontend compat
+            else:
+                # Fallback to local file for guest
+                json_filename = f"{secure_filename(name.replace(' ', '_'))}.json"
+                json_filepath = os.path.join(app.config['DATA_FOLDER'], json_filename)
+                with open(json_filepath, 'w') as json_file:
+                    json.dump(resume_data, json_file, indent=4)
 
-        return jsonify({'filename': json_filename, 'data': resume_data})
+            return jsonify({'filename': json_filename, 'data': resume_data})
+        finally:
+            if os.path.exists(temp_filepath):
+                os.remove(temp_filepath)
 
     return jsonify({'error': 'An unknown error occurred'}), 500
 
