@@ -256,7 +256,7 @@ def extract_resume_data_with_openrouter(text):
 
 def send_email(receiver_email, subject, body):
     sender_email = os.getenv("EMAIL_ADDRESS")
-    app_password = os.getenv("EMAIL_APP_PASSWORD")
+    app_password = os.getenv("EMAIL_APP_PASSWORD", "").replace('"', '').replace("'", "")
 
     if not sender_email or not app_password:
         print("Email credentials not configured in .env")
@@ -383,8 +383,7 @@ def register():
         </body>
         </html>
         """
-        import threading
-        threading.Thread(target=send_email, args=(user.email, "Welcome to PortX - Build Your Legacy", welcome_html)).start()
+        send_email(user.email, "Welcome to PortX - Build Your Legacy", welcome_html)
 
         return jsonify(message="Registered successfully", user={'id': user.id, 'name': user.name, 'email': user.email})
     except Exception as e:
@@ -468,7 +467,7 @@ def forgot_password():
     </body>
     </html>
     """
-    threading.Thread(target=send_email, args=(email, "PortX - Password Reset OTP", otp_html)).start()
+    send_email(email, "PortX - Password Reset OTP", otp_html)
     
     return jsonify(message="If an account with that email exists, an OTP has been sent.")
 
