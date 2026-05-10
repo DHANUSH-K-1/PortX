@@ -1,7 +1,5 @@
 // If using a physical device, replace 'localhost' with your machine's IP address
 // For Android Emulator, use '10.0.2.2'
-
-
 const BASE_URL = 'http://192.168.1.6:5000';
 
 export const API_ENDPOINTS = {
