@@ -1,0 +1,24 @@
+# Node.js
+node_modules/
+dist/
+.eslintcache
+*.log
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.pytest_cache/
+
+# Backend folders
+resume-portfolio-generator/uploads/
+resume-portfolio-generator/data/
+resume-portfolio-generator/generated/
+resume-portfolio-generator/photos/
+
+# OS files
+.DS_Store
+Thumbs.db

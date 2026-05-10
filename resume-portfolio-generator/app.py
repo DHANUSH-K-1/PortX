@@ -42,6 +42,8 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", BACKEND_URL)
 # Allow cross-domain requests from the React frontend
 _frontend_origins = [
     FRONTEND_URL,
+    "https://portx.live",                                 # Custom domain
+    "https://portx-frontend.vercel.app",                 # Vercel fallback
     "http://localhost:5173",                              # Local Vite dev server
     "http://127.0.0.1:5173",                              # Local Vite dev server (IP)
     "http://localhost:5000",                              # Local Flask serve
