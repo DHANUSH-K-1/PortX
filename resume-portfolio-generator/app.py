@@ -255,10 +255,39 @@ def extract_resume_data_with_openrouter(text):
         return None
 
 def send_email(receiver_email, subject, body):
-    # Render's free tier blocks outbound SMTP ports (25, 465, 587) to prevent spam.
-    # We must mock this function or use an HTTP API like SendGrid/Resend instead.
-    print(f"[MOCK EMAIL] To: {receiver_email} | Subject: {subject}")
-    return True
+    # Fetch Brevo API key from environment variables
+    api_key = os.getenv("BREVO_API_KEY")
+    sender_email = os.getenv("EMAIL_ADDRESS", "portXportfolio@gmail.com")
+
+    if not api_key:
+        print("BREVO_API_KEY not configured. Cannot send email.")
+        return False
+
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "accept": "application/json",
+        "api-key": api_key,
+        "content-type": "application/json"
+    }
+    
+    payload = {
+        "sender": {"name": "PortX Portfolio", "email": sender_email},
+        "to": [{"email": receiver_email}],
+        "subject": subject,
+        "htmlContent": body
+    }
+
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        if response.status_code in [201, 200, 202]:
+            print(f"Email sent successfully to {receiver_email} via Brevo!")
+            return True
+        else:
+            print(f"Failed to send email via Brevo. Status: {response.status_code}, Response: {response.text}")
+            return False
+    except Exception as e:
+        print(f"Exception during Brevo email send: {e}")
+        return False
 
 # --- Auth Routes ---
 @app.route('/api/auth/register', methods=['POST'])
