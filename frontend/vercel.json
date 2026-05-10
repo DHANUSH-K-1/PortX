@@ -1,9 +1,9 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://resume-portfolio-generator.onrender.com/api/$1" },
-    { "source": "/p/(.*)", "destination": "https://resume-portfolio-generator.onrender.com/p/$1" },
-    { "source": "/photos/(.*)", "destination": "https://resume-portfolio-generator.onrender.com/photos/$1" },
-    { "source": "/download/(.*)", "destination": "https://resume-portfolio-generator.onrender.com/download/$1" },
+    { "source": "/api/(.*)", "destination": "https://portx-mvq4.onrender.com/api/$1" },
+    { "source": "/p/(.*)", "destination": "https://portx-mvq4.onrender.com/p/$1" },
+    { "source": "/photos/(.*)", "destination": "https://portx-mvq4.onrender.com/photos/$1" },
+    { "source": "/download/(.*)", "destination": "https://portx-mvq4.onrender.com/download/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

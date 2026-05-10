@@ -16,19 +16,19 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'https://resume-portfolio-generator.onrender.com',
+        target: process.env.VITE_API_URL || 'https://portx-mvq4.onrender.com',
         changeOrigin: true,
       },
       '/p': {
-        target: process.env.VITE_API_URL || 'https://resume-portfolio-generator.onrender.com',
+        target: process.env.VITE_API_URL || 'https://portx-mvq4.onrender.com',
         changeOrigin: true,
       },
       '/photos': {
-        target: process.env.VITE_API_URL || 'https://resume-portfolio-generator.onrender.com',
+        target: process.env.VITE_API_URL || 'https://portx-mvq4.onrender.com',
         changeOrigin: true,
       },
       '/download': {
-        target: process.env.VITE_API_URL || 'https://resume-portfolio-generator.onrender.com',
+        target: process.env.VITE_API_URL || 'https://portx-mvq4.onrender.com',
         changeOrigin: true,
       },
     }

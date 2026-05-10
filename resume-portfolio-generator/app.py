@@ -31,7 +31,7 @@ app.secret_key = os.getenv("SECRET_KEY", "dev_secret_key_change_in_production")
 
 # --- Production URL Configuration ---
 # Use the Render URL if available, otherwise fallback to localhost
-BACKEND_URL = os.getenv("BACKEND_URL", "https://resume-portfolio-generator.onrender.com")
+BACKEND_URL = os.getenv("BACKEND_URL", "https://portx-mvq4.onrender.com")
 if os.getenv("FLASK_ENV") != "production":
     BACKEND_URL = "http://localhost:5000"
 
