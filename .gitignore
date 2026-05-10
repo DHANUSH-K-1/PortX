@@ -22,3 +22,7 @@ resume-portfolio-generator/photos/
 # OS files
 .DS_Store
 Thumbs.db
+node_modules/
+photos/*.jpeg
+photos/*.jpg
+photos/*.png
