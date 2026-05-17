@@ -1,17 +1,25 @@
-name: Sync to Hugging Face hub
+name: Sync Backend to Hugging Face
 on:
   push:
     branches: [main]
+    paths:
+      - 'resume-portfolio-generator/**'
 
 jobs:
   sync-to-hub:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          lfs: true
-      - name: Push to hub
+      
+      - name: Push backend to Hugging Face
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push https://dhanushkshaji:$HF_TOKEN@huggingface.co/spaces/dhanushkshaji/portx-backend main -f
+        run: |
+          cd resume-portfolio-generator
+          git config --global user.email "bot@portx.live"
+          git config --global user.name "PortX Deploy Bot"
+          git init
+          git checkout -b main
+          git add .
+          git commit -m "Auto-deploy backend from GitHub"
+          git push https://dhanushkshaji:$HF_TOKEN@huggingface.co/spaces/dhanushkshaji/portx-backend main -f
