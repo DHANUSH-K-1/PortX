@@ -1,9 +1,24 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://resume-portfolio-generator.onrender.com/api/$1" },
-    { "source": "/p/(.*)", "destination": "https://resume-portfolio-generator.onrender.com/p/$1" },
-    { "source": "/photos/(.*)", "destination": "https://resume-portfolio-generator.onrender.com/photos/$1" },
-    { "source": "/download/(.*)", "destination": "https://resume-portfolio-generator.onrender.com/download/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/(.*)",
+      "destination": "https://dhanushkshaji-portx-backend.hf.space/api/$1"
+    },
+    {
+      "source": "/p/(.*)",
+      "destination": "https://dhanushkshaji-portx-backend.hf.space/p/$1"
+    },
+    {
+      "source": "/photos/(.*)",
+      "destination": "https://dhanushkshaji-portx-backend.hf.space/photos/$1"
+    },
+    {
+      "source": "/download/(.*)",
+      "destination": "https://dhanushkshaji-portx-backend.hf.space/download/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
