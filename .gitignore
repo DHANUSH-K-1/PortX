@@ -26,3 +26,5 @@ node_modules/
 photos/*.jpeg
 photos/*.jpg
 photos/*.png
+
+dist/
