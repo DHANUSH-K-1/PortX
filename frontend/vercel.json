@@ -2,19 +2,19 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://dhanushkshaji-portx-backend.hf.space/api/$1"
+      "destination": "https://portx-mvq4.onrender.com/api/$1"
     },
     {
       "source": "/p/(.*)",
-      "destination": "https://dhanushkshaji-portx-backend.hf.space/p/$1"
+      "destination": "https://portx-mvq4.onrender.com/p/$1"
     },
     {
       "source": "/photos/(.*)",
-      "destination": "https://dhanushkshaji-portx-backend.hf.space/photos/$1"
+      "destination": "https://portx-mvq4.onrender.com/photos/$1"
     },
     {
       "source": "/download/(.*)",
-      "destination": "https://dhanushkshaji-portx-backend.hf.space/download/$1"
+      "destination": "https://portx-mvq4.onrender.com/download/$1"
     },
     {
       "source": "/(.*)",
