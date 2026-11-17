@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Upload, CheckCircle, Layout, FileText, User, Briefcase, Code, Loader2, Plus, Trash2, Camera, ImageIcon, Sparkles, Palette, Monitor } from 'lucide-react';
+import { Upload, CheckCircle, Layout, FileText, User, Briefcase, Code, Loader2, Plus, Trash2, Camera, ImageIcon, Sparkles, Palette, Monitor, Eye, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LoadingParticleScreen from './components/LoadingParticleScreen';
 import toast from 'react-hot-toast';
 import PortfolioPreview from './PortfolioPreview';
+import PortfolioModalPreview, { PreviewPortfolioTarget } from './PortfolioModalPreview';
 
 const pageVariants = {
   initial: { opacity: 0, y: 10 },
@@ -50,13 +51,18 @@ const getLayoutIcon = (layout: string) => {
   }
 };
 
-export default function PortfolioBuilder() {
+interface PortfolioBuilderProps {
+  onSearchClick?: () => void;
+}
+
+export default function PortfolioBuilder({ onSearchClick }: PortfolioBuilderProps = {}) {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [jsonFilename, setJsonFilename] = useState('');
   const [generatedHtmlFile, setGeneratedHtmlFile] = useState('');
   const [isProcessingResume, setIsProcessingResume] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [previewingPortfolio, setPreviewingPortfolio] = useState<PreviewPortfolioTarget | null>(null);
 
   const [portfolios, setPortfolios] = useState<any[]>([]);
   const [isLoadingPortfolios, setIsLoadingPortfolios] = useState(false);
@@ -157,6 +163,8 @@ export default function PortfolioBuilder() {
       if (response.ok) {
         const data = await response.json();
         setResumeData(data);
+        const storedLayout = data.template_id || data.layout || 'modern';
+        setSelectedLayout(storedLayout);
         setCurrentPage('edit');
       } else {
         toast.error("Failed to load portfolio data");
@@ -290,6 +298,9 @@ export default function PortfolioBuilder() {
       const result = await response.json();
       setResumeData(result.data);
       setJsonFilename(result.filename);
+      if (result.layout || result.data?.layout) {
+        setSelectedLayout(result.layout || result.data?.layout);
+      }
       setCurrentPage('edit');
 
     } catch (error: any) {
@@ -342,13 +353,17 @@ export default function PortfolioBuilder() {
     }
 
     try {
-      // Step 1: Save the JSON data
+      // Step 1: Save the JSON data including selectedLayout and template_id
       const saveResponse = await fetch(`/api/portfolio/${jsonFilename}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(resumeData),
+        body: JSON.stringify({
+          ...resumeData,
+          layout: selectedLayout,
+          template_id: selectedLayout,
+        }),
       });
 
       if (!saveResponse.ok) {
@@ -356,13 +371,16 @@ export default function PortfolioBuilder() {
         throw new Error(errorData.error || 'Failed to save portfolio.');
       }
 
-      // Step 2: Trigger HTML generation
+      // Step 2: Trigger HTML generation with stored layout template id
       const generateResponse = await fetch(`/api/generate-html/${jsonFilename}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ layout: selectedLayout }),
+        body: JSON.stringify({
+          layout: selectedLayout,
+          template_id: selectedLayout,
+        }),
       });
 
       if (!generateResponse.ok) {
@@ -398,13 +416,25 @@ export default function PortfolioBuilder() {
               <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">My Portfolios</h1>
               <p className="text-gray-400">Manage and edit your generated portfolios</p>
             </div>
-            <button
-              onClick={() => setCurrentPage('upload')}
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg font-semibold transition-all flex items-center gap-2 shadow-lg shadow-purple-500/20"
-            >
-              <div className="w-5 h-5 border-2 border-white rounded-full flex items-center justify-center text-xs">+</div>
-              Create New
-            </button>
+            <div className="flex items-center gap-3">
+              {onSearchClick && (
+                <button
+                  type="button"
+                  onClick={onSearchClick}
+                  className="px-5 py-3 bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/30 rounded-lg font-semibold transition-all flex items-center gap-2 text-purple-200"
+                >
+                  <Search className="w-4 h-4 text-purple-400" />
+                  Search Portfolios
+                </button>
+              )}
+              <button
+                onClick={() => setCurrentPage('upload')}
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg font-semibold transition-all flex items-center gap-2 shadow-lg shadow-purple-500/20"
+              >
+                <div className="w-5 h-5 border-2 border-white rounded-full flex items-center justify-center text-xs">+</div>
+                Create New
+              </button>
+            </div>
           </div>
 
           {isLoadingPortfolios ? (
@@ -446,14 +476,19 @@ export default function PortfolioBuilder() {
                       >
                         Edit
                       </button>
-                      <a
-                        href={`/p/${portfolio.id}.html`} 
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 rounded-lg text-sm font-medium transition-colors border border-white/10"
+                      <button
+                        type="button"
+                        onClick={() => setPreviewingPortfolio({
+                          id: portfolio.id,
+                          name: portfolio.name,
+                          layout: portfolio.template_id || portfolio.layout || portfolio.preview_data?.template_id || portfolio.preview_data?.layout || 'modern'
+                        })}
+                        className="px-4 py-2 bg-gradient-to-r from-purple-600/30 to-pink-600/30 hover:from-purple-600/50 hover:to-pink-600/50 text-white rounded-lg text-sm font-medium transition-colors border border-purple-500/40 flex items-center gap-1.5"
+                        title="View preview with stored layout"
                       >
+                        <Eye className="w-4 h-4 text-purple-300" />
                         View
-                      </a>
+                      </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); setPortfolioToDelete({ id: portfolio.id, name: portfolio.name }); }}
                         className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-lg transition-colors border border-red-500/30"
@@ -516,6 +551,11 @@ export default function PortfolioBuilder() {
               </div>
             </div>
           )}
+          {/* Portfolio Preview Modal with Stored Layout */}
+          <PortfolioModalPreview
+            portfolio={previewingPortfolio}
+            onClose={() => setPreviewingPortfolio(null)}
+          />
         </div>
       </motion.div>
     );
@@ -592,6 +632,11 @@ export default function PortfolioBuilder() {
             </button>
             {isProcessingResume && <LoadingParticleScreen />}
           </div>
+          {/* Portfolio Preview Modal with Stored Layout */}
+          <PortfolioModalPreview
+            portfolio={previewingPortfolio}
+            onClose={() => setPreviewingPortfolio(null)}
+          />
         </div>
       </motion.div>
     );
@@ -1090,6 +1135,11 @@ export default function PortfolioBuilder() {
               </button>
             </div>
           </div>
+          {/* Portfolio Preview Modal with Stored Layout */}
+          <PortfolioModalPreview
+            portfolio={previewingPortfolio}
+            onClose={() => setPreviewingPortfolio(null)}
+          />
         </div>
       </motion.div>
     );

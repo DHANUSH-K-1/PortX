@@ -477,14 +477,18 @@ def get_user_portfolios():
         results = []
         for p in user_portfolios:
             data_content = p.get('data', {})
+            layout_id = p.get('layout') or p.get('template_id') or data_content.get('layout') or data_content.get('template_id') or 'modern'
             results.append({
                 'id': str(p['_id']),
                 'name': p.get('name', 'Untitled'),
                 'email': data_content.get('email', 'N/A'),
                 'mobile': data_content.get('mobile', 'N/A'),
                 'created_at': p.get('created_at').isoformat() if p.get('created_at') else None,
+                'layout': layout_id,
+                'template_id': layout_id,
                 'preview_data': {
-                    'layout': data_content.get('layout', 'modern'),
+                    'layout': layout_id,
+                    'template_id': layout_id,
                     'title': data_content.get('portfolio_summary', '')[:100] + '...'
                 }
             })
@@ -498,6 +502,38 @@ def get_user_portfolios():
 
 @app.route('/p/<path:filename>')
 def serve_generated_portfolio(filename):
+    clean_id = filename[:-5] if filename.endswith('.html') else filename
+    # Check if MongoDB has this portfolio and render with stored layout
+    if ObjectId.is_valid(clean_id):
+        portfolio = mongo.db.portfolios.find_one({'_id': ObjectId(clean_id)})
+        if portfolio:
+            data = portfolio.get('data', {})
+            stored_layout = portfolio.get('layout') or portfolio.get('template_id') or data.get('layout') or data.get('template_id') or 'modern'
+            override_layout = request.args.get('layout')
+            active_layout = override_layout if override_layout else stored_layout
+            safe_layout = re.sub(r'[^a-zA-Z0-9_]', '', active_layout)
+            template_name = f"templates/template_{safe_layout}.html"
+            template_path = os.path.join(os.path.dirname(__file__), template_name)
+            if not os.path.exists(template_path):
+                safe_layout = 'modern'
+                template_name = "templates/template_modern.html"
+
+            data = normalize_portfolio_data(data)
+            rendered_html = render_template(template_name, **data)
+
+            # Cache to generated folder
+            try:
+                os.makedirs(app.config['GENERATED_FOLDER'], exist_ok=True)
+                html_filepath = os.path.join(app.config['GENERATED_FOLDER'], f"{clean_id}.html")
+                with open(html_filepath, 'w', encoding='utf-8') as f:
+                    f.write(rendered_html)
+            except Exception as cache_err:
+                app.logger.warning(f"Could not cache generated HTML: {cache_err}")
+
+            from flask import Response
+            return Response(rendered_html, mimetype='text/html')
+
+    # Fallback to local file in generated folder
     return send_from_directory(app.config['GENERATED_FOLDER'], filename)
 
 @app.route('/photos/<path:filename>')
@@ -584,12 +620,25 @@ def generate_html(filename):
         else:
              return jsonify(error="Portfolio data not found."), 404
         
-        layout = request.json.get('layout', 'modern')
+        layout = request.json.get('layout') or request.json.get('template_id') or 'modern'
         safe_layout = re.sub(r'[^a-zA-Z0-9_]', '', layout)
         template_name = f"templates/template_{safe_layout}.html"
 
         if not os.path.exists(os.path.join(os.path.dirname(__file__), template_name)):
             return jsonify(error=f"Template '{safe_layout}' not found."), 404
+
+        # Persist selected layout in MongoDB
+        clean_id = filename.replace('.json', '')
+        if ObjectId.is_valid(clean_id):
+            mongo.db.portfolios.update_one(
+                {'_id': ObjectId(clean_id)},
+                {'$set': {
+                    'layout': safe_layout,
+                    'template_id': safe_layout,
+                    'data.layout': safe_layout,
+                    'data.template_id': safe_layout
+                }}
+            )
 
         html_filename = f"{os.path.splitext(filename)[0]}.html"
         
@@ -601,10 +650,29 @@ def generate_html(filename):
         with open(generated_html_filepath, 'w', encoding='utf-8') as f:
             f.write(rendered_html)
 
-        return jsonify(success=True, message="HTML generated successfully.", generated_file=html_filename)
+        return jsonify(success=True, message="HTML generated successfully.", generated_file=html_filename, layout=safe_layout, template_id=safe_layout)
     except Exception as e:
         app.logger.error(f"Error in generate_html: {e}", exc_info=True)
         return jsonify(error=f"An error occurred while generating the portfolio: {e}"), 500
+
+@app.route('/api/portfolio/<filename>/layout', methods=['POST', 'PUT'])
+def update_portfolio_layout(filename):
+    data = request.json or {}
+    template_id = data.get('template_id') or data.get('layout') or 'modern'
+    safe_layout = re.sub(r'[^a-zA-Z0-9_]', '', template_id)
+    clean_id = filename.replace('.json', '')
+    if ObjectId.is_valid(clean_id):
+        mongo.db.portfolios.update_one(
+            {'_id': ObjectId(clean_id)},
+            {'$set': {
+                'layout': safe_layout,
+                'template_id': safe_layout,
+                'data.layout': safe_layout,
+                'data.template_id': safe_layout
+            }}
+        )
+        return jsonify(success=True, layout=safe_layout, template_id=safe_layout)
+    return jsonify(error="Portfolio not found"), 404
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -643,12 +711,17 @@ def upload_api():
                 return jsonify({'error': 'Could not parse resume data from the model response.'}), 500
 
             name = resume_data.get('name', 'No_Name_Found')
+            template_id = resume_data.get('template_id') or resume_data.get('layout') or 'modern'
+            resume_data['template_id'] = template_id
+            resume_data['layout'] = template_id
             
             # Save to MongoDB if user logged in
             if current_user.is_authenticated:
                 portfolio_id = mongo.db.portfolios.insert_one({
                     'user_id': ObjectId(current_user.id),
                     'name': name,
+                    'layout': template_id,
+                    'template_id': template_id,
                     'data': resume_data,
                     'created_at': datetime.datetime.utcnow() 
                 }).inserted_id
@@ -660,7 +733,7 @@ def upload_api():
                 with open(json_filepath, 'w') as json_file:
                     json.dump(resume_data, json_file, indent=4)
 
-            return jsonify({'filename': json_filename, 'data': resume_data})
+            return jsonify({'filename': json_filename, 'data': resume_data, 'layout': template_id, 'template_id': template_id})
         except Exception as e:
             app.logger.error(f"Error processing resume: {e}")
             return jsonify({'error': str(e)}), 500
@@ -677,15 +750,23 @@ def upload_api():
 @app.route('/api/portfolio/<filename>', methods=['GET'])
 def get_portfolio_data(filename):
     # Hybrid approach: DB or File
-    if ObjectId.is_valid(filename.replace('.json', '')):
-        portfolio = mongo.db.portfolios.find_one({'_id': ObjectId(filename.replace('.json', ''))})
+    clean_id = filename.replace('.json', '')
+    if ObjectId.is_valid(clean_id):
+        portfolio = mongo.db.portfolios.find_one({'_id': ObjectId(clean_id)})
         if portfolio:
-            return jsonify(portfolio.get('data'))
+            data = portfolio.get('data', {})
+            layout_id = portfolio.get('layout') or portfolio.get('template_id') or data.get('layout') or data.get('template_id') or 'modern'
+            data['layout'] = layout_id
+            data['template_id'] = layout_id
+            return jsonify(data)
     
     json_filepath = os.path.join(app.config['DATA_FOLDER'], filename)
     try:
         with open(json_filepath, 'r') as json_file:
             data = json.load(json_file)
+        layout_id = data.get('layout') or data.get('template_id') or 'modern'
+        data['layout'] = layout_id
+        data['template_id'] = layout_id
         return jsonify(data)
     except FileNotFoundError:
         return jsonify({'error': 'Portfolio data not found.'}), 404
@@ -712,13 +793,22 @@ def update_portfolio_data(filename):
     if not updated_data:
         return jsonify({'error': 'No data provided'}), 400
 
-    if ObjectId.is_valid(filename.replace('.json', '')):
-        # Check ownership logic if strict, for now simplistic
+    template_id = updated_data.get('template_id') or updated_data.get('layout') or 'modern'
+    updated_data['template_id'] = template_id
+    updated_data['layout'] = template_id
+
+    clean_id = filename.replace('.json', '')
+    if ObjectId.is_valid(clean_id):
         mongo.db.portfolios.update_one(
-            {'_id': ObjectId(filename.replace('.json', ''))},
-            {'$set': {'data': updated_data}}
+            {'_id': ObjectId(clean_id)},
+            {'$set': {
+                'data': updated_data,
+                'layout': template_id,
+                'template_id': template_id,
+                'name': updated_data.get('name', 'Untitled')
+            }}
         )
-        return jsonify({'message': 'Portfolio updated in DB successfully.'})
+        return jsonify({'message': 'Portfolio updated in DB successfully.', 'layout': template_id, 'template_id': template_id})
 
     json_filepath = os.path.join(app.config['DATA_FOLDER'], filename)
     if not os.path.exists(json_filepath):
@@ -727,7 +817,125 @@ def update_portfolio_data(filename):
     with open(json_filepath, 'w') as json_file:
         json.dump(updated_data, json_file, indent=4)
         
-    return jsonify({'message': 'Portfolio updated successfully.'})
+    return jsonify({'message': 'Portfolio updated successfully.', 'layout': template_id, 'template_id': template_id})
+
+# --- Public Search Portfolios Route ---
+@app.route('/api/search-portfolios', methods=['GET'])
+def search_portfolios():
+    try:
+        q = request.args.get('q', '').strip()
+        person_name = request.args.get('person_name', '').strip()
+        username = request.args.get('username', '').strip()
+        layout_filter = request.args.get('layout', '').strip()
+
+        pipeline = [
+            {
+                "$lookup": {
+                    "from": "users",
+                    "localField": "user_id",
+                    "foreignField": "_id",
+                    "as": "user_info"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$user_info",
+                    "preserveNullAndEmptyArrays": True
+                }
+            }
+        ]
+
+        match_conditions = []
+
+        if person_name:
+            match_conditions.append({
+                "$or": [
+                    {"name": {"$regex": re.escape(person_name), "$options": "i"}},
+                    {"data.name": {"$regex": re.escape(person_name), "$options": "i"}}
+                ]
+            })
+
+        if username:
+            match_conditions.append({
+                "$or": [
+                    {"user_info.name": {"$regex": re.escape(username), "$options": "i"}},
+                    {"user_info.email": {"$regex": re.escape(username), "$options": "i"}}
+                ]
+            })
+
+        if q:
+            q_escaped = re.escape(q)
+            match_conditions.append({
+                "$or": [
+                    {"name": {"$regex": q_escaped, "$options": "i"}},
+                    {"data.name": {"$regex": q_escaped, "$options": "i"}},
+                    {"user_info.name": {"$regex": q_escaped, "$options": "i"}},
+                    {"user_info.email": {"$regex": q_escaped, "$options": "i"}},
+                    {"data.portfolio_summary": {"$regex": q_escaped, "$options": "i"}},
+                    {"data.skills.name": {"$regex": q_escaped, "$options": "i"}},
+                    {"data.skills": {"$regex": q_escaped, "$options": "i"}}
+                ]
+            })
+
+        if layout_filter and layout_filter.lower() != 'all':
+            layout_escaped = re.escape(layout_filter)
+            match_conditions.append({
+                "$or": [
+                    {"layout": {"$regex": f"^{layout_escaped}$", "$options": "i"}},
+                    {"template_id": {"$regex": f"^{layout_escaped}$", "$options": "i"}},
+                    {"data.layout": {"$regex": f"^{layout_escaped}$", "$options": "i"}},
+                    {"data.template_id": {"$regex": f"^{layout_escaped}$", "$options": "i"}}
+                ]
+            })
+
+        if match_conditions:
+            pipeline.append({"$match": {"$and": match_conditions}})
+
+        pipeline.append({"$sort": {"created_at": -1}})
+        pipeline.append({"$limit": 60})
+
+        portfolios_cursor = list(mongo.db.portfolios.aggregate(pipeline))
+
+        results = []
+        for p in portfolios_cursor:
+            data = p.get('data', {}) if isinstance(p.get('data'), dict) else {}
+            user_info = p.get('user_info') or {}
+            
+            creator_username = user_info.get('name')
+            if not creator_username and user_info.get('email'):
+                creator_username = user_info.get('email').split('@')[0]
+            if not creator_username:
+                creator_username = "member"
+
+            person = p.get('name') or data.get('name') or "Untitled Portfolio"
+            layout_id = p.get('layout') or p.get('template_id') or data.get('layout') or data.get('template_id') or 'modern'
+
+            raw_skills = data.get('skills', [])
+            skills_list = []
+            for s in raw_skills:
+                if isinstance(s, dict):
+                    skills_list.append(s.get('name', ''))
+                elif isinstance(s, str):
+                    skills_list.append(s)
+
+            results.append({
+                'id': str(p['_id']),
+                'name': person,
+                'username': creator_username,
+                'user_email': user_info.get('email', ''),
+                'layout': layout_id,
+                'template_id': layout_id,
+                'title': data.get('portfolio_summary', ''),
+                'email': data.get('email', ''),
+                'skills': [s for s in skills_list if s],
+                'profile_photo': data.get('profile_photo') or data.get('profile_image') or '',
+                'created_at': p.get('created_at').isoformat() if p.get('created_at') else None
+            })
+
+        return jsonify(portfolios=results)
+    except Exception as e:
+        app.logger.error(f"Error searching portfolios: {e}", exc_info=True)
+        return jsonify(error=str(e)), 500
 
 @app.route('/download/<generated_filename>')
 def download_portfolio(generated_filename):

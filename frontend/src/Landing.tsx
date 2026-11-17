@@ -1,12 +1,13 @@
-import { Upload, Layout, Sparkles, FileText, ArrowRight, UserCircle2 } from 'lucide-react';
+import { Upload, Layout, Sparkles, FileText, ArrowRight, UserCircle2, Search } from 'lucide-react';
 import GradientBlinds from './GradientBlinds';
 
 interface LandingProps {
     onLoginClick: () => void;
     onRegisterClick: () => void;
+    onSearchClick: () => void;
 }
 
-export default function Landing({ onLoginClick, onRegisterClick }: LandingProps) {
+export default function Landing({ onLoginClick, onRegisterClick, onSearchClick }: LandingProps) {
     return (
         <div className="min-h-screen bg-black text-white selection:bg-purple-500/30">
             {/* Navigation Header */}
@@ -15,16 +16,23 @@ export default function Landing({ onLoginClick, onRegisterClick }: LandingProps)
                     <Sparkles className="w-6 h-6 text-purple-400" />
                     <span className="font-bold text-xl tracking-tight">PortX</span>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex items-center gap-3 sm:gap-4">
+                    <button
+                        onClick={onSearchClick}
+                        className="flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full font-medium text-purple-300 hover:text-white bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/30 transition-all backdrop-blur-sm text-sm"
+                    >
+                        <Search className="w-4 h-4 text-purple-400" />
+                        <span>Search Portfolios</span>
+                    </button>
                     <button
                         onClick={onLoginClick}
-                        className="px-6 py-2 rounded-full font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all"
+                        className="px-5 sm:px-6 py-2 rounded-full font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all text-sm"
                     >
                         Log In
                     </button>
                     <button
                         onClick={onRegisterClick}
-                        className="px-6 py-2 bg-white text-black rounded-full font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 active:scale-95"
+                        className="px-5 sm:px-6 py-2 bg-white text-black rounded-full font-semibold hover:bg-gray-100 transition-all transform hover:scale-105 active:scale-95 text-sm"
                     >
                         Sign Up
                     </button>

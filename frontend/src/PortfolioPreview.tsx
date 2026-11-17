@@ -1,4 +1,5 @@
 import React from 'react';
+import { getLayoutMeta } from './PortfolioModalPreview';
 
 interface ResumeData {
   name: string;
@@ -18,10 +19,21 @@ interface PortfolioPreviewProps {
 }
 
 const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ data, layout }) => {
-  // Using a single, polished layout for all selections for now.
-  // The 'layout' prop is kept for future expansion.
+  const layoutInfo = getLayoutMeta(layout);
+
   return (
-    <div data-layout={layout} className="p-8 bg-gray-800/50 text-white rounded-lg shadow-lg backdrop-blur-sm border border-purple-500/30">
+    <div data-layout={layout} className="p-8 bg-zinc-900/70 text-white rounded-2xl shadow-xl backdrop-blur-md border border-purple-500/30 relative overflow-hidden">
+      {/* Layout Header Indicator */}
+      <div className="flex items-center justify-between pb-4 mb-6 border-b border-purple-500/20">
+        <span className="text-xs uppercase tracking-wider text-purple-300 font-semibold flex items-center gap-1.5">
+          <span>{layoutInfo.icon}</span>
+          <span>Theme: {layoutInfo.name}</span>
+        </span>
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-200 border border-purple-500/30">
+          Layout ID: {layout || 'modern'}
+        </span>
+      </div>
+
       <header className="flex flex-col items-center mb-8">
         {data.profile_photo && (
           <img 

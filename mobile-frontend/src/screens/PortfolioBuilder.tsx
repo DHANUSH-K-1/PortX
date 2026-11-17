@@ -54,7 +54,7 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  const [user, setUser] = useState<{name: string, email: string} | null>(null);
+  const [user, setUser] = useState<{ name: string, email: string } | null>(null);
   const [editData, setEditData] = useState<PortfolioData | null>(null);
   const [currentFilename, setCurrentFilename] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
@@ -73,7 +73,7 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
     { id: 'modern', name: 'Modern', category: 'Developer' },
     { id: '3d', name: '3D Interactive', category: 'Developer' },
     { id: 'space', name: 'Galaxy', category: 'Developer' },
-    
+
     // Creative
     { id: 'creative', name: 'Creative Agency', category: 'Creative' },
     { id: 'designer', name: 'UI/UX Designer', category: 'Creative' },
@@ -82,7 +82,7 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
     { id: 'playful', name: 'Playful UI', category: 'Creative' },
     { id: 'brand', name: 'Brand Story', category: 'Creative' },
     { id: 'story_v2', name: 'Visual Storyteller', category: 'Creative' },
-    
+
     // Professional
     { id: 'professional', name: 'Corporate Executive', category: 'Professional' },
     { id: 'resume', name: 'Digital Resume', category: 'Professional' },
@@ -94,7 +94,7 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
     { id: 'portfolio_1', name: 'Portfolio Template 1', category: 'Professional' },
     { id: 'portfolio_2', name: 'Portfolio Template 2', category: 'Professional' },
     { id: 'portfolio_standalone', name: 'Portfolio Standalone', category: 'Professional' },
-    
+
     // Media
     { id: 'photographer', name: 'Lens Master', category: 'Media' },
     { id: 'magazine', name: 'Editorial', category: 'Media' },
@@ -115,7 +115,7 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
   const showNotification = async (msg: string) => {
     setNotification({ message: msg, visible: true });
     setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 3000);
-    
+
     // Trigger system notification
     try {
       await Notifications.scheduleNotificationAsync({
@@ -185,10 +185,12 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
   const handleDelete = (id: string) => {
     Alert.alert("Delete Project", "Permanently remove this portfolio?", [
       { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: async () => {
-        const response = await fetch(API_ENDPOINTS.deletePortfolio(id), { method: 'POST' });
-        if (response.ok) fetchPortfolios();
-      }}
+      {
+        text: "Delete", style: "destructive", onPress: async () => {
+          const response = await fetch(API_ENDPOINTS.deletePortfolio(id), { method: 'POST' });
+          if (response.ok) fetchPortfolios();
+        }
+      }
     ]);
   };
 
@@ -209,8 +211,12 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
         const response = await fetch(API_ENDPOINTS.processResume, { method: 'POST', body: formData });
         const data = await response.json();
         if (response.ok) {
+          const processedData = data.data;
+          // Note: We keep the relative paths in the data to match the web/DB
+          // The UI will handle the absolute URL resolution for display.
+          
           setCurrentFilename(data.filename);
-          setEditData(data.data);
+          setEditData(processedData);
           showNotification("details fetched -portx");
           setStep(4);
         }
@@ -239,10 +245,11 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
         const response = await fetch(API_ENDPOINTS.uploadPhoto, { method: 'POST', body: formData });
         const data = await response.json();
         if (response.ok) {
-          setEditData(prev => prev ? { ...prev, profile_photo: BASE_URL + data.url } : null);
+          // Store the relative URL exactly like the web frontend does
+          setEditData(prev => prev ? { ...prev, profile_photo: data.url } : null);
           showNotification("Photo uploaded successfully");
         } else {
-          Alert.alert('Error', data.error || 'Photo upload failed');
+          Alert.alert('Upload Failed', data.error || 'Photo upload failed');
         }
       }
     } catch (err) {
@@ -295,13 +302,6 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
       const response = await fetch(API_ENDPOINTS.getPortfolio(id));
       const data = await response.json();
       if (response.ok) {
-        // Fix relative photo URLs for mobile
-        if (data.profile_photo && data.profile_photo.startsWith('/')) {
-            data.profile_photo = BASE_URL + data.profile_photo;
-        }
-        if (data.profile_image && data.profile_image.startsWith('/')) {
-            data.profile_image = BASE_URL + data.profile_image;
-        }
         setEditData(data);
         setCurrentFilename(id);
         setStep(4);
@@ -315,29 +315,29 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
       {(isUploading || isGenerating) && (
         <View style={styles.loadingOverlay}>
-          <Animated.View style={[styles.borderSmoke, styles.topSmoke, { 
+          <Animated.View style={[styles.borderSmoke, styles.topSmoke, {
             opacity: smokeAnim1.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.8] }),
-            transform: [{ translateY: smokeAnim1.interpolate({ inputRange: [0, 1], outputRange: [-20, 20] }) }, { scaleX: 1.5 }] 
+            transform: [{ translateY: smokeAnim1.interpolate({ inputRange: [0, 1], outputRange: [-20, 20] }) }, { scaleX: 1.5 }]
           }]}>
             <LinearGradient colors={['#a855f7', 'transparent']} style={StyleSheet.absoluteFill} />
           </Animated.View>
-          <Animated.View style={[styles.borderSmoke, styles.bottomSmoke, { 
+          <Animated.View style={[styles.borderSmoke, styles.bottomSmoke, {
             opacity: smokeAnim2.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.8] }),
-            transform: [{ translateY: smokeAnim2.interpolate({ inputRange: [0, 1], outputRange: [20, -20] }) }, { scaleX: 1.5 }] 
+            transform: [{ translateY: smokeAnim2.interpolate({ inputRange: [0, 1], outputRange: [20, -20] }) }, { scaleX: 1.5 }]
           }]}>
             <LinearGradient colors={['transparent', '#db2777']} style={StyleSheet.absoluteFill} />
           </Animated.View>
-          <Animated.View style={[styles.borderSmoke, styles.leftSmoke, { 
+          <Animated.View style={[styles.borderSmoke, styles.leftSmoke, {
             opacity: smokeAnim1.interpolate({ inputRange: [0, 1], outputRange: [0.2, 0.6] }),
-            transform: [{ translateX: smokeAnim1.interpolate({ inputRange: [0, 1], outputRange: [-20, 20] }) }, { scaleY: 1.5 }] 
+            transform: [{ translateX: smokeAnim1.interpolate({ inputRange: [0, 1], outputRange: [-20, 20] }) }, { scaleY: 1.5 }]
           }]}>
-            <LinearGradient start={{x:0, y:0}} end={{x:1, y:0}} colors={['#9333ea', 'transparent']} style={StyleSheet.absoluteFill} />
+            <LinearGradient start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} colors={['#9333ea', 'transparent']} style={StyleSheet.absoluteFill} />
           </Animated.View>
-          <Animated.View style={[styles.borderSmoke, styles.rightSmoke, { 
+          <Animated.View style={[styles.borderSmoke, styles.rightSmoke, {
             opacity: smokeAnim2.interpolate({ inputRange: [0, 1], outputRange: [0.2, 0.6] }),
-            transform: [{ translateX: smokeAnim2.interpolate({ inputRange: [0, 1], outputRange: [20, -20] }) }, { scaleY: 1.5 }] 
+            transform: [{ translateX: smokeAnim2.interpolate({ inputRange: [0, 1], outputRange: [20, -20] }) }, { scaleY: 1.5 }]
           }]}>
-            <LinearGradient start={{x:0, y:0}} end={{x:1, y:0}} colors={['transparent', '#db2777']} style={StyleSheet.absoluteFill} />
+            <LinearGradient start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} colors={['transparent', '#db2777']} style={StyleSheet.absoluteFill} />
           </Animated.View>
           <View style={styles.loadingContent}>
             <ActivityIndicator size="large" color="#fff" />
@@ -393,9 +393,9 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
           <View style={styles.section}>
             <TouchableOpacity onPress={() => setStep(1)} style={styles.backLink}><ArrowLeft color="#a855f7" size={18} /><Text style={styles.backLinkText}>Dashboard</Text></TouchableOpacity>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Edit Details</Text>
-            <EditForm data={editData} setData={setEditData} onPhotoUpload={handlePhotoUpload} isUploadingPhoto={isUploadingPhoto} onSave={() => { 
+            <EditForm data={editData} setData={setEditData} onPhotoUpload={handlePhotoUpload} isUploadingPhoto={isUploadingPhoto} onSave={() => {
               showNotification("your portfolio is updated click to view");
-              setStep(2); 
+              setStep(2);
             }} theme={theme} />
           </View>
         )}
@@ -403,20 +403,20 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
         {step === 2 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Choose Layout</Text>
-            
+
             {/* Search & Filter */}
             <View style={{ gap: 12 }}>
-              <TextInput 
-                style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} 
-                placeholder="Search templates..." 
+              <TextInput
+                style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
+                placeholder="Search templates..."
                 placeholderTextColor={theme.textMuted}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
                 {categories.map(cat => (
-                  <TouchableOpacity 
-                    key={cat} 
+                  <TouchableOpacity
+                    key={cat}
                     onPress={() => setSelectedCategory(cat)}
                     style={[styles.categoryBtn, selectedCategory === cat && styles.categoryBtnActive, { borderColor: theme.border }]}
                   >
@@ -431,7 +431,11 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
                 <TouchableOpacity 
                   key={t.id} 
                   onPress={() => setSelectedTemplate(t.id)} 
-                  style={[styles.templateCard, selectedTemplate === t.id && styles.templateCardSelected, { backgroundColor: theme.cardBg, borderColor: theme.border }]}
+                  style={[
+                    styles.templateCard, 
+                    { backgroundColor: theme.cardBg, borderColor: theme.border },
+                    selectedTemplate === t.id && styles.templateCardSelected
+                  ]}
                 >
                   <View style={[styles.templatePreview, { backgroundColor: theme.inputBg }]}>
                     <Image 
@@ -439,15 +443,20 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
                       style={{ width: '100%', height: '100%', borderRadius: 8 }}
                       resizeMode="cover"
                     />
+                    {selectedTemplate === t.id && (
+                      <View style={styles.checkmarkBadge}>
+                        <CheckCircle2 color="#fff" size={16} />
+                      </View>
+                    )}
                   </View>
                   <Text style={[styles.templateName, { color: theme.text }]} numberOfLines={1}>{t.name}</Text>
                   <Text style={{ fontSize: 10, color: theme.textMuted }}>{t.category}</Text>
                 </TouchableOpacity>
               ))}
             </View>
-            
-            <TouchableOpacity 
-              style={[styles.showMoreBtn, { borderColor: theme.border }]} 
+
+            <TouchableOpacity
+              style={[styles.showMoreBtn, { borderColor: theme.border }]}
               onPress={() => setShowAllTemplates(!showAllTemplates)}
             >
               <Text style={{ color: '#a855f7', fontWeight: '600' }}>
@@ -491,7 +500,7 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
           <TouchableOpacity activeOpacity={1} style={styles.overlay} onPress={() => toggleMenu(false)} />
           <Animated.View style={[styles.sideMenu, { transform: [{ translateX: menuAnim }], backgroundColor: theme.cardBg }]}>
             <View style={styles.menuHeader}><Text style={[styles.menuTitle, { color: theme.text }]}>Menu</Text><TouchableOpacity onPress={() => toggleMenu(false)}><X color={theme.text} size={24} /></TouchableOpacity></View>
-            
+
             <View style={styles.userInfo}>
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</Text>
@@ -503,7 +512,7 @@ export default function PortfolioBuilder({ onLogout }: PortfolioBuilderProps) {
             </View>
 
             <View style={styles.menuItem}><Text style={{ color: theme.text }}>Dark Mode</Text><Switch value={isDarkMode} onValueChange={setIsDarkMode} /></View>
-            
+
             <Text style={styles.menuSectionTitle}>My Projects</Text>
             <ScrollView style={{ flex: 1 }}>
               {portfolios.map(p => (
@@ -549,20 +558,23 @@ function EditForm({ data, setData, onPhotoUpload, isUploadingPhoto, onSave, them
     <View style={styles.form}>
       <Text style={[styles.label, { color: theme.textMuted }]}>Name</Text>
       <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} value={data.name} onChangeText={(v) => updateField('name', v)} />
-      
+
       <Text style={[styles.label, { color: theme.textMuted }]}>Email</Text>
       <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} value={data.email} onChangeText={(v) => updateField('email', v)} />
-      
+
       <Text style={[styles.label, { color: theme.textMuted }]}>Profile Photo</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, backgroundColor: theme.inputBg, borderRadius: 12, borderWidth: 1, borderColor: theme.border }}>
         <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(0,0,0,0.2)', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
           {data.profile_photo ? (
-            <Image source={{ uri: data.profile_photo }} style={{ width: '100%', height: '100%' }} />
+            <Image 
+              source={{ uri: data.profile_photo.startsWith('http') ? data.profile_photo : BASE_URL + data.profile_photo }} 
+              style={{ width: '100%', height: '100%' }} 
+            />
           ) : (
             <ImageIcon color={theme.textMuted} size={24} />
           )}
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={{ flex: 1, height: 40, borderRadius: 20, backgroundColor: 'rgba(168, 85, 247, 0.1)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(168, 85, 247, 0.3)' }}
           onPress={onPhotoUpload}
           disabled={isUploadingPhoto}
@@ -587,17 +599,17 @@ function EditForm({ data, setData, onPhotoUpload, isUploadingPhoto, onSave, them
       <TextInput style={[styles.input, { height: 100, backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} value={data.portfolio_summary} multiline onChangeText={(v) => updateField('portfolio_summary', v)} />
 
       <Text style={[styles.label, { color: theme.textMuted }]}>Skills (comma separated)</Text>
-      <TextInput 
-        style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]} 
-        value={data.skills.map(s => typeof s === 'string' ? s : s.name).join(', ')} 
+      <TextInput
+        style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
+        value={data.skills.map(s => typeof s === 'string' ? s : s.name).join(', ')}
         onChangeText={(v) => {
           const names = v.split(',').map(s => s.trimStart());
           const newSkills = names.map(name => {
-             const existing = data.skills.find(s => (typeof s === 'string' ? s : s.name).trim() === name.trim());
-             return existing || name;
+            const existing = data.skills.find(s => (typeof s === 'string' ? s : s.name).trim() === name.trim());
+            return existing || name;
           });
           setData({ ...data, skills: newSkills.filter(n => typeof n === 'string' ? n !== '' : n.name !== '') });
-        }} 
+        }}
       />
 
       {/* Experience Section */}
@@ -667,57 +679,58 @@ const styles = StyleSheet.create({
   logoContainer: { flexDirection: 'row', alignItems: 'center' },
   logoText: { fontSize: 20, fontWeight: 'bold', marginLeft: 8 },
   scrollContent: { paddingTop: 120, paddingHorizontal: 20, paddingBottom: 40 },
-  section: { gap: 20 },
-  sectionTitle: { fontSize: 28, fontWeight: '800' },
-  projectCard: { borderRadius: 20, padding: 20, borderWidth: 1, flexDirection: 'row', alignItems: 'center', minHeight: 160 },
+  section: {},
+  sectionTitle: { fontSize: 28, fontWeight: '800', marginBottom: 20 },
+  projectCard: { borderRadius: 20, padding: 20, borderWidth: 1, flexDirection: 'row', alignItems: 'center', minHeight: 160, marginBottom: 20 },
   projectName: { fontSize: 18, fontWeight: 'bold', marginBottom: 8 },
-  cardDetailRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
-  cardDetailText: { fontSize: 14 },
+  cardDetailRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  cardDetailText: { fontSize: 14, marginLeft: 8 },
   projectDate: { fontSize: 12 },
-  cardActions: { flexDirection: 'row', gap: 15 },
-  iconBtn: { padding: 5 },
+  cardActions: { flexDirection: 'row' },
+  iconBtn: { padding: 5, marginLeft: 15 },
   fixedFooter: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingBottom: 40, paddingTop: 20, zIndex: 100 },
   createButton: { height: 56, borderRadius: 28, overflow: 'hidden' },
-  gradientButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-  buttonText: { color: '#fff', fontSize: 17, fontWeight: 'bold' },
+  gradientButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  buttonText: { color: '#fff', fontSize: 17, fontWeight: 'bold', marginLeft: 10 },
   loadingOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 200, backgroundColor: 'rgba(0,0,0,0.8)', overflow: 'hidden' },
-  borderSmoke: { position: 'absolute', filter: 'blur(40px)' },
+  borderSmoke: { position: 'absolute' },
   topSmoke: { top: -50, left: 0, right: 0, height: 150 },
   bottomSmoke: { bottom: -50, left: 0, right: 0, height: 150 },
   leftSmoke: { left: -50, top: 0, bottom: 0, width: 100 },
   rightSmoke: { right: -50, top: 0, bottom: 0, width: 100 },
-  loadingContent: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20, zIndex: 10 },
-  loadingText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-  form: { gap: 16 },
-  label: { fontSize: 14, fontWeight: '600' },
+  loadingContent: { flex: 1, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  loadingText: { color: '#fff', fontSize: 18, fontWeight: '600', marginTop: 20 },
+  form: {},
+  label: { fontSize: 14, fontWeight: '600', marginBottom: 8, marginTop: 16 },
   input: { height: 52, borderRadius: 12, paddingHorizontal: 16, borderWidth: 1 },
-  saveButton: { height: 56, borderRadius: 28, overflow: 'hidden', marginTop: 10 },
-  backLink: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  backLinkText: { color: '#a855f7', fontWeight: '600' },
-  templateGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  templateCard: { width: '47%', borderRadius: 16, padding: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
-  templateCardSelected: { borderColor: '#9333ea' },
-  templatePreview: { width: '100%', height: 60, borderRadius: 8, marginBottom: 10, alignItems: 'center', justifyContent: 'center' },
-  templateName: { fontWeight: '600', fontSize: 13, textAlign: 'center' },
-  showMoreBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 15, borderStyle: 'dashed', borderWidth: 1, borderRadius: 12, marginTop: 10 },
+  saveButton: { height: 56, borderRadius: 28, overflow: 'hidden', marginTop: 26 },
+  backLink: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  backLinkText: { color: '#a855f7', fontWeight: '600', marginLeft: 6 },
+  templateGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  templateCard: { width: '48%', borderRadius: 16, padding: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 2, marginBottom: 12 },
+  templateCardSelected: { borderColor: '#9333ea', borderStyle: 'solid', shadowColor: '#9333ea', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 10, elevation: 5 },
+  templatePreview: { width: '100%', height: 100, borderRadius: 8, marginBottom: 10, alignItems: 'center', justifyContent: 'center', position: 'relative' },
+  checkmarkBadge: { position: 'absolute', top: -5, right: -5, backgroundColor: '#9333ea', borderRadius: 10, padding: 2, borderWidth: 2, borderColor: '#000' },
+  templateName: { fontWeight: '700', fontSize: 13, textAlign: 'center' },
+  showMoreBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 15, borderStyle: 'dashed', borderWidth: 1, borderRadius: 12, marginTop: 10 },
   nextButton: { height: 56, borderRadius: 28, overflow: 'hidden', marginTop: 10 },
-  previewCard: { width: '100%', borderRadius: 24, padding: 24, alignItems: 'center', gap: 20, borderWidth: 1, borderColor: '#a855f730' },
-  previewUrl: { fontSize: 16, fontWeight: 'bold' },
-  actionRow: { flexDirection: 'row', gap: 12 },
-  actionButton: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10 },
+  previewCard: { width: '100%', borderRadius: 24, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: '#a855f730', marginBottom: 20 },
+  previewUrl: { fontSize: 16, fontWeight: 'bold', marginBottom: 20 },
+  actionRow: { flexDirection: 'row' },
+  actionButton: { flexDirection: 'row', alignItems: 'center', padding: 10, marginHorizontal: 6 },
   overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 101 },
   sideMenu: { position: 'absolute', top: 0, right: 0, bottom: 0, width: width * 0.8, zIndex: 102, padding: 24, paddingTop: 60 },
   menuHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 },
   menuTitle: { fontSize: 24, fontWeight: 'bold' },
-  userInfo: { flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 32 },
-  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#9333ea', alignItems: 'center', justifyContent: 'center' },
+  userInfo: { flexDirection: 'row', alignItems: 'center', marginBottom: 32 },
+  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#9333ea', alignItems: 'center', justifyContent: 'center', marginRight: 16 },
   avatarText: { color: '#fff', fontSize: 24, fontWeight: 'bold' },
   userName: { fontSize: 18, fontWeight: 'bold' },
   menuItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 },
   menuSectionTitle: { fontSize: 12, fontWeight: 'bold', color: '#6b7280', textTransform: 'uppercase', marginTop: 24, marginBottom: 16, letterSpacing: 1 },
-  menuProjectItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
-  menuProjectName: { fontSize: 15, fontWeight: '500' },
-  logoutMenuItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 20, marginTop: 'auto' },
+  menuProjectItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
+  menuProjectName: { fontSize: 15, fontWeight: '500', marginLeft: 12 },
+  logoutMenuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 20, marginTop: 'auto' },
   notificationToast: { position: 'absolute', bottom: 120, left: 20, right: 20, padding: 16, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 10, zIndex: 1000 },
   notificationText: { color: '#fff', fontSize: 14, fontWeight: '700', textAlign: 'center' },
   categoryBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.05)' },

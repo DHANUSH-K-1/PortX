@@ -4,11 +4,12 @@ import { StatusBar } from 'expo-status-bar';
 import Landing from './src/screens/Landing';
 import Login from './src/screens/Login';
 import Register from './src/screens/Register';
+import ForgotPassword from './src/screens/ForgotPassword';
 import PortfolioBuilder from './src/screens/PortfolioBuilder';
 
 export default function App() {
   const [loading, setLoading] = useState(false); // Set to false for now as we don't have a backend mock yet
-  const [view, setView] = useState<'landing' | 'login' | 'register' | 'app'>('landing');
+  const [view, setView] = useState<'landing' | 'login' | 'register' | 'forgot-password' | 'app'>('landing');
 
   if (loading) {
     return (
@@ -33,6 +34,13 @@ export default function App() {
           <Login 
             onLoginSuccess={() => setView('app')} 
             onSwitchToRegister={() => setView('register')} 
+            onForgotPassword={() => setView('forgot-password')}
+          />
+        );
+      case 'forgot-password':
+        return (
+          <ForgotPassword 
+            onBackToLogin={() => setView('login')} 
           />
         );
       case 'register':

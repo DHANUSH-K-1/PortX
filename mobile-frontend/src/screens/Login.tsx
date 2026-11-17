@@ -7,9 +7,10 @@ import { API_ENDPOINTS } from '../api/config';
 interface LoginProps {
   onLoginSuccess: () => void;
   onSwitchToRegister: () => void;
+  onForgotPassword: () => void;
 }
 
-export default function Login({ onLoginSuccess, onSwitchToRegister }: LoginProps) {
+export default function Login({ onLoginSuccess, onSwitchToRegister, onForgotPassword }: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -111,6 +112,13 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }: LoginProps
               )}
             </LinearGradient>
           </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.forgotPasswordButton}
+            onPress={onForgotPassword}
+          >
+            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.footer}>
@@ -190,6 +198,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  forgotPasswordButton: {
+    alignItems: 'center',
+  },
+  forgotPasswordText: {
+    color: '#a855f7',
+    fontSize: 14,
+    fontWeight: '500',
   },
   errorContainer: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',

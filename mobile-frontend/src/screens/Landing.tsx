@@ -243,25 +243,23 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 75,
     backgroundColor: '#9333ea',
-    opacity: 0.2,
-    filter: 'blur(40px)',
+    opacity: 0.1,
   },
   featuresContent: {
-    gap: 40,
   },
   featuresTitle: {
     color: '#fff',
     fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'left',
+    marginBottom: 40,
   },
   featureList: {
-    gap: 32,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
+    marginBottom: 32,
   },
   featureIcon: {
     width: 56,
@@ -272,6 +270,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginRight: 20,
   },
   featureItemTitle: {
     color: '#fff',
