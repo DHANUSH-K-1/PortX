@@ -16,21 +16,43 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: process.env.VITE_API_URL || 'https://portx-mvq4.onrender.com',
         changeOrigin: true,
       },
       '/p': {
-        target: 'http://localhost:5000',
+        target: process.env.VITE_API_URL || 'https://portx-mvq4.onrender.com',
+        changeOrigin: true,
+      },
+      '/photos': {
+        target: process.env.VITE_API_URL || 'https://portx-mvq4.onrender.com',
         changeOrigin: true,
       },
       '/download': {
-        target: 'http://localhost:5000',
+        target: process.env.VITE_API_URL || 'https://portx-mvq4.onrender.com',
         changeOrigin: true,
       },
       '/photos': {
         target: 'http://localhost:5000',
         changeOrigin: true,
       },
+    }
+  },
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('three') || id.includes('@react-three')) {
+              return 'vendor-three';
+            }
+            if (id.includes('framer-motion') || id.includes('motion')) {
+              return 'vendor-motion';
+            }
+            return 'vendor';
+          }
+        }
+      }
     }
   }
 });
